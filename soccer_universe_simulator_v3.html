@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soccer Universe Simulator</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #121b2e;
+      --panel-2: #18243a;
+      --text: #eef4ff;
+      --muted: #9fb0c9;
+      --accent: #38bdf8;
+      --accent-2: #0ea5e9;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --border: #2a3954;
+      --gold: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #09101d, #0d1627);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    button, input, select {
+      font: inherit;
+    }
+    button {
+      cursor: pointer;
+      border: 0;
+    }
+    .hidden { display: none !important; }
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 38px);
+    }
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+    .btn {
+      background: var(--accent);
+      color: #04101a;
+      padding: 10px 15px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+    .btn:hover { background: var(--accent-2); color: white; }
+    .btn.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.danger {
+      background: var(--danger);
+      color: white;
+    }
+    .btn.success {
+      background: var(--success);
+      color: #04110a;
+    }
+    .btn.small {
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      background: rgba(18,27,46,.95);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+    }
+    .card h2, .card h3 { margin-top: 0; }
+    .muted { color: var(--muted); }
+    .world-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .world-name {
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .metric {
+      font-size: 28px;
+      font-weight: 900;
+      margin-top: 8px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .tab {
+      background: var(--panel-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 9px 13px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: #04101a;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      background: #0a1323;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 12px;
+    }
+    input[type="range"] { padding: 0; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .team-list, .competition-list {
+      display: grid;
+      gap: 10px;
+    }
+    .team-row, .competition-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 13px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: white;
+      border: 2px solid rgba(255,255,255,.28);
+      overflow: hidden;
+      background: #334155;
+    }
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .strength {
+      min-width: 52px;
+      text-align: center;
+      background: #0a1323;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-weight: 800;
+    }
+    .stage {
+      padding: 12px;
+      margin: 8px 0;
+      border-left: 4px solid var(--accent);
+      background: var(--panel-2);
+      border-radius: 10px;
+    }
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px;
+      border-radius: 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+    .check input { width: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      padding: 10px 9px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    th {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    td.team-name, th.team-name { text-align: left; }
+    .table-wrap { overflow-x: auto; }
+    .result-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .score {
+      font-size: 22px;
+      font-weight: 900;
+      min-width: 64px;
+      text-align: center;
+    }
+    .right { text-align: right; }
+    .badge {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(56,189,248,.16);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .champion {
+      border-color: var(--gold);
+      box-shadow: inset 0 0 0 1px rgba(251,191,36,.15);
+    }
+    .notice {
+      padding: 12px;
+      border: 1px solid var(--border);
+      background: rgba(56,189,248,.08);
+      border-radius: 12px;
+      color: var(--muted);
+    }
+    dialog {
+      width: min(560px, calc(100% - 30px));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 20px;
+    }
+    dialog::backdrop { background: rgba(0,0,0,.7); }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .competition-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(280px, .85fr);
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+    .side-stack {
+      display: grid;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .competition-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .grid.two, .grid.three, .form-row { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .team-row, .competition-row { grid-template-columns: auto 1fr auto; }
+      .team-row .actions, .competition-row .actions { grid-column: 1 / -1; }
+      .checkbox-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="worldScreen">
+      <div class="topbar">
+        <div class="brand">
+          <h1>Soccer Universe Simulator</h1>
+          <p>Create up to 24 teams, build custom competitions, and simulate unlimited seasons.</p>
+        </div>
+        <button class="btn" id="newWorldBtn">+ New World</button>
+      </div>
+      <div id="worldList" class="grid two"></div>
+    </section>
+
+    <section id="appScreen" class="hidden">
+      <div class="topbar">
+        <div class="brand">
+          <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
+          <h1 id="worldTitle" style="margin-top:10px"></h1>
+          <p id="saveStatus">Saved locally in this browser.</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn secondary" id="manualSaveBtn">Save</button>
+          <button class="btn danger" id="deleteWorldBtn">Delete World</button>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="dashboard">Dashboard</button>
+        <button class="tab" data-tab="teams">Teams</button>
+        <button class="tab" data-tab="competitions">Competitions</button>
+        <button class="tab" data-tab="records">World Records</button>
+      </nav>
+
+      <section id="tab-dashboard" class="tab-panel"></section>
+      <section id="tab-teams" class="tab-panel hidden"></section>
+      <section id="tab-competitions" class="tab-panel hidden"></section>
+      <section id="tab-records" class="tab-panel hidden"></section>
+    </section>
+  </main>
+
+  <dialog id="worldDialog">
+    <h2>Create New World</h2>
+    <div class="form-group">
+      <label for="worldNameInput">World name</label>
+      <input id="worldNameInput" maxlength="40" placeholder="My Soccer World" />
+    </div>
+    <div class="dialog-actions">
+      <button class="btn secondary" data-close="worldDialog">Cancel</button>
+      <button class="btn" id="createWorldConfirm">Create</button>
+    </div>
+  </dialog>
+
+  <dialog id="teamDialog">
+    <h2 id="teamDialogTitle">Create Team</h2>
+    <input type="hidden" id="teamIdInput" />
+    <div class="form-group">
+      <label for="teamNameInput">Team name</label>
+      <input id="teamNameInput" maxlength="36" />
+    </div>
+    <div class="form-row">
+      <div>
+        <label for="teamStrengthRange">Strength: <span id="strengthValue">70</span></label>
+        <input type="range" id="teamStrengthRange" min="0" max="100" value="70" />
+      </div>
+      <div>
+        <label for="teamStrengthNumber">Exact strength</label>
+        <input type="number" id="teamStrengthNumber" min="0" max="100" value="70" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label for="teamColorInput">Logo color</label>
+        <input type="color" id="teamColorInput" value="#2563eb" />
+      </div>
+      <div>
+        <label for="teamLogoInput">Upload logo (optional)</label>
+        <input type="file" id="teamLogoInput" accept="image/*" />
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn secondary" data-close="teamDialog">Cancel</button>
+      <button class="btn" id="saveTeamBtn">Save Team</button>
+    </div>
+  </dialog>
+
+  <dialog id="competitionDialog">
+    <h2>Create Competition</h2>
+    <div class="form-row">
+      <div>
+        <label for="competitionNameInput">Competition name</label>
+        <input id="competitionNameInput" maxlength="45" placeholder="My League" />
+      </div>
+      <div>
+        <label for="competitionTemplate">Template</label>
+        <select id="competitionTemplate">
+          <option value="league">League</option>
+          <option value="groups">Group Stage</option>
+          <option value="knockout">Knockout Tournament</option>
+          <option value="group-knockout">Groups + Knockout</option>
+          <option value="league-knockout">League + Knockout</option>
+          <option value="custom">Blank Custom</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label for="competitionCategory">Records category</label>
+        <select id="competitionCategory">
+          <option value="league">League</option>
+          <option value="champions-league">Champions League</option>
+          <option value="cup">Cup / Tournament</option>
+        </select>
+      </div>
+      <div>
+        <label for="groupCountInput">Number of groups</label>
+        <input type="number" id="groupCountInput" min="1" max="12" value="1" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label for="timesPlayedInput">League matches per opponent</label>
+        <select id="timesPlayedInput">
+          <option value="1">1</option>
+          <option value="2" selected>2 (home and away)</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+      <div>
+        <label for="advanceCountInput">Teams advancing</label>
+        <input type="number" id="advanceCountInput" min="1" max="24" value="4" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="toolbar" style="justify-content:space-between">
+        <label style="margin:0">Select teams</label>
+        <div class="toolbar" style="margin:0">
+          <button class="btn secondary small" id="selectAllTeamsBtn" type="button">Select All</button>
+          <button class="btn secondary small" id="clearAllTeamsBtn" type="button">Clear All</button>
+        </div>
+      </div>
+      <div id="competitionTeamPicker" class="checkbox-grid"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Custom stages</label>
+      <div class="toolbar">
+        <select id="stageTypeSelect" style="max-width:220px">
+          <option value="League">League</option>
+          <option value="Groups">Groups</option>
+          <option value="Round of 32">Round of 32</option>
+          <option value="Round of 16">Round of 16</option>
+          <option value="Quarterfinals">Quarterfinals</option>
+          <option value="Semifinals">Semifinals</option>
+          <option value="Final">Final</option>
+        </select>
+        <button class="btn secondary small" id="addStageBtn" type="button">+ Add Stage</button>
+      </div>
+      <div id="customStageList"></div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="btn secondary" data-close="competitionDialog">Cancel</button>
+      <button class="btn" id="createCompetitionBtn">Create Competition</button>
+    </div>
+  </dialog>
+
+  <dialog id="confirmSeasonDialog">
+    <h2>Simulate the rest of the season?</h2>
+    <p class="muted">This will finish every remaining match and lock in the final standings.</p>
+    <div class="dialog-actions">
+      <button class="btn secondary" data-close="confirmSeasonDialog">Cancel</button>
+      <button class="btn success" id="confirmSimSeasonBtn">Simulate Season</button>
+    </div>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = "soccerUniverseSimulatorV1";
+    let data = loadData();
+    let currentWorldId = null;
+    let activeCompetitionId = null;
+    let pendingSeasonCompetitionId = null;
+    let pendingLogoData = "";
+    let customStages = [];
+
+    const $ = (id) => document.getElementById(id);
+    const uid = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+
+    function loadData() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { worlds: [] };
+      } catch {
+        return { worlds: [] };
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const status = $("saveStatus");
+      if (status) {
+        status.textContent = "Saved locally at " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      }
+    }
+
+    function currentWorld() {
+      return data.worlds.find(w => w.id === currentWorldId);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+      }[c]));
+    }
+
+    function initials(name) {
+      return name.split(/\s+/).slice(0,2).map(x => x[0]?.toUpperCase() || "").join("");
+    }
+
+    function teamLogo(team) {
+      if (!team) return `<div class="logo">?</div>`;
+      if (team.logoData) return `<div class="logo"><img src="${team.logoData}" alt="${escapeHtml(team.name)} logo"></div>`;
+      return `<div class="logo" style="background:${team.color}">${escapeHtml(initials(team.name))}</div>`;
+    }
+
+    function renderWorldList() {
+      const list = $("worldList");
+      if (!data.worlds.length) {
+        list.innerHTML = `<div class="card"><h2>No saved worlds yet</h2><p class="muted">Create your first soccer world and add up to 24 teams.</p></div>`;
+        return;
+      }
+      list.innerHTML = data.worlds.map(world => `
+        <div class="card world-card">
+          <div>
+            <div class="world-name">${escapeHtml(world.name)}</div>
+            <div class="muted">${world.teams.length} teams · ${world.competitions.length} competitions</div>
+          </div>
+          <button class="btn open-world" data-id="${world.id}">Open</button>
+        </div>
+      `).join("");
+      document.querySelectorAll(".open-world").forEach(btn => {
+        btn.addEventListener("click", () => openWorld(btn.dataset.id));
+      });
+    }
+
+    function openWorld(id) {
+      currentWorldId = id;
+      activeCompetitionId = null;
+      $("worldScreen").classList.add("hidden");
+      $("appScreen").classList.remove("hidden");
+      $("worldTitle").textContent = currentWorld().name;
+      switchTab("dashboard");
+      renderAll();
+    }
+
+    function closeWorld() {
+      currentWorldId = null;
+      $("appScreen").classList.add("hidden");
+      $("worldScreen").classList.remove("hidden");
+      renderWorldList();
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
+      $("tab-" + name).classList.remove("hidden");
+      if (name === "dashboard") renderDashboard();
+      if (name === "teams") renderTeams();
+      if (name === "competitions") renderCompetitions();
+      if (name === "records") renderRecords();
+    }
+
+    function renderAll() {
+      renderDashboard();
+      renderTeams();
+      renderCompetitions();
+      renderRecords();
+    }
+
+    function renderDashboard() {
+      const world = currentWorld();
+      const active = world.competitions.filter(c => !c.finished).length;
+      const finished = world.competitions.filter(c => c.finished).length;
+      $("tab-dashboard").innerHTML = `
+        <div class="grid three">
+          <div class="metric-card card"><div class="muted">Teams</div><div class="metric">${world.teams.length}/24</div></div>
+          <div class="metric-card card"><div class="muted">Active competitions</div><div class="metric">${active}</div></div>
+          <div class="metric-card card"><div class="muted">Completed seasons</div><div class="metric">${world.history.length}</div></div>
+        </div>
+        <div class="grid two" style="margin-top:16px">
+          <div class="card">
+            <h2>Quick Actions</h2>
+            <div class="toolbar">
+              <button class="btn" id="dashAddTeam">+ Create Team</button>
+              <button class="btn secondary" id="dashAddCompetition">+ Create Competition</button>
+            </div>
+            <p class="muted">Create your 24-team library once, then load those teams into any league or tournament.</p>
+          </div>
+          <div class="card">
+            <h2>Recent Champions</h2>
+            ${world.history.length ? world.history.slice(-5).reverse().map(h => `
+              <div class="stage champion"><strong>${escapeHtml(h.competitionName)}</strong><br>
+              <span class="muted">Season ${h.season} · ${escapeHtml(h.championName)}</span></div>
+            `).join("") : `<p class="muted">No completed competitions yet.</p>`}
+          </div>
+        </div>
+      `;
+      $("dashAddTeam").addEventListener("click", openNewTeamDialog);
+      $("dashAddCompetition").addEventListener("click", openCompetitionDialog);
+    }
+
+    function renderTeams() {
+      const world = currentWorld();
+      $("tab-teams").innerHTML = `
+        <div class="toolbar">
+          <button class="btn" id="addTeamBtn" ${world.teams.length >= 24 ? "disabled" : ""}>+ Create Team</button>
+          <span class="muted">${world.teams.length}/24 teams created</span>
+        </div>
+        <div class="team-list">
+          ${world.teams.length ? world.teams.map(team => `
+            <div class="team-row">
+              ${teamLogo(team)}
+              <div>
+                <strong>${escapeHtml(team.name)}</strong><br>
+                <span class="muted">Click Edit to change name, logo, or strength</span>
+              </div>
+              <div class="strength">${team.strength}</div>
+              <div class="actions toolbar" style="margin:0">
+                <button class="btn secondary small edit-team" data-id="${team.id}">Edit Team</button>
+                <button class="btn danger small delete-team" data-id="${team.id}">Delete</button>
+              </div>
+            </div>
+          `).join("") : `<div class="card"><p class="muted">No teams yet.</p></div>`}
+        </div>
+      `;
+      $("addTeamBtn")?.addEventListener("click", openNewTeamDialog);
+      document.querySelectorAll(".edit-team").forEach(btn => btn.addEventListener("click", () => openEditTeamDialog(btn.dataset.id)));
+      document.querySelectorAll(".delete-team").forEach(btn => btn.addEventListener("click", () => deleteTeam(btn.dataset.id)));
+    }
+
+    function openNewTeamDialog() {
+      const world = currentWorld();
+      if (world.teams.length >= 24) return alert("This world already has the maximum of 24 teams.");
+      $("teamDialogTitle").textContent = "Create Team";
+      $("teamIdInput").value = "";
+      $("teamNameInput").value = "";
+      $("teamStrengthRange").value = 70;
+      $("teamStrengthNumber").value = 70;
+      $("strengthValue").textContent = 70;
+      $("teamColorInput").value = randomColor();
+      $("teamLogoInput").value = "";
+      pendingLogoData = "";
+      $("teamDialog").showModal();
+    }
+
+    function openEditTeamDialog(id) {
+      const team = currentWorld().teams.find(t => t.id === id);
+      $("teamDialogTitle").textContent = "Edit Team";
+      $("teamIdInput").value = team.id;
+      $("teamNameInput").value = team.name;
+      $("teamStrengthRange").value = team.strength;
+      $("teamStrengthNumber").value = team.strength;
+      $("strengthValue").textContent = team.strength;
+      $("teamColorInput").value = team.color;
+      $("teamLogoInput").value = "";
+      pendingLogoData = team.logoData || "";
+      $("teamDialog").showModal();
+    }
+
+    function deleteTeam(id) {
+      const world = currentWorld();
+      const used = world.competitions.some(c => c.teamIds.includes(id));
+      if (used) return alert("This team is already used in a competition and cannot be deleted.");
+      if (!confirm("Delete this team?")) return;
+      world.teams = world.teams.filter(t => t.id !== id);
+      saveData();
+      renderAll();
+    }
+
+    function randomColor() {
+      const colors = ["#2563eb","#dc2626","#16a34a","#9333ea","#ea580c","#0891b2","#be123c","#4f46e5"];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function openCompetitionDialog() {
+      const world = currentWorld();
+      if (world.teams.length < 2) return alert("Create at least two teams first.");
+      $("competitionNameInput").value = "";
+      $("competitionTemplate").value = "league";
+      $("competitionCategory").value = "league";
+      $("groupCountInput").value = 1;
+      $("timesPlayedInput").value = "2";
+      $("advanceCountInput").value = Math.min(4, world.teams.length);
+      customStages = ["League"];
+      renderCustomStages();
+      $("competitionTeamPicker").innerHTML = world.teams.map(t => `
+        <label class="check">
+          <input type="checkbox" class="competition-team-check" value="${t.id}">
+          ${teamLogo(t)}
+          <span>${escapeHtml(t.name)}</span>
+        </label>
+      `).join("");
+      $("competitionDialog").showModal();
+    }
+
+    function renderCustomStages() {
+      $("customStageList").innerHTML = customStages.length ? customStages.map((s, i) => `
+        <div class="stage">
+          <strong>Stage ${i+1}: ${escapeHtml(s)}</strong>
+          <button class="btn danger small remove-stage" data-index="${i}" style="float:right">Remove</button>
+        </div>
+      `).join("") : `<p class="muted">No stages added.</p>`;
+      document.querySelectorAll(".remove-stage").forEach(btn => btn.addEventListener("click", () => {
+        customStages.splice(Number(btn.dataset.index), 1);
+        renderCustomStages();
+      }));
+    }
+
+    function stagesFromTemplate(template) {
+      const map = {
+        league: ["League"],
+        groups: ["Groups"],
+        knockout: ["Round of 16","Quarterfinals","Semifinals","Final"],
+        "group-knockout": ["Groups","Round of 16","Quarterfinals","Semifinals","Final"],
+        "league-knockout": ["League","Quarterfinals","Semifinals","Final"],
+        custom: []
+      };
+      return [...map[template]];
+    }
+
+    function createCompetition() {
+      const world = currentWorld();
+      const name = $("competitionNameInput").value.trim();
+      const selected = [...document.querySelectorAll(".competition-team-check:checked")].map(x => x.value);
+      if (!name) return alert("Enter a competition name.");
+      if (selected.length < 2) return alert("Select at least two teams.");
+      if (!customStages.length) return alert("Add at least one stage.");
+
+      const competition = {
+        id: uid(),
+        name,
+        teamIds: selected,
+        stages: [...customStages],
+        currentStageIndex: 0,
+        category: $("competitionCategory").value,
+        groupCount: Math.max(1, Math.min(Number($("groupCountInput").value), selected.length)),
+        timesPlayed: Number($("timesPlayedInput").value),
+        advanceCount: Math.max(1, Math.min(Number($("advanceCountInput").value), selected.length)),
+        season: 1,
+        locked: false,
+        finished: false,
+        fixtures: [],
+        currentMatchday: 0,
+        table: initializeTable(selected),
+        results: [],
+        championId: null
+      };
+      setupCompetitionStage(competition);
+      world.competitions.push(competition);
+      saveData();
+      $("competitionDialog").close();
+      activeCompetitionId = competition.id;
+      switchTab("competitions");
+    }
+
+    function initializeTable(teamIds) {
+      return Object.fromEntries(teamIds.map(id => [id, {
+        teamId:id, played:0, wins:0, draws:0, losses:0, gf:0, ga:0, gd:0, pts:0, form:[]
+      }]));
+    }
+
+    function setupCompetitionStage(comp) {
+      const stage = comp.stages[comp.currentStageIndex];
+      comp.currentMatchday = 0;
+      comp.results = comp.results || [];
+      if (stage === "League") {
+        comp.table = initializeTable(comp.teamIds);
+        comp.groupTables = null;
+        comp.groupAssignments = null;
+        comp.fixtures = generateLeagueFixtures(comp.teamIds, comp.timesPlayed);
+      } else if (stage === "Groups") {
+        const groups = splitIntoGroups(comp.teamIds, comp.groupCount || 1);
+        comp.groupAssignments = groups;
+        comp.groupTables = groups.map(ids => initializeTable(ids));
+        comp.table = initializeTable(comp.teamIds);
+        comp.fixtures = mergeGroupFixtures(groups.map(ids => generateLeagueFixtures(ids, comp.timesPlayed)));
+      } else {
+        const needed = stageSize(stage);
+        let entrants = getSortedTable(comp).slice(0, Math.min(needed, comp.teamIds.length)).map(r => r.teamId);
+        if (!entrants.length) entrants = [...comp.teamIds];
+        comp.teamIds = entrants;
+        comp.fixtures = generateKnockoutRound(entrants);
+      }
+    }
+
+    function stageSize(stage) {
+      if (stage.includes("32")) return 32;
+      if (stage.includes("16")) return 16;
+      if (stage === "Quarterfinals") return 8;
+      if (stage === "Semifinals") return 4;
+      if (stage === "Final") return 2;
+      return 24;
+    }
+
+    function splitIntoGroups(teamIds, groupCount) {
+      const count = Math.max(1, Math.min(groupCount, teamIds.length));
+      const shuffled = [...teamIds].sort(() => Math.random() - 0.5);
+      const groups = Array.from({length: count}, () => []);
+      shuffled.forEach((id, index) => groups[index % count].push(id));
+      return groups.filter(g => g.length);
+    }
+
+    function mergeGroupFixtures(groupFixtures) {
+      const maxRounds = Math.max(...groupFixtures.map(f => f.length), 0);
+      const merged = [];
+      for (let round = 0; round < maxRounds; round++) {
+        merged.push(groupFixtures.flatMap(f => f[round] || []));
+      }
+      return merged;
+    }
+
+
+    function generateLeagueFixtures(teamIds, timesPlayed) {
+      let teams = [...teamIds];
+      if (teams.length % 2) teams.push(null);
+      const rounds = [];
+      const n = teams.length;
+      for (let round = 0; round < n - 1; round++) {
+        const games = [];
+        for (let i = 0; i < n / 2; i++) {
+          const a = teams[i], b = teams[n - 1 - i];
+          if (a && b) games.push({homeId: round % 2 ? b : a, awayId: round % 2 ? a : b, played:false});
+        }
+        rounds.push(games);
+        teams = [teams[0], teams[n-1], ...teams.slice(1,n-1)];
+      }
+      const all = [];
+      for (let cycle = 0; cycle < timesPlayed; cycle++) {
+        rounds.forEach((games, idx) => {
+          all.push(games.map(g => cycle % 2 === 0 ? {...g} : {homeId:g.awayId, awayId:g.homeId, played:false}));
+        });
+      }
+      return all;
+    }
+
+    function generateKnockoutRound(teamIds) {
+      const shuffled = [...teamIds].sort(() => Math.random() - .5);
+      const games = [];
+      for (let i = 0; i < shuffled.length - 1; i += 2) {
+        games.push({homeId:shuffled[i], awayId:shuffled[i+1], played:false});
+      }
+      return [games];
+    }
+
+    function renderCompetitions() {
+      const world = currentWorld();
+      const panel = $("tab-competitions");
+      if (activeCompetitionId) {
+        const comp = world.competitions.find(c => c.id === activeCompetitionId);
+        if (!comp) activeCompetitionId = null;
+        else return renderCompetitionDetail(comp);
+      }
+      panel.innerHTML = `
+        <div class="toolbar">
+          <button class="btn" id="addCompetitionBtn">+ Create Competition</button>
+        </div>
+        <div class="competition-list">
+          ${world.competitions.length ? world.competitions.map(c => `
+            <div class="competition-row ${c.finished ? "champion" : ""}">
+              <div class="logo" style="border-radius:12px;background:#7c3aed">🏆</div>
+              <div>
+                <strong>${escapeHtml(c.name)}</strong><br>
+                <span class="muted">Season ${c.season} · ${escapeHtml(c.stages.join(" → "))}</span>
+              </div>
+              <span class="badge">${c.finished ? "Finished" : "Matchday " + (c.currentMatchday + 1)}</span>
+              <div class="actions toolbar" style="margin:0">
+                <button class="btn secondary small open-comp" data-id="${c.id}">Open</button>
+                <button class="btn danger small delete-comp" data-id="${c.id}">Delete</button>
+              </div>
+            </div>
+          `).join("") : `<div class="card"><p class="muted">No competitions yet.</p></div>`}
+        </div>
+      `;
+      $("addCompetitionBtn").addEventListener("click", openCompetitionDialog);
+      document.querySelectorAll(".open-comp").forEach(b => b.addEventListener("click", () => { activeCompetitionId = b.dataset.id; renderCompetitions(); }));
+      document.querySelectorAll(".delete-comp").forEach(b => b.addEventListener("click", () => deleteCompetition(b.dataset.id)));
+    }
+
+    function deleteCompetition(id) {
+      if (!confirm("Delete this competition and its current season?")) return;
+      const world = currentWorld();
+      world.competitions = world.competitions.filter(c => c.id !== id);
+      saveData();
+      renderAll();
+    }
+
+    function renderCompetitionDetail(comp) {
+      const world = currentWorld();
+      const stage = comp.stages[comp.currentStageIndex];
+      const sorted = getSortedTable(comp);
+      const latestMatchday = comp.results.length ? comp.results[comp.results.length - 1] : null;
+
+      let mainContent = "";
+      if (stage === "League") {
+        mainContent = `
+          <div class="card">
+            <h2>League Table</h2>
+            ${tableHtml(sorted)}
+          </div>`;
+      } else if (stage === "Groups") {
+        mainContent = `
+          <div class="card">
+            <h2>Group Standings</h2>
+            ${(comp.groupTables || []).map((table, index) => `
+              <div style="margin-bottom:22px">
+                <h3>Group ${String.fromCharCode(65 + index)}</h3>
+                ${tableHtml(Object.values(table).sort((a,b)=>b.pts-a.pts || b.gd-a.gd || b.gf-a.gf))}
+              </div>
+            `).join("")}
+          </div>`;
+      } else {
+        mainContent = `
+          <div class="card">
+            <h2>${escapeHtml(stage || "Knockout")}</h2>
+            <div class="grid two">
+              ${(comp.fixtures[comp.currentMatchday] || []).map((g, index) => `
+                <div class="stage">
+                  <div class="muted">Match ${index + 1}</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:8px">${teamLogo(teamById(g.homeId))}<strong>${escapeHtml(teamName(g.homeId))}</strong></div>
+                  <div style="text-align:center;margin:6px 0" class="muted">vs</div>
+                  <div style="display:flex;align-items:center;gap:10px">${teamLogo(teamById(g.awayId))}<strong>${escapeHtml(teamName(g.awayId))}</strong></div>
+                </div>
+              `).join("") || `<p class="muted">This round has been completed.</p>`}
+            </div>
+          </div>`;
+      }
+
+      $("tab-competitions").innerHTML = `
+        <div class="toolbar">
+          <button class="btn secondary" id="backCompetitions">← Competitions</button>
+          ${!comp.finished ? `<button class="btn" id="simulateMatchdayBtn">Simulate Matchday</button>
+          <button class="btn success" id="simulateSeasonBtn">Simulate Season</button>` : `
+          <button class="btn" id="newSeasonBtn">Start Next Season</button>`}
+        </div>
+
+        <div class="competition-layout">
+          <div>
+            ${mainContent}
+          </div>
+
+          <aside class="side-stack">
+            <div class="card">
+              <div class="muted">Competition</div>
+              <div class="metric" style="font-size:22px">${escapeHtml(comp.name)}</div>
+              <div style="margin-top:12px"><span class="badge">Season ${comp.season}</span></div>
+              <div style="margin-top:10px"><span class="badge">${escapeHtml(stage || "Complete")}</span></div>
+            </div>
+
+            <div class="card">
+              <h2>Competition Flow</h2>
+              ${comp.stages.map((s,i) => `<div class="stage" style="${i===comp.currentStageIndex ? "border-left-color:var(--gold)" : ""}">
+                <strong>${i+1}. ${escapeHtml(s)}</strong>
+              </div>`).join("")}
+            </div>
+
+            ${comp.championId ? `<div class="card champion">
+              <h2>Champion</h2>
+              <div style="display:flex;align-items:center;gap:10px">
+                ${teamLogo(teamById(comp.championId))}
+                <div class="world-name">${escapeHtml(teamName(comp.championId))}</div>
+              </div>
+            </div>` : ""}
+
+            ${latestMatchday ? `<div class="card">
+              <h2>Latest Results</h2>
+              ${latestMatchday.games.map(g => resultHtml(g)).join("")}
+            </div>` : ""}
+          </aside>
+        </div>
+      `;
+      $("backCompetitions").addEventListener("click", () => { activeCompetitionId = null; renderCompetitions(); });
+      $("simulateMatchdayBtn")?.addEventListener("click", () => simulateMatchday(comp.id));
+      $("simulateSeasonBtn")?.addEventListener("click", () => {
+        pendingSeasonCompetitionId = comp.id;
+        $("confirmSeasonDialog").showModal();
+      });
+      $("newSeasonBtn")?.addEventListener("click", () => startNextSeason(comp.id));
+    }
+
+    function resultHtml(g) {
+      return `<div class="result-row">
+        <div class="right" style="display:flex;justify-content:flex-end;align-items:center;gap:9px">
+          <span>${escapeHtml(teamName(g.homeId))}</span>
+          ${teamLogo(teamById(g.homeId))}
+        </div>
+        <div class="score">${g.homeGoals}–${g.awayGoals}</div>
+        <div style="display:flex;align-items:center;gap:9px">
+          ${teamLogo(teamById(g.awayId))}
+          <span>${escapeHtml(teamName(g.awayId))}</span>
+        </div>
+      </div>`;
+    }
+
+    function tableHtml(rows) {
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>#</th><th class="team-name">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead>
+        <tbody>${rows.map((r,i) => `<tr>
+          <td>${i+1}</td><td class="team-name"><div style="display:flex;align-items:center;gap:9px">${teamLogo(teamById(r.teamId))}<span>${escapeHtml(teamName(r.teamId))}</span></div></td><td>${r.played}</td><td>${r.wins}</td><td>${r.draws}</td><td>${r.losses}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td><strong>${r.pts}</strong></td>
+        </tr>`).join("")}</tbody>
+      </table></div>`;
+    }
+
+    function teamName(id) {
+      return currentWorld().teams.find(t => t.id === id)?.name || "Unknown Team";
+    }
+
+    function getSortedTable(comp) {
+      return Object.values(comp.table || {}).sort((a,b) =>
+        b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || teamName(a.teamId).localeCompare(teamName(b.teamId))
+      );
+    }
+
+    function teamById(id) {
+      return currentWorld().teams.find(t => t.id === id);
+    }
+
+    function simulateScore(homeId, awayId, knockout=false) {
+      const home = teamById(homeId), away = teamById(awayId);
+      const homeForm = averageForm(homeId);
+      const awayForm = averageForm(awayId);
+      const homePower = home.strength + 4 + homeForm;
+      const awayPower = away.strength + awayForm;
+      const baseGoals = 1.15;
+      const homeExpected = clamp(baseGoals + (homePower - awayPower) / 22, 0.15, 4.5);
+      const awayExpected = clamp(baseGoals + (awayPower - homePower) / 24, 0.1, 4.2);
+      let hg = poisson(homeExpected);
+      let ag = poisson(awayExpected);
+      if (knockout && hg === ag) {
+        if (Math.random() < homePower / (homePower + awayPower)) hg++;
+        else ag++;
+      }
+      return [Math.min(hg,9), Math.min(ag,9)];
+    }
+
+    function averageForm(teamId) {
+      const comps = currentWorld().competitions;
+      const values = [];
+      comps.forEach(c => {
+        const form = c.table?.[teamId]?.form || [];
+        values.push(...form.slice(-5));
+      });
+      if (!values.length) return 0;
+      return values.reduce((a,b)=>a+b,0) / values.length;
+    }
+
+    function poisson(lambda) {
+      let L = Math.exp(-lambda), k = 0, p = 1;
+      do { k++; p *= Math.random(); } while (p > L);
+      return k - 1;
+    }
+
+    function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+
+    function simulateMatchday(compId, silent=false) {
+      const comp = currentWorld().competitions.find(c => c.id === compId);
+      if (!comp || comp.finished) return;
+      comp.locked = true;
+      const stage = comp.stages[comp.currentStageIndex];
+      const round = comp.fixtures[comp.currentMatchday];
+      if (!round) {
+        advanceStageOrFinish(comp);
+        if (!silent) { saveData(); renderAll(); }
+        return;
+      }
+
+      const knockout = !(stage === "League" || stage === "Groups");
+      const matchdayResult = { stage, matchday: comp.currentMatchday + 1, games: [] };
+      const winners = [];
+
+      round.forEach(game => {
+        const [hg, ag] = simulateScore(game.homeId, game.awayId, knockout);
+        game.played = true;
+        game.homeGoals = hg;
+        game.awayGoals = ag;
+        matchdayResult.games.push({...game});
+        if (knockout) winners.push(hg > ag ? game.homeId : game.awayId);
+        else updateTable(comp, game.homeId, game.awayId, hg, ag);
+      });
+
+      comp.results.push(matchdayResult);
+      comp.currentMatchday++;
+
+      if (knockout) {
+        comp.teamIds = winners;
+        if (winners.length === 1) {
+          comp.championId = winners[0];
+          comp.currentStageIndex = comp.stages.length;
+          finishCompetition(comp);
+        } else {
+          comp.currentStageIndex++;
+          if (comp.currentStageIndex >= comp.stages.length) {
+            comp.stages.push(winners.length === 2 ? "Final" : winners.length === 4 ? "Semifinals" : "Knockout");
+          }
+          comp.currentMatchday = 0;
+          comp.fixtures = generateKnockoutRound(winners);
+        }
+      } else if (comp.currentMatchday >= comp.fixtures.length) {
+        advanceStageOrFinish(comp);
+      }
+
+      saveData();
+      if (!silent) renderAll();
+    }
+
+    function updateStandaloneTable(table, homeId, awayId, hg, ag) {
+      const h = table[homeId], a = table[awayId];
+      h.played++; a.played++;
+      h.gf += hg; h.ga += ag; h.gd = h.gf - h.ga;
+      a.gf += ag; a.ga += hg; a.gd = a.gf - a.ga;
+      if (hg > ag) {
+        h.wins++; a.losses++; h.pts += 3; h.form.push(1); a.form.push(-1);
+      } else if (ag > hg) {
+        a.wins++; h.losses++; a.pts += 3; a.form.push(1); h.form.push(-1);
+      } else {
+        h.draws++; a.draws++; h.pts++; a.pts++; h.form.push(0); a.form.push(0);
+      }
+      h.form = h.form.slice(-5); a.form = a.form.slice(-5);
+    }
+
+
+    function updateTable(comp, homeId, awayId, hg, ag) {
+      const h = comp.table[homeId], a = comp.table[awayId];
+      h.played++; a.played++;
+      h.gf += hg; h.ga += ag; h.gd = h.gf - h.ga;
+      a.gf += ag; a.ga += hg; a.gd = a.gf - a.ga;
+      if (hg > ag) {
+        h.wins++; a.losses++; h.pts += 3; h.form.push(1); a.form.push(-1);
+      } else if (ag > hg) {
+        a.wins++; h.losses++; a.pts += 3; a.form.push(1); h.form.push(-1);
+      } else {
+        h.draws++; a.draws++; h.pts++; a.pts++; h.form.push(0); a.form.push(0);
+      }
+      h.form = h.form.slice(-5); a.form = a.form.slice(-5);
+    }
+
+    function advanceStageOrFinish(comp) {
+      const currentStage = comp.stages[comp.currentStageIndex];
+      const sorted = getSortedTable(comp);
+      if (comp.currentStageIndex >= comp.stages.length - 1) {
+        comp.championId = sorted[0]?.teamId || comp.teamIds[0];
+        finishCompetition(comp);
+        return;
+      }
+      if (currentStage === "Groups" && comp.groupTables) {
+        const perGroup = Math.max(1, Math.floor(comp.advanceCount / comp.groupTables.length));
+        comp.teamIds = comp.groupTables.flatMap(table =>
+          Object.values(table)
+            .sort((a,b)=>b.pts-a.pts || b.gd-a.gd || b.gf-a.gf)
+            .slice(0, perGroup)
+            .map(r => r.teamId)
+        ).slice(0, comp.advanceCount);
+      } else {
+        comp.teamIds = sorted.slice(0, Math.min(comp.advanceCount, sorted.length)).map(r => r.teamId);
+      }
+      comp.currentStageIndex++;
+      setupCompetitionStage(comp);
+    }
+
+    function finishCompetition(comp) {
+      comp.finished = true;
+      const champion = teamById(comp.championId);
+      currentWorld().history.push({
+        competitionId: comp.id,
+        competitionName: comp.name,
+        season: comp.season,
+        championId: comp.championId,
+        championName: champion?.name || "Unknown",
+        timestamp: Date.now()
+      });
+      if (champion) champion.trophies = (champion.trophies || 0) + 1;
+    }
+
+    function simulateSeason(compId) {
+      const comp = currentWorld().competitions.find(c => c.id === compId);
+      let guard = 0;
+      while (!comp.finished && guard < 500) {
+        simulateMatchday(compId, true);
+        guard++;
+      }
+      saveData();
+      renderAll();
+    }
+
+    function startNextSeason(compId) {
+      const comp = currentWorld().competitions.find(c => c.id === compId);
+      comp.season++;
+      comp.locked = false;
+      comp.finished = false;
+      comp.championId = null;
+      comp.currentStageIndex = 0;
+      comp.teamIds = [...new Set(comp.teamIds.concat(Object.keys(comp.table || {})))].slice(0,24);
+      comp.table = initializeTable(comp.teamIds);
+      comp.results = [];
+      setupCompetitionStage(comp);
+      saveData();
+      renderAll();
+    }
+
+    function renderRecords() {
+      const world = currentWorld();
+      const trophyCounts = {};
+      world.teams.forEach(t => trophyCounts[t.id] = {all:0, "champions-league":0, league:0, cup:0});
+
+      world.history.forEach(h => {
+        const comp = world.competitions.find(c => c.id === h.competitionId);
+        const category = comp?.category || (h.competitionName.toLowerCase().includes("champions") ? "champions-league" : "league");
+        if (!trophyCounts[h.championId]) trophyCounts[h.championId] = {all:0, "champions-league":0, league:0, cup:0};
+        trophyCounts[h.championId].all++;
+        if (trophyCounts[h.championId][category] !== undefined) trophyCounts[h.championId][category]++;
+      });
+
+      const stats = calculateWorldStats(world);
+      const categories = [
+        {key:"all", label:"Most Trophies"},
+        {key:"champions-league", label:"Champions League"},
+        {key:"league", label:"League"},
+        {key:"records", label:"All-Time Records"}
+      ];
+
+      $("tab-records").innerHTML = `
+        <div class="tabs" id="recordTabs">
+          ${categories.map((c,i)=>`<button class="tab ${i===0?"active":""}" data-record="${c.key}">${c.label}</button>`).join("")}
+        </div>
+        <div id="recordCategoryContent"></div>
+      `;
+
+      function drawRecordCategory(key) {
+        document.querySelectorAll("[data-record]").forEach(b => b.classList.toggle("active", b.dataset.record === key));
+
+        if (key === "records") {
+          const recordCards = [
+            ["Biggest Win", stats.biggestWin ? `${teamName(stats.biggestWin.homeId)} ${stats.biggestWin.homeGoals}–${stats.biggestWin.awayGoals} ${teamName(stats.biggestWin.awayId)}` : "No matches yet"],
+            ["Worst Loss", stats.worstLoss ? `${teamName(stats.worstLoss.loserId)} lost ${stats.worstLoss.loserGoals}–${stats.worstLoss.winnerGoals} to ${teamName(stats.worstLoss.winnerId)}` : "No matches yet"],
+            ["Most Goals in One Match", stats.mostGoalsMatch ? `${teamName(stats.mostGoalsMatch.homeId)} ${stats.mostGoalsMatch.homeGoals}–${stats.mostGoalsMatch.awayGoals} ${teamName(stats.mostGoalsMatch.awayId)}` : "No matches yet"],
+            ["Most Goals Scored", stats.mostGoalsTeam ? `${teamName(stats.mostGoalsTeam.teamId)} · ${stats.mostGoalsTeam.goals}` : "No goals yet"],
+            ["Best Winning Run", stats.bestWinStreak ? `${teamName(stats.bestWinStreak.teamId)} · ${stats.bestWinStreak.streak} wins` : "No streak yet"],
+            ["Best Unbeaten Run", stats.bestUnbeatenStreak ? `${teamName(stats.bestUnbeatenStreak.teamId)} · ${stats.bestUnbeatenStreak.streak} matches` : "No streak yet"],
+            ["Most Wins", stats.mostWins ? `${teamName(stats.mostWins.teamId)} · ${stats.mostWins.wins}` : "No wins yet"],
+            ["Most Losses", stats.mostLosses ? `${teamName(stats.mostLosses.teamId)} · ${stats.mostLosses.losses}` : "No losses yet"]
+          ];
+
+          $("recordCategoryContent").innerHTML = `
+            <div class="grid two">
+              ${recordCards.map(([label,value]) => `
+                <div class="card">
+                  <div class="muted">${escapeHtml(label)}</div>
+                  <div class="metric" style="font-size:20px">${escapeHtml(value)}</div>
+                </div>
+              `).join("")}
+            </div>`;
+          return;
+        }
+
+        const rows = [...world.teams].sort((a,b)=>(trophyCounts[b.id]?.[key]||0)-(trophyCounts[a.id]?.[key]||0));
+        $("recordCategoryContent").innerHTML = `
+          <div class="card">
+            <h2>${escapeHtml(categories.find(c=>c.key===key)?.label || "Records")}</h2>
+            ${rows.length ? rows.map((t,i)=>`
+              <div class="team-row" style="grid-template-columns:auto 1fr auto">
+                ${teamLogo(t)}
+                <div>${i+1}. <strong>${escapeHtml(t.name)}</strong></div>
+                <div class="strength">${trophyCounts[t.id]?.[key] || 0}</div>
+              </div>
+            `).join("") : `<p class="muted">No teams yet.</p>`}
+          </div>
+        `;
+      }
+
+      document.querySelectorAll("[data-record]").forEach(b => b.addEventListener("click", () => drawRecordCategory(b.dataset.record)));
+      drawRecordCategory("all");
+    }
+
+    function calculateWorldStats(world) {
+      const perTeam = {};
+      world.teams.forEach(t => perTeam[t.id] = {goals:0,wins:0,losses:0,currentWin:0,bestWin:0,currentUnbeaten:0,bestUnbeaten:0});
+      let biggestWin = null, biggestMargin = -1, mostGoalsMatch = null, mostGoalsTotal = -1, worstLoss = null;
+
+      world.competitions.forEach(c => {
+        c.results.forEach(round => {
+          round.games.forEach(g => {
+            const totalGoals = g.homeGoals + g.awayGoals;
+            if (totalGoals > mostGoalsTotal) {
+              mostGoalsTotal = totalGoals;
+              mostGoalsMatch = g;
+            }
+
+            if (!perTeam[g.homeId]) perTeam[g.homeId] = {goals:0,wins:0,losses:0,currentWin:0,bestWin:0,currentUnbeaten:0,bestUnbeaten:0};
+            if (!perTeam[g.awayId]) perTeam[g.awayId] = {goals:0,wins:0,losses:0,currentWin:0,bestWin:0,currentUnbeaten:0,bestUnbeaten:0};
+
+            perTeam[g.homeId].goals += g.homeGoals;
+            perTeam[g.awayId].goals += g.awayGoals;
+
+            const margin = Math.abs(g.homeGoals - g.awayGoals);
+            if (margin > biggestMargin) {
+              biggestMargin = margin;
+              biggestWin = g;
+              if (g.homeGoals > g.awayGoals) {
+                worstLoss = {loserId:g.awayId, loserGoals:g.awayGoals, winnerId:g.homeId, winnerGoals:g.homeGoals};
+              } else if (g.awayGoals > g.homeGoals) {
+                worstLoss = {loserId:g.homeId, loserGoals:g.homeGoals, winnerId:g.awayId, winnerGoals:g.awayGoals};
+              }
+            }
+
+            if (g.homeGoals > g.awayGoals) {
+              perTeam[g.homeId].wins++;
+              perTeam[g.awayId].losses++;
+
+              perTeam[g.homeId].currentWin++;
+              perTeam[g.homeId].bestWin = Math.max(perTeam[g.homeId].bestWin, perTeam[g.homeId].currentWin);
+              perTeam[g.awayId].currentWin = 0;
+
+              perTeam[g.homeId].currentUnbeaten++;
+              perTeam[g.homeId].bestUnbeaten = Math.max(perTeam[g.homeId].bestUnbeaten, perTeam[g.homeId].currentUnbeaten);
+              perTeam[g.awayId].currentUnbeaten = 0;
+            } else if (g.awayGoals > g.homeGoals) {
+              perTeam[g.awayId].wins++;
+              perTeam[g.homeId].losses++;
+
+              perTeam[g.awayId].currentWin++;
+              perTeam[g.awayId].bestWin = Math.max(perTeam[g.awayId].bestWin, perTeam[g.awayId].currentWin);
+              perTeam[g.homeId].currentWin = 0;
+
+              perTeam[g.awayId].currentUnbeaten++;
+              perTeam[g.awayId].bestUnbeaten = Math.max(perTeam[g.awayId].bestUnbeaten, perTeam[g.awayId].currentUnbeaten);
+              perTeam[g.homeId].currentUnbeaten = 0;
+            } else {
+              perTeam[g.homeId].currentWin = 0;
+              perTeam[g.awayId].currentWin = 0;
+
+              perTeam[g.homeId].currentUnbeaten++;
+              perTeam[g.awayId].currentUnbeaten++;
+              perTeam[g.homeId].bestUnbeaten = Math.max(perTeam[g.homeId].bestUnbeaten, perTeam[g.homeId].currentUnbeaten);
+              perTeam[g.awayId].bestUnbeaten = Math.max(perTeam[g.awayId].bestUnbeaten, perTeam[g.awayId].currentUnbeaten);
+            }
+          });
+        });
+      });
+
+      const entries = Object.entries(perTeam).map(([teamId,s]) => ({teamId,...s}));
+      const pick = (field) => entries.sort((a,b)=>b[field]-a[field])[0] || null;
+
+      return {
+        biggestWin,
+        worstLoss,
+        mostGoalsMatch,
+        mostGoalsTeam: pick("goals"),
+        bestWinStreak: entries.slice().sort((a,b)=>b.bestWin-a.bestWin)[0] ? {teamId:entries.slice().sort((a,b)=>b.bestWin-a.bestWin)[0].teamId, streak:entries.slice().sort((a,b)=>b.bestWin-a.bestWin)[0].bestWin} : null,
+        bestUnbeatenStreak: entries.slice().sort((a,b)=>b.bestUnbeaten-a.bestUnbeaten)[0] ? {teamId:entries.slice().sort((a,b)=>b.bestUnbeaten-a.bestUnbeaten)[0].teamId, streak:entries.slice().sort((a,b)=>b.bestUnbeaten-a.bestUnbeaten)[0].bestUnbeaten} : null,
+        mostWins: pick("wins"),
+        mostLosses: pick("losses")
+      };
+    }
+
+    function findBiggestWin(world) {
+      let best = null, margin = -1;
+      world.competitions.forEach(c => c.results.forEach(r => r.games.forEach(g => {
+        const m = Math.abs(g.homeGoals - g.awayGoals);
+        if (m > margin) { margin = m; best = g; }
+      })));
+      return best;
+    }
+
+    $("newWorldBtn").addEventListener("click", () => {
+      $("worldNameInput").value = "";
+      $("worldDialog").showModal();
+    });
+
+    $("createWorldConfirm").addEventListener("click", () => {
+      const name = $("worldNameInput").value.trim() || "My Soccer World";
+      const world = { id:uid(), name, teams:[], competitions:[], history:[] };
+      data.worlds.push(world);
+      saveData();
+      $("worldDialog").close();
+      renderWorldList();
+      openWorld(world.id);
+    });
+
+    $("backToWorldsBtn").addEventListener("click", closeWorld);
+    $("manualSaveBtn").addEventListener("click", saveData);
+    $("deleteWorldBtn").addEventListener("click", () => {
+      if (!confirm("Delete this entire world? This cannot be undone.")) return;
+      data.worlds = data.worlds.filter(w => w.id !== currentWorldId);
+      saveData();
+      closeWorld();
+    });
+
+    document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => switchTab(tab.dataset.tab)));
+    document.querySelectorAll("[data-close]").forEach(btn => btn.addEventListener("click", () => $(btn.dataset.close).close()));
+
+    $("teamStrengthRange").addEventListener("input", e => {
+      $("teamStrengthNumber").value = e.target.value;
+      $("strengthValue").textContent = e.target.value;
+    });
+    $("teamStrengthNumber").addEventListener("input", e => {
+      const v = clamp(Number(e.target.value || 0), 0, 100);
+      $("teamStrengthRange").value = v;
+      $("strengthValue").textContent = v;
+    });
+    $("teamLogoInput").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => pendingLogoData = reader.result;
+      reader.readAsDataURL(file);
+    });
+
+    $("saveTeamBtn").addEventListener("click", () => {
+      const world = currentWorld();
+      const id = $("teamIdInput").value;
+      const name = $("teamNameInput").value.trim();
+      if (!name) return alert("Enter a team name.");
+      const teamData = {
+        id: id || uid(),
+        name,
+        strength: clamp(Number($("teamStrengthNumber").value),0,100),
+        color: $("teamColorInput").value,
+        logoData: pendingLogoData,
+        trophies: id ? (world.teams.find(t=>t.id===id)?.trophies || 0) : 0
+      };
+      if (id) {
+        const index = world.teams.findIndex(t => t.id === id);
+        world.teams[index] = teamData;
+      } else {
+        if (world.teams.length >= 24) return alert("Maximum of 24 teams reached.");
+        world.teams.push(teamData);
+      }
+      saveData();
+      $("teamDialog").close();
+      renderAll();
+    });
+
+    $("competitionTemplate").addEventListener("change", e => {
+      customStages = stagesFromTemplate(e.target.value);
+      renderCustomStages();
+    });
+
+    $("selectAllTeamsBtn").addEventListener("click", () => {
+      document.querySelectorAll(".competition-team-check").forEach(box => box.checked = true);
+    });
+    $("clearAllTeamsBtn").addEventListener("click", () => {
+      document.querySelectorAll(".competition-team-check").forEach(box => box.checked = false);
+    });
+    $("addStageBtn").addEventListener("click", () => {
+      customStages.push($("stageTypeSelect").value);
+      renderCustomStages();
+    });
+    $("createCompetitionBtn").addEventListener("click", createCompetition);
+    $("confirmSimSeasonBtn").addEventListener("click", () => {
+      $("confirmSeasonDialog").close();
+      if (pendingSeasonCompetitionId) simulateSeason(pendingSeasonCompetitionId);
+      pendingSeasonCompetitionId = null;
+    });
+
+    renderWorldList();
+  </script>
+</body>
+</html>
