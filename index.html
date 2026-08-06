@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V47 permanent version label */
+    /* V49 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V47 competition editor and data-driven competition themes */
+    /* V49 competition editor and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4309,6 +4309,7 @@
     .qualification-rule{display:grid;grid-template-columns:140px minmax(90px,.65fr) minmax(150px,1fr) auto;gap:10px;align-items:end;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--panel-2)}
     .qualification-rule label{display:grid;gap:6px}.qualification-rule .rule-position-fields{display:flex;gap:8px}.qualification-rule .rule-position-fields input{min-width:0}
     .qualification-summary-list{display:grid;gap:7px;margin-top:10px}.qualification-summary-line{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.035)}
+    .qualification-result-dialog{width:min(760px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}.qualification-result-shell{padding:24px}.qualification-result-group{margin-top:16px;padding:16px;border:1px solid var(--border);border-radius:18px;background:var(--panel-2)}.qualification-result-team{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}.qualification-result-team:last-child{border-bottom:0}.qualification-warning{border-color:rgba(245,158,11,.48)!important;background:rgba(245,158,11,.10)!important}.qualification-error{border-color:rgba(239,68,68,.55)!important;background:rgba(239,68,68,.12)!important}.next-participants{display:grid;gap:9px;margin-top:12px}.next-participant{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.035)}
     .badge-upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.badge-upload-row input{flex:1;min-width:210px}
     .competition-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
     .competition-card-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
@@ -4384,7 +4385,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V48</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V49</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4452,7 +4453,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V48 · Save Manager.</p>
+          <p id="saveStatus">V49 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4799,7 +4800,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V48 · Competition Editor</div>
+          <div class="startup-kicker">V49 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -4855,7 +4856,8 @@
       </section>
 
       <section class="competition-editor-panel" data-editor-panel="qualification">
-        <p class="notice">Qualification rules are configuration only in V48. Promotion, relegation, and routing will be activated in a future update.</p>
+        <p class="notice">Rules are applied automatically after every regular competition finishes and before the next world season starts.</p>
+        <label class="competition-editor-field" for="competitionEditorFallback" style="margin-top:14px"><span>Empty-place Fallback</span><select id="competitionEditorFallback"><option value="highest-ranked">Highest-ranked remaining teams</option><option value="previous-participants">Previous-season participants</option><option value="random">Random eligible teams</option><option value="leave-empty">Leave places empty</option></select></label>
         <div id="qualificationRuleList" class="qualification-rule-list"></div>
         <button type="button" class="btn secondary" id="addQualificationRuleBtn" style="margin-top:12px">＋ Add Qualification Rule</button>
       </section>
@@ -4876,6 +4878,18 @@
       <div class="dialog-actions competition-actions">
         <button type="button" class="btn secondary" id="cancelCompetitionEditorBtn">Cancel</button>
         <button type="button" class="btn" id="saveCompetitionEditorBtn">Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="qualificationResultDialog" class="qualification-result-dialog">
+    <div class="qualification-result-shell">
+      <div class="archive-header"><div><div class="startup-kicker">Next Season Qualification</div><h2 id="qualificationResultTitle">Qualification Complete</h2></div><button type="button" class="btn secondary small" id="closeQualificationResultBtn">Close</button></div>
+      <div id="qualificationResultMessage"></div>
+      <div id="qualificationResultContent"></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" id="viewQualificationDetailsBtn">View Qualification Details</button>
+        <button type="button" class="btn success" id="continueQualificationBtn">Continue</button>
       </div>
     </div>
   </dialog>
@@ -4996,6 +5010,8 @@
     let pendingCompetitionBadgeData = "";
     let pendingQualificationRules = [];
     let activeCompetitionEditorTab = "general";
+    let pendingGlobalSeasonTransition = null;
+    let qualificationDetailsExpanded = false;
     let customStages = [];
 
     const $ = (id) => document.getElementById(id);
@@ -5111,6 +5127,17 @@
           comp.structure = structure; changed = true;
         }
         if (!Array.isArray(comp.qualificationRules)) { comp.qualificationRules = []; changed = true; }
+        const migratedRules = comp.qualificationRules.map((rule,index) => ({
+          ...rule,
+          id:rule.id || `${comp.id || "competition"}-qualification-${index + 1}`,
+          rangeType:["top","positions","bottom","winner","runner-up","semifinalists"].includes(rule.rangeType) ? rule.rangeType : "positions",
+          from:Number(rule.from || 1),
+          to:Number(rule.to || rule.from || 1),
+          count:Number(rule.count || 1)
+        }));
+        if (JSON.stringify(migratedRules) !== JSON.stringify(comp.qualificationRules)) { comp.qualificationRules = migratedRules; changed = true; }
+        if (!["highest-ranked","previous-participants","random","leave-empty"].includes(comp.qualificationFallback)) { comp.qualificationFallback = "highest-ranked"; changed = true; }
+        if (typeof comp.titleHolderQualifies !== "boolean") { comp.titleHolderQualifies = comp.category === "champions-league"; changed = true; }
         if (comp.autoSyncWorldTeams !== false) { comp.autoSyncWorldTeams = false; changed = true; }
       }
 
@@ -5149,6 +5176,9 @@
         world.teams = Array.isArray(world.teams) ? world.teams : [];
         world.competitions = Array.isArray(world.competitions) ? world.competitions : [];
         world.history = Array.isArray(world.history) ? world.history : [];
+        if (!Array.isArray(world.qualificationHistory)) { world.qualificationHistory = []; changed = true; }
+        if (!world.pendingQualificationRosters || typeof world.pendingQualificationRosters !== "object") { world.pendingQualificationRosters = {}; changed = true; }
+        if (!Array.isArray(world.qualificationProcessingKeys)) { world.qualificationProcessingKeys = []; changed = true; }
 
         if (typeof world.regularSeasonsSinceWorldCup !== "number") {
           world.regularSeasonsSinceWorldCup = 0;
@@ -5318,6 +5348,9 @@
         career.records = Array.isArray(career.records) ? career.records : [];
         career.currentNews = Array.isArray(career.currentNews) ? career.currentNews : [];
         career.favoriteNews = Array.isArray(career.favoriteNews) ? career.favoriteNews : [];
+        if (!Array.isArray(career.qualificationHistory)) { career.qualificationHistory = []; changed = true; }
+        if (!career.pendingQualificationRosters || typeof career.pendingQualificationRosters !== "object") { career.pendingQualificationRosters = {}; changed = true; }
+        if (!Array.isArray(career.qualificationProcessingKeys)) { career.qualificationProcessingKeys = []; changed = true; }
         career.developmentPoints = Number(career.developmentPoints || 0);
         career.completedRewards = Array.isArray(career.completedRewards) ? career.completedRewards : [];
         career.completedObjectives = Array.isArray(career.completedObjectives) ? career.completedObjectives : [];
@@ -7339,6 +7372,8 @@
           knockoutStage:customStages.find(stage => ["Round of 32","Round of 16","Quarterfinals","Semifinals","Final"].includes(stage)) || "none"
         },
         qualificationRules: [],
+        qualificationFallback: "highest-ranked",
+        titleHolderQualifies: category === "champions-league",
         autoSyncWorldTeams: false,
         teamIds: selected,
         originalTeamIds: [...selected],
@@ -7596,8 +7631,8 @@
       const list = $("qualificationRuleList");
       list.innerHTML = pendingQualificationRules.length ? pendingQualificationRules.map((rule,index) => `
         <div class="qualification-rule" data-rule-index="${index}">
-          <label><span>Range</span><select class="qualification-range-type"><option value="top" ${rule.rangeType === "top" ? "selected" : ""}>Top</option><option value="positions" ${rule.rangeType === "positions" ? "selected" : ""}>Positions</option><option value="bottom" ${rule.rangeType === "bottom" ? "selected" : ""}>Bottom</option></select></label>
-          <label><span>${rule.rangeType === "positions" ? "From / To" : "Places"}</span><span class="rule-position-fields">${rule.rangeType === "positions" ? `<input class="qualification-from" type="number" min="1" max="128" value="${Number(rule.from || 1)}"><input class="qualification-to" type="number" min="1" max="128" value="${Number(rule.to || rule.from || 1)}">` : `<input class="qualification-count" type="number" min="1" max="128" value="${Number(rule.count || 1)}">`}</span></label>
+          <label><span>Range</span><select class="qualification-range-type"><option value="top" ${rule.rangeType === "top" ? "selected" : ""}>Top</option><option value="positions" ${rule.rangeType === "positions" ? "selected" : ""}>Positions</option><option value="bottom" ${rule.rangeType === "bottom" ? "selected" : ""}>Bottom</option><option value="winner" ${rule.rangeType === "winner" ? "selected" : ""}>Winner</option><option value="runner-up" ${rule.rangeType === "runner-up" ? "selected" : ""}>Runner-up</option><option value="semifinalists" ${rule.rangeType === "semifinalists" ? "selected" : ""}>Semifinalists</option></select></label>
+          <label><span>${rule.rangeType === "positions" ? "From / To" : ["winner","runner-up","semifinalists"].includes(rule.rangeType) ? "Result" : "Places"}</span><span class="rule-position-fields">${rule.rangeType === "positions" ? `<input class="qualification-from" type="number" min="1" max="128" value="${Number(rule.from || 1)}"><input class="qualification-to" type="number" min="1" max="128" value="${Number(rule.to || rule.from || 1)}">` : ["winner","runner-up","semifinalists"].includes(rule.rangeType) ? `<span class="badge">${rule.rangeType === "winner" ? "1st" : rule.rangeType === "runner-up" ? "2nd" : "3rd–4th"}</span>` : `<input class="qualification-count" type="number" min="1" max="128" value="${Number(rule.count || 1)}">`}</span></label>
           <label><span>Destination Competition</span><select class="qualification-destination">${qualificationDestinationOptions(rule.destinationCompetitionId)}</select></label>
           <button type="button" class="btn danger small remove-qualification-rule">Remove</button>
         </div>`).join("") : `<p class="muted">No qualification rules. Add one to connect this competition to another editable competition.</p>`;
@@ -7617,6 +7652,9 @@
     }
 
     function qualificationRulePositions(rule,teamCount) {
+      if (rule.rangeType === "winner") return {from:1,to:1};
+      if (rule.rangeType === "runner-up") return {from:2,to:2};
+      if (rule.rangeType === "semifinalists") return {from:3,to:4};
       if (rule.rangeType === "top") return {from:1,to:Number(rule.count)};
       if (rule.rangeType === "bottom") return {from:teamCount - Number(rule.count) + 1,to:teamCount};
       return {from:Number(rule.from),to:Number(rule.to)};
@@ -7624,6 +7662,9 @@
 
     function qualificationRuleLabel(rule,teamCount) {
       const range = qualificationRulePositions(rule,teamCount);
+      if (rule.rangeType === "winner") return "Winner";
+      if (rule.rangeType === "runner-up") return "Runner-up";
+      if (rule.rangeType === "semifinalists") return "Semifinalists";
       if (rule.rangeType === "top") return `Top ${rule.count}`;
       if (rule.rangeType === "bottom") return `Bottom ${rule.count}`;
       return range.from === range.to ? `${range.from}${ordinalSuffix(range.from)}` : `${range.from}–${range.to}`;
@@ -7689,6 +7730,7 @@
       $("competitionEditorGroupCount").value = structure.groups || 4;
       $("competitionEditorTeamsPerGroup").value = structure.teamsPerGroup || 4;
       $("competitionEditorKnockoutStage").value = structure.knockoutStage || "none";
+      $("competitionEditorFallback").value = comp.qualificationFallback || "highest-ranked";
       $("competitionEditorCurrentTeams").textContent = String(comp.teamCount || comp.teamIds?.length || 0);
       $("competitionEditorChampion").textContent = comp.championId ? teamName(comp.championId) : "None yet";
       $("competitionEditorCreatedSeason").textContent = String(comp.createdSeason || comp.season || 1);
@@ -7770,6 +7812,7 @@
         from:Number(rule.from || 1),to:Number(rule.to || rule.from || 1),count:Number(rule.count || 1),
         destinationCompetitionId:rule.destinationCompetitionId
       }));
+      comp.qualificationFallback = $("competitionEditorFallback").value;
       comp.autoSyncWorldTeams = false;
       if (oldName !== name) updateCompetitionNameReferences(world,comp,oldName,name);
 
@@ -8141,6 +8184,8 @@
                 <span class="badge">${escapeHtml(stage || "Complete")}</span>
               </div>
             </div>
+
+            ${nextSeasonParticipantsHtml(comp)}
 
             ${latestMatchday ? `
               <div class="card">
@@ -9396,15 +9441,293 @@
       });
     }
 
+    function competitionParticipantIds(comp) {
+      return [...new Set([
+        ...(comp?.originalTeamIds || []),
+        ...(comp?.teamIds || []),
+        ...Object.keys(comp?.table || {})
+      ])].filter(id => teamById(id));
+    }
+
+    function knockoutLoserId(game) {
+      if (!game) return null;
+      return Number(game.homeGoals) > Number(game.awayGoals) ? game.awayId : game.homeId;
+    }
+
+    function competitionFinalPositions(comp) {
+      if (!comp?.finished || isWorldCupCompetition(comp)) return [];
+      const participants = competitionParticipantIds(comp);
+      const stages = Array.isArray(comp.stages) ? comp.stages : [];
+      const hasKnockout = (comp.knockoutHistory || []).length > 0 || stages.some(stage => ["Round of 32","Round of 16","Quarterfinals","Semifinals","Final"].includes(stage));
+      if (!hasKnockout && stages.includes("League")) return getSortedTable(comp).map(row => row.teamId).filter(id => participants.includes(id));
+      if (!hasKnockout && Array.isArray(comp.groupTables)) {
+        return comp.groupTables.flatMap(table => Object.values(table)).sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || String(teamName(a.teamId)).localeCompare(teamName(b.teamId))).map(row => row.teamId);
+      }
+
+      const ranking = [];
+      const add = id => { if (id && participants.includes(id) && !ranking.includes(id)) ranking.push(id); };
+      add(comp.championId);
+      const rounds = comp.knockoutHistory || [];
+      const finalRound = rounds.filter(round => round.stage === "Final").slice(-1)[0] || rounds.slice(-1)[0];
+      add(knockoutLoserId(finalRound?.games?.[0]));
+      ["Semifinals","Quarterfinals","Round of 16","Round of 32"].forEach(stage => {
+        const round = rounds.filter(item => item.stage === stage).slice(-1)[0];
+        (round?.games || []).forEach(game => add(knockoutLoserId(game)));
+      });
+      if (Array.isArray(comp.groupTables)) {
+        comp.groupTables.flatMap(table => Object.values(table)).sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf).forEach(row => add(row.teamId));
+      }
+      getCompetitionFinalRanking(comp).forEach(add);
+      participants.forEach(add);
+      return ranking;
+    }
+
+    function qualificationPriority(source,position,rule) {
+      if (source.category === "league") return 2;
+      if (["cup","knockout","cup-knockout"].includes(source.category) && position === 1) return 3;
+      return 4;
+    }
+
+    function qualificationReason(source,position) {
+      if (source.category === "league") return `Finished ${position}${ordinalSuffix(position)} in ${source.name}`;
+      if (position === 1) return `${source.name} winner`;
+      if (position === 2) return `${source.name} runner-up`;
+      if (position >= 3 && position <= 4) return `${source.name} semifinalist`;
+      return `Finished ${position}${ordinalSuffix(position)} in ${source.name}`;
+    }
+
+    function qualificationGraphError(world) {
+      const graph = new Map();
+      regularCompetitions(world).forEach(source => {
+        (source.qualificationRules || []).forEach(rule => {
+          const destination = world.competitions.find(comp => comp.id === rule.destinationCompetitionId);
+          if (!destination || source.category === "league" && destination.category === "league") return;
+          if (!graph.has(source.id)) graph.set(source.id,[]);
+          graph.get(source.id).push(destination.id);
+        });
+      });
+      const visiting = new Set(), visited = new Set();
+      const walk = id => {
+        if (visiting.has(id)) return true;
+        if (visited.has(id)) return false;
+        visiting.add(id);
+        for (const next of graph.get(id) || []) if (walk(next)) return true;
+        visiting.delete(id); visited.add(id); return false;
+      };
+      for (const id of graph.keys()) if (walk(id)) return "Circular qualification routes are not allowed. League promotion and relegation exchanges are the only permitted two-way routes.";
+      return "";
+    }
+
+    function collectQualificationCandidates(world,nextSeason) {
+      const inbound = new Map();
+      const leagueMovements = [];
+      for (const source of regularCompetitions(world)) {
+        const rules = source.qualificationRules || [];
+        if (!rules.length) continue;
+        if (!source.finished) return {error:`${source.name} must finish before its qualification rules can be processed.`};
+        const positions = competitionFinalPositions(source);
+        if (!positions.length) return {error:`${source.name} has no completed final ranking to use for qualification.`};
+        const validationError = validateQualificationRules(rules,positions.length,source.id);
+        if (validationError) return {error:`${source.name}: ${validationError}`};
+        for (const rule of rules) {
+          const destination = world.competitions.find(comp => comp.id === rule.destinationCompetitionId);
+          if (!destination || destination.recoveredFromHistory) return {error:`${source.name} points to a missing or deleted destination competition.`};
+          if (isWorldCupCompetition(destination) || isWorldCupCompetition(source)) return {error:"Normal qualification rules cannot route teams into or out of the World Cup."};
+          const range = qualificationRulePositions(rule,positions.length);
+          const selectedIds = positions.slice(range.from - 1,range.to);
+          if (!inbound.has(destination.id)) inbound.set(destination.id,[]);
+          selectedIds.forEach((teamId,index) => {
+            const position = range.from + index;
+            const entry = {teamId,sourceCompetitionId:source.id,sourcePosition:position,destinationCompetitionId:destination.id,qualifiedForSeason:nextSeason,reason:qualificationReason(source,position),priority:qualificationPriority(source,position,rule)};
+            inbound.get(destination.id).push(entry);
+            if (source.category === "league" && destination.category === "league") leagueMovements.push(entry);
+          });
+        }
+      }
+      return {inbound,leagueMovements};
+    }
+
+    function dedupeQualificationCandidates(entries,rankingPositions) {
+      const sorted = [...entries].sort((a,b) => a.priority-b.priority || Number(a.sourcePosition || 999)-Number(b.sourcePosition || 999) || Number(rankingPositions[a.teamId] || 9999)-Number(rankingPositions[b.teamId] || 9999));
+      const seen = new Set();
+      return sorted.filter(entry => !seen.has(entry.teamId) && seen.add(entry.teamId));
+    }
+
+    function fallbackQualificationEntries(world,destination,selected,target,nextSeason) {
+      const chosen = new Set(selected.map(entry => entry.teamId));
+      const allEligible = liveTeamRanking(world).map(team => team.id).filter(id => !chosen.has(id));
+      const previous = competitionParticipantIds(destination).filter(id => !chosen.has(id));
+      let pool;
+      if (destination.qualificationFallback === "previous-participants") pool = [...previous,...allEligible.filter(id => !previous.includes(id))];
+      else if (destination.qualificationFallback === "random") pool = [...allEligible].sort(() => Math.random() - .5);
+      else if (destination.qualificationFallback === "leave-empty") pool = [];
+      else pool = allEligible;
+      return pool.slice(0,Math.max(0,target-selected.length)).map(teamId => ({teamId,sourceCompetitionId:null,sourcePosition:null,destinationCompetitionId:destination.id,qualifiedForSeason:nextSeason,reason:destination.qualificationFallback === "previous-participants" && previous.includes(teamId) ? `Previous-season participant in ${destination.name}` : destination.qualificationFallback === "random" ? "Random eligible team" : "Highest-ranked remaining team",priority:5}));
+    }
+
+    function validateLeagueMovementTotals(world,leagueMovements) {
+      const totals = new Map();
+      leagueMovements.forEach(entry => {
+        const key = `${entry.sourceCompetitionId}->${entry.destinationCompetitionId}`;
+        totals.set(key,(totals.get(key) || 0) + 1);
+      });
+      for (const [key,count] of totals) {
+        const [from,to] = key.split("->");
+        const reverse = totals.get(`${to}->${from}`) || 0;
+        if (count !== reverse) {
+          const source = world.competitions.find(comp => comp.id === from);
+          const destination = world.competitions.find(comp => comp.id === to);
+          return `${source?.name || "League"} sends ${count} team${count===1?"":"s"} to ${destination?.name || "another league"}, but the return movement is ${reverse}. Promotion and relegation totals must match.`;
+        }
+      }
+      return "";
+    }
+
+    function buildAutomaticQualification(world,nextSeason) {
+      if (!allRegularCompetitionsFinished(world)) return {ok:false,error:"Every required regular competition must be complete before qualification can run."};
+      const graphError = qualificationGraphError(world);
+      if (graphError) return {ok:false,error:graphError};
+      const collected = collectQualificationCandidates(world,nextSeason);
+      if (collected.error) return {ok:false,error:collected.error};
+      const {inbound,leagueMovements} = collected;
+      const movementError = validateLeagueMovementTotals(world,leagueMovements);
+      if (movementError) return {ok:false,error:movementError};
+      const rankingPositions = rankingPositionsFromList(liveTeamRanking(world));
+      const rosters = {};
+      const warnings = [];
+      const involvedLeagues = new Set(leagueMovements.flatMap(entry => [entry.sourceCompetitionId,entry.destinationCompetitionId]));
+
+      for (const leagueId of involvedLeagues) {
+        const league = world.competitions.find(comp => comp.id === leagueId);
+        if (!league) return {ok:false,error:"A league used by promotion or relegation was deleted."};
+        const outgoing = new Set(leagueMovements.filter(entry => entry.sourceCompetitionId === leagueId).map(entry => entry.teamId));
+        const incoming = inbound.get(leagueId) || [];
+        const stayers = competitionParticipantIds(league).filter(id => !outgoing.has(id)).map(teamId => ({teamId,sourceCompetitionId:league.id,sourcePosition:null,destinationCompetitionId:league.id,qualifiedForSeason:nextSeason,reason:`Retained place in ${league.name}`,priority:4}));
+        const entries = dedupeQualificationCandidates([...stayers,...incoming],rankingPositions);
+        const target = Math.max(2,Math.min(128,Number(league.structure?.teamCount || league.teamCount || competitionParticipantIds(league).length)));
+        if (entries.length !== target) return {ok:false,error:`${league.name} requires ${target} teams but promotion and relegation produce ${entries.length}. Fix the league movement rules.`};
+        rosters[league.id] = {season:nextSeason,teamIds:entries.map(entry => entry.teamId),entries,warnings:[],processingKey:`${world.worldSeason}:${league.id}`};
+      }
+
+      for (const [destinationId,rawEntries] of inbound) {
+        if (involvedLeagues.has(destinationId)) continue;
+        const destination = world.competitions.find(comp => comp.id === destinationId);
+        if (!destination) return {ok:false,error:"A qualification destination was deleted."};
+        const target = Math.max(2,Math.min(128,Number(destination.structure?.teamCount || destination.teamCount || competitionParticipantIds(destination).length)));
+        const titleHolder = destination.titleHolderQualifies === true && destination.championId && teamById(destination.championId) ? [{teamId:destination.championId,sourceCompetitionId:destination.id,sourcePosition:1,destinationCompetitionId:destination.id,qualifiedForSeason:nextSeason,reason:`${destination.name} title holder`,priority:1}] : [];
+        let entries = dedupeQualificationCandidates([...titleHolder,...rawEntries],rankingPositions);
+        if (entries.length > target) {
+          const missed = entries.slice(target).map(entry => teamName(entry.teamId)).join(", ");
+          return {ok:false,error:`${destination.name} requires ${target} teams but has ${entries.length} qualified teams. Priority rules would leave out: ${missed}. Open Competition Editor and fix the qualification ranges.`};
+        }
+        entries = [...entries,...fallbackQualificationEntries(world,destination,entries,target,nextSeason)];
+        entries = dedupeQualificationCandidates(entries,rankingPositions);
+        if (entries.length < 2 || entries.length < target && destination.qualificationFallback !== "leave-empty") return {ok:false,error:`${destination.name} requires ${target} teams but only ${entries.length} could be filled using its fallback rule.`};
+        if (entries.length < target) warnings.push(`${destination.name} will start with ${entries.length} of ${target} configured places because Leave places empty is selected.`);
+        rosters[destination.id] = {season:nextSeason,teamIds:entries.map(entry => entry.teamId),entries,warnings:warnings.filter(message => message.startsWith(destination.name)),processingKey:`${world.worldSeason}:${destination.id}`};
+      }
+
+      if (involvedLeagues.size) {
+        const owner = new Map();
+        for (const league of regularCompetitions(world).filter(comp => comp.category === "league")) {
+          const ids = rosters[league.id]?.teamIds || competitionParticipantIds(league);
+          for (const teamId of ids) {
+            if (owner.has(teamId)) return {ok:false,error:`${teamName(teamId)} would appear in both ${world.competitions.find(comp=>comp.id===owner.get(teamId))?.name} and ${league.name}. A team cannot exist in two league divisions.`};
+            owner.set(teamId,league.id);
+          }
+        }
+      }
+      return {ok:true,nextSeason,rosters,warnings};
+    }
+
+    function qualificationResultFromPending(world,nextSeason) {
+      const rosters = Object.fromEntries(Object.entries(world.pendingQualificationRosters || {}).filter(([,roster]) => Number(roster.season) === Number(nextSeason)));
+      const missingDestinationId = Object.keys(rosters).find(id => !world.competitions.some(comp => comp.id === id && !isWorldCupCompetition(comp)));
+      if (missingDestinationId) return {ok:false,error:"A pending qualification destination was deleted. Fix the qualification rules before starting the next season."};
+      return {ok:true,nextSeason,rosters,warnings:Object.values(rosters).flatMap(roster => roster.warnings || [])};
+    }
+
+    function processAutomaticQualification(world,nextSeason) {
+      const existing = qualificationResultFromPending(world,nextSeason);
+      if (!existing.ok) return existing;
+      if (Object.keys(existing.rosters).length) return existing;
+      const result = buildAutomaticQualification(world,nextSeason);
+      if (!result.ok) return result;
+      const oldRosters = JSON.parse(JSON.stringify(world.pendingQualificationRosters || {}));
+      const oldHistory = [...(world.qualificationHistory || [])];
+      const oldKeys = [...(world.qualificationProcessingKeys || [])];
+      world.pendingQualificationRosters = {...(world.pendingQualificationRosters || {}),...result.rosters};
+      world.qualificationHistory = Array.isArray(world.qualificationHistory) ? world.qualificationHistory : [];
+      world.qualificationProcessingKeys = Array.isArray(world.qualificationProcessingKeys) ? world.qualificationProcessingKeys : [];
+      Object.values(result.rosters).forEach(roster => {
+        if (!world.qualificationProcessingKeys.includes(roster.processingKey)) world.qualificationProcessingKeys.push(roster.processingKey);
+        roster.entries.forEach(entry => {
+          const duplicate = world.qualificationHistory.some(item => Number(item.season) === Number(nextSeason) && item.teamId === entry.teamId && item.destinationCompetitionId === entry.destinationCompetitionId);
+          if (!duplicate) world.qualificationHistory.push({...entry,season:nextSeason,timestamp:Date.now()});
+        });
+      });
+      if (!saveData(`Season ${nextSeason} qualification processed`)) {
+        world.pendingQualificationRosters = oldRosters; world.qualificationHistory = oldHistory; world.qualificationProcessingKeys = oldKeys;
+        return {ok:false,error:"Qualification was calculated but could not be saved. Export this save or remove unused worlds, then try again."};
+      }
+      return result;
+    }
+
+    function renderQualificationResultDialog(result) {
+      const world = currentWorld();
+      const continueButton = $("continueQualificationBtn");
+      const detailsButton = $("viewQualificationDetailsBtn");
+      if (!result.ok) {
+        $("qualificationResultTitle").textContent = "Cannot Start Next Season";
+        $("qualificationResultMessage").innerHTML = `<div class="notice qualification-error"><strong>Qualification error</strong><br>${escapeHtml(result.error || "Qualification could not be processed.")}</div>`;
+        $("qualificationResultContent").innerHTML = "";
+        continueButton.classList.add("hidden"); detailsButton.classList.add("hidden");
+        return;
+      }
+      $("qualificationResultTitle").textContent = `Season ${result.nextSeason} Participants`;
+      continueButton.classList.remove("hidden"); detailsButton.classList.remove("hidden");
+      detailsButton.textContent = qualificationDetailsExpanded ? "Hide Qualification Details" : "View Qualification Details";
+      const controlledId = currentGameMode === "club-career" ? world.controlledTeamId : null;
+      const routedRosters = Object.entries(result.rosters || {});
+      let careerMessage = "";
+      if (controlledId && routedRosters.length) {
+        const secured = routedRosters.filter(([,roster]) => roster.teamIds.includes(controlledId)).map(([id]) => world.competitions.find(comp => comp.id === id)?.name).filter(Boolean);
+        careerMessage = secured.length ? `<div class="notice"><strong>Qualification Secured</strong><br>${escapeHtml(teamName(controlledId))} qualified for ${escapeHtml(secured.join(", "))} using the same rules as every other club.</div>` : `<div class="notice qualification-warning"><strong>Qualification Missed</strong><br>${escapeHtml(teamName(controlledId))} did not secure a place in any competition receiving automatic qualifiers.</div>`;
+      }
+      $("qualificationResultMessage").innerHTML = `${careerMessage}${(result.warnings || []).map(message => `<div class="notice qualification-warning">${escapeHtml(message)}</div>`).join("")}`;
+      $("qualificationResultContent").innerHTML = routedRosters.length ? routedRosters.map(([destinationId,roster]) => {
+        const destination = world.competitions.find(comp => comp.id === destinationId);
+        return `<section class="qualification-result-group"><div class="toolbar" style="justify-content:space-between"><h3 style="margin:0">${escapeHtml(destination?.name || "Competition")}</h3><span class="badge">${roster.teamIds.length} team${roster.teamIds.length===1?"":"s"}</span></div>${qualificationDetailsExpanded ? roster.entries.map(entry => `<div class="qualification-result-team">${teamLogo(teamById(entry.teamId))}<div><strong>${escapeHtml(teamName(entry.teamId))}</strong><div class="muted">${escapeHtml(entry.reason)}</div></div></div>`).join("") : `<p class="muted">Qualified roster is ready. Open the details to see every route.</p>`}</section>`;
+      }).join("") : `<div class="notice">No automatic qualification routes are configured. Existing competition rosters will carry into Season ${result.nextSeason}.</div>`;
+    }
+
+    function showQualificationResult(result,currentTab="dashboard") {
+      qualificationDetailsExpanded = false;
+      pendingGlobalSeasonTransition = result.ok ? {nextSeason:result.nextSeason,currentTab,result} : null;
+      renderQualificationResultDialog(result);
+      $("qualificationResultDialog").showModal();
+    }
+
+    function nextSeasonParticipantsHtml(comp) {
+      const world = currentWorld();
+      const roster = world?.pendingQualificationRosters?.[comp.id];
+      if (!roster || Number(roster.season) !== Number(world.worldSeason || 1) + 1) return "";
+      return `<div class="card"><h2>🎟️ Next Season Participants</h2><div class="next-participants">${(roster.entries || []).map(entry => `<div class="next-participant">${teamLogo(teamById(entry.teamId))}<div><strong>${escapeHtml(teamName(entry.teamId))}</strong><div class="muted">Qualified: ${escapeHtml(entry.reason)}</div></div></div>`).join("")}</div></div>`;
+    }
+
     function resetCompetitionForGlobalSeason(comp, nextSeason) {
       const world = currentWorld();
+      const pendingRoster = world.pendingQualificationRosters?.[comp.id];
+      const hasPendingRoster = pendingRoster && Number(pendingRoster.season) === Number(nextSeason);
       const qualifiedIds = comp.category === "champions-league"
         ? championsLeagueQualifiedIds(world)
         : [];
       const allWorldTeamIds = world.teams.map(team => team.id).slice(0, MAX_TEAMS);
 
       const originalIds = (
-        competitionShouldUseAllWorldTeams(comp)
+        hasPendingRoster
+          ? pendingRoster.teamIds
+          : competitionShouldUseAllWorldTeams(comp)
           ? allWorldTeamIds
           : qualifiedIds.length === 24
             ? qualifiedIds
@@ -9420,6 +9743,7 @@
 
       comp.originalTeamIds = [...originalIds];
       comp.teamIds = [...originalIds];
+      comp.currentQualificationEntries = hasPendingRoster ? (pendingRoster.entries || []).map(entry => ({...entry})) : [];
 
       if (isPureKnockoutCompetition(comp)) {
         normalizePureKnockoutStages(comp, originalIds.length);
@@ -9449,15 +9773,27 @@
         return;
       }
 
-      // Keep the player on the page where they pressed the button.
       const currentTab = document.querySelector(".tab.active")?.dataset.tab || "dashboard";
-
       const nextSeason = Number(world.worldSeason || 1) + 1;
+      const qualificationResult = processAutomaticQualification(world,nextSeason);
+      showQualificationResult(qualificationResult,currentTab);
+    }
+
+    function commitGlobalNextSeason() {
+      const world = currentWorld();
+      const transition = pendingGlobalSeasonTransition;
+      if (!transition || Number(transition.nextSeason) !== Number(world.worldSeason || 1) + 1) return showToast("Qualification must be processed before starting the next season.",true);
+      if (!allRegularCompetitionsFinished(world)) return showToast("Finish every active competition first.",true);
+      const currentTab = transition.currentTab || "dashboard";
+      const nextSeason = transition.nextSeason;
       if (currentGameMode === "club-career") {
         processCareerSeasonEnd(world);
       }
       evolveWorldTeamStrengths(world);
       regularCompetitions(world).forEach(comp => resetCompetitionForGlobalSeason(comp, nextSeason));
+      Object.keys(world.pendingQualificationRosters || {}).forEach(compId => {
+        if (Number(world.pendingQualificationRosters[compId]?.season) === Number(nextSeason)) delete world.pendingQualificationRosters[compId];
+      });
 
       world.worldSeason = nextSeason;
       if (currentGameMode === "club-career") {
@@ -9474,6 +9810,8 @@
       calculateWorldCupQualification(world);
 
       saveData(`World Season ${nextSeason} started`);
+      $("qualificationResultDialog").close();
+      pendingGlobalSeasonTransition = null;
       activeCompetitionId = null;
       renderAll();
       switchTab(currentTab);
@@ -10403,7 +10741,7 @@ function renderWorldCupQualification() {
       updateCompetitionEditorSummary();
     });
     $("competitionEditorStructureType").addEventListener("change", updateCompetitionStructureFields);
-    ["competitionEditorBracketSize","competitionEditorGroupCount","competitionEditorTeamsPerGroup","competitionEditorKnockoutStage","competitionEditorName"].forEach(id => $(id).addEventListener("input",updateCompetitionEditorSummary));
+    ["competitionEditorBracketSize","competitionEditorGroupCount","competitionEditorTeamsPerGroup","competitionEditorKnockoutStage","competitionEditorName","competitionEditorFallback"].forEach(id => $(id).addEventListener("input",updateCompetitionEditorSummary));
     document.querySelectorAll(".competition-editor-tab").forEach(button => button.addEventListener("click",() => setCompetitionEditorTab(button.dataset.editorTab)));
     $("addQualificationRuleBtn").addEventListener("click",() => {
       syncQualificationRulesFromEditor();
@@ -10461,6 +10799,16 @@ function renderWorldCupQualification() {
     });
 
     $("seasonCompleteContinueBtn").addEventListener("click", continueFromSeasonComplete);
+    $("continueQualificationBtn").addEventListener("click",commitGlobalNextSeason);
+    $("viewQualificationDetailsBtn").addEventListener("click",() => {
+      if (!pendingGlobalSeasonTransition?.result) return;
+      qualificationDetailsExpanded = !qualificationDetailsExpanded;
+      renderQualificationResultDialog(pendingGlobalSeasonTransition.result);
+    });
+    $("closeQualificationResultBtn").addEventListener("click",() => {
+      $("qualificationResultDialog").close();
+      pendingGlobalSeasonTransition = null;
+    });
     $("closeTournamentHistoryBtn").addEventListener("click", () => $("tournamentHistoryDialog").close());
     $("closeSeasonArchiveBtn").addEventListener("click", () => $("seasonArchiveDialog").close());
     $("closeHallOfFameBtn").addEventListener("click", () => $("hallOfFameDialog").close());
@@ -10512,7 +10860,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V48</span>
+    <span>V49</span>
   </div>
 </body>
 </html>
