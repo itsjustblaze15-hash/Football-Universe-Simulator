@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V50.5 permanent version label */
+    /* V50.6 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V50.5 competition builder and data-driven competition themes */
+    /* V50.6 competition builder and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4388,7 +4388,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.5</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.6</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4456,7 +4456,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V50.5 · Save Manager.</p>
+          <p id="saveStatus">V50.6 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4828,7 +4828,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V50.5 · Competition Editor</div>
+          <div class="startup-kicker">V50.6 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -4945,6 +4945,17 @@
     <div class="toolbar"><button type="button" class="btn secondary small" id="selectAllExportCompetitionsBtn">Select All</button><button type="button" class="btn secondary small" id="clearExportCompetitionsBtn">Clear All</button></div>
     <div id="exportCompetitionPicker" class="builder-team-grid"></div>
     <div class="dialog-actions"><button type="button" class="btn secondary" id="cancelExportCompetitionsBtn">Cancel</button><button type="button" class="btn success" id="confirmExportCompetitionsBtn">Export Selected</button></div>
+  </dialog>
+
+  <dialog id="loadQualifiedTeamsDialog" class="archive-dialog">
+    <div class="archive-header"><div><div class="startup-kicker">Manual Qualification Repair</div><h2 id="loadQualifiedTeamsTitle">Load Qualified Teams</h2></div><button type="button" class="btn secondary small" id="closeLoadQualifiedTeamsBtn">Close</button></div>
+    <div id="loadQualifiedTeamsMessage" class="notice"></div>
+    <div id="loadQualifiedTeamsPreview" style="display:grid;gap:14px;margin-top:16px"></div>
+    <div class="form-group" id="qualifiedTeamsLoadModeField">
+      <label class="check"><input type="radio" name="qualifiedTeamsLoadMode" value="replace" checked><span><strong>Replace Current Teams</strong><small class="muted" style="display:block">Remove the current roster and use only these qualifiers.</small></span></label>
+      <label class="check"><input type="radio" name="qualifiedTeamsLoadMode" value="add"><span><strong>Add To Current Teams</strong><small class="muted" style="display:block">Keep current teams and add qualifiers without duplicates.</small></span></label>
+    </div>
+    <div class="dialog-actions"><button type="button" class="btn secondary" id="cancelLoadQualifiedTeamsBtn">Cancel</button><button type="button" class="btn success" id="confirmLoadQualifiedTeamsBtn">Add These Teams</button></div>
   </dialog>
 
   <dialog id="randomSelectionDialog">
@@ -5102,6 +5113,7 @@
     let pendingCompetitionImportConflict = null;
     let teamImportSource = null;
     let pendingTeamImportConflict = null;
+    let pendingManualQualificationLoad = null;
     const PORTABLE_EXPORT_VERSION = 1;
     let customStages = [];
 
@@ -8562,6 +8574,107 @@
       );
     }
 
+    function isManualQualificationDestination(comp) {
+      return !!comp && !isWorldCupCompetition(comp) && ["champions-league","europa-league"].includes(comp.category);
+    }
+
+    function completedQualificationLeagues(world) {
+      return (world?.competitions || []).filter(comp =>
+        comp.category === "league" &&
+        !isWorldCupCompetition(comp) &&
+        !comp.recoveredFromHistory &&
+        (comp.finished || comp.completed === true || comp.status === "completed")
+      );
+    }
+
+    function manualQualificationRanges(league,destination,standingCount) {
+      const savedRules = (league.qualificationRules || []).filter(rule => rule.destinationCompetitionId === destination.id);
+      if (savedRules.length && !validateQualificationRules(savedRules,standingCount,league.id)) {
+        return savedRules.map(rule => qualificationRulePositions(rule,standingCount));
+      }
+      return destination.category === "champions-league" ? [{from:1,to:4}] : [{from:5,to:12}];
+    }
+
+    function buildManualQualificationPreview(destination) {
+      const world = currentWorld();
+      const completed = completedQualificationLeagues(world);
+      const unfinished = (world.competitions || []).filter(comp =>
+        comp.category === "league" && !isWorldCupCompetition(comp) && !comp.recoveredFromHistory && !completed.includes(comp)
+      );
+      const groups = completed.map(league => {
+        const standings = getSortedTable(league);
+        const ranges = manualQualificationRanges(league,destination,standings.length);
+        const rows = [];
+        ranges.forEach(range => standings.slice(Math.max(0,range.from - 1),Math.min(standings.length,range.to)).forEach((row,index) => {
+          const position = range.from + index;
+          if (!rows.some(item => item.teamId === row.teamId)) rows.push({teamId:row.teamId,position,sourceCompetitionId:league.id,reason:qualificationReason(league,position)});
+        }));
+        return {league,rows};
+      });
+      const unique = [];
+      groups.forEach(group => group.rows.forEach(entry => { if (!unique.some(item => item.teamId === entry.teamId)) unique.push(entry); }));
+      return {groups,entries:unique,unfinished};
+    }
+
+    function openLoadQualifiedTeamsDialog(compId) {
+      const destination = currentWorld()?.competitions?.find(comp => comp.id === compId);
+      if (!isManualQualificationDestination(destination)) return;
+      if (competitionHasStartedForQualification(destination)) return showToast("Qualified teams cannot be loaded after this competition has started.",true);
+      const preview = buildManualQualificationPreview(destination);
+      pendingManualQualificationLoad = {destinationId:destination.id,...preview};
+      const competitionName = destination.category === "champions-league" ? "Champions League" : "Europa League";
+      $("loadQualifiedTeamsTitle").textContent = `Load ${competitionName} Teams`;
+      document.querySelector('input[name="qualifiedTeamsLoadMode"][value="replace"]').checked = true;
+      const noCompleted = !preview.groups.length;
+      $("loadQualifiedTeamsMessage").innerHTML = noCompleted
+        ? `<strong>No completed leagues are available.</strong><br>Finish League 1 and League 2 before loading qualified teams.`
+        : `${preview.unfinished.length ? `<strong>Still unfinished:</strong> ${preview.unfinished.map(comp => escapeHtml(comp.name)).join(", ")}<br>` : ""}<strong>Total: ${preview.entries.length} team${preview.entries.length === 1 ? "" : "s"}</strong>`;
+      $("loadQualifiedTeamsPreview").innerHTML = preview.groups.map(group => `<section class="card"><h3>${escapeHtml(group.league.name)}</h3>${group.rows.length ? group.rows.map(entry => `<div class="qualification-result-team">${teamLogo(teamById(entry.teamId))}<div><strong>${entry.position}. ${escapeHtml(teamName(entry.teamId))}</strong></div></div>`).join("") : `<p class="muted">No teams fall within this competition's qualification range.</p>`}</section>`).join("");
+      $("qualifiedTeamsLoadModeField").classList.toggle("hidden",noCompleted || !preview.entries.length);
+      $("confirmLoadQualifiedTeamsBtn").disabled = noCompleted || !preview.entries.length;
+      $("loadQualifiedTeamsDialog").showModal();
+    }
+
+    function confirmLoadQualifiedTeams() {
+      const pending = pendingManualQualificationLoad;
+      const world = currentWorld();
+      const destination = world?.competitions?.find(comp => comp.id === pending?.destinationId);
+      if (!pending || !destination || !isManualQualificationDestination(destination)) return;
+      if (competitionHasStartedForQualification(destination)) return showToast("Qualified teams cannot be loaded after this competition has started.",true);
+      const mode = document.querySelector('input[name="qualifiedTeamsLoadMode"]:checked')?.value || "replace";
+      const existing = mode === "add" ? competitionParticipantIds(destination) : [];
+      const ids = [...new Set([...existing,...pending.entries.map(entry => entry.teamId)])].filter(id => world.teams.some(team => team.id === id));
+      destination.originalTeamIds = [...ids];
+      destination.teamIds = [...ids];
+      destination.teamCount = ids.length;
+      destination.structure = {...(destination.structure || {}),teamCount:ids.length};
+      destination.currentSeasonQualificationEntries = pending.entries.filter(entry => ids.includes(entry.teamId)).map(entry => ({...entry,destinationCompetitionId:destination.id,qualifiedForSeason:Number(world.worldSeason || 1)}));
+      destination.locked = false;
+      destination.finished = false;
+      destination.completed = false;
+      destination.started = false;
+      destination.status = "not-started";
+      destination.championId = null;
+      destination.runnerUpId = null;
+      destination.currentStageIndex = 0;
+      destination.currentMatchday = 0;
+      destination.fixtures = [];
+      destination.table = initializeTable(ids);
+      destination.results = [];
+      destination.knockoutHistory = [];
+      destination.groupTables = [];
+      destination.groupAssignments = [];
+      destination.currentRoundByes = [];
+      if (isPureKnockoutCompetition(destination)) normalizePureKnockoutStages(destination,ids.length);
+      saveData(`${destination.name} qualified teams loaded`);
+      $("loadQualifiedTeamsDialog").close();
+      pendingManualQualificationLoad = null;
+      activeCompetitionId = destination.id;
+      renderCompetitionDetail(destination);
+      renderDashboard();
+      showToast(`${ids.length} team${ids.length === 1 ? "" : "s"} loaded into ${destination.name}.`);
+    }
+
 
     function renderCompetitionDetail(comp) {
       const world = currentWorld();
@@ -8679,6 +8792,7 @@
           ${!comp.finished && (comp.category !== "super-league" || (comp.teamIds || []).length >= 2) ? `
             <button type="button" class="btn" id="simulateMatchdayBtn">${stage === "Final" ? "Simulate Final" : (stage && !["League","Groups"].includes(stage) ? "Simulate Round" : "Simulate Matchday")}</button>
             <button type="button" class="btn success" id="simulateSeasonBtn">Simulate Season</button>
+            ${isManualQualificationDestination(comp) ? `<button type="button" class="btn secondary" id="loadQualifiedTeamsBtn">Load Qualified Teams</button>` : ""}
           ` : `
             ${comp.isWorldCup ? "" : `<span class="badge">Waiting for all competitions to finish</span>`}
           `}
@@ -8787,6 +8901,7 @@
         pendingSeasonCompetitionId = comp.id;
         $("confirmSeasonDialog").showModal();
       });
+      $("loadQualifiedTeamsBtn")?.addEventListener("click",() => openLoadQualifiedTeamsDialog(comp.id));
 
       if (comp.worldCupFinalizationPending&&!$("knockoutRevealDialog").open) {
         requestAnimationFrame(()=>showPendingWorldCupFinalReveal(comp));
@@ -11665,6 +11780,8 @@ function renderWorldCupQualification() {
     $("clearExportCompetitionsBtn").addEventListener("click",()=>document.querySelectorAll(".export-competition-check").forEach(box=>box.checked=false));
     $("confirmExportCompetitionsBtn").addEventListener("click",exportSelectedCompetitions);
     ["closeExportCompetitionsBtn","cancelExportCompetitionsBtn"].forEach(id=>$(id).addEventListener("click",()=>$("exportCompetitionsDialog").close()));
+    $("confirmLoadQualifiedTeamsBtn").addEventListener("click",confirmLoadQualifiedTeams);
+    ["closeLoadQualifiedTeamsBtn","cancelLoadQualifiedTeamsBtn"].forEach(id=>$(id).addEventListener("click",()=>{pendingManualQualificationLoad=null;$("loadQualifiedTeamsDialog").close();}));
 
     $("startWorldCupBtn").addEventListener("click", createWorldCupCompetition);
 
@@ -11696,7 +11813,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V50.5</span>
+    <span>V50.6</span>
   </div>
 </body>
 </html>
