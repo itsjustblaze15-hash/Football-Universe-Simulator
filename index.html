@@ -5249,7 +5249,9 @@
         }));
         if (JSON.stringify(migratedRules) !== JSON.stringify(comp.qualificationRules)) { comp.qualificationRules = migratedRules; changed = true; }
         if (!["highest-ranked","previous-participants","random","leave-empty"].includes(comp.qualificationFallback)) { comp.qualificationFallback = "highest-ranked"; changed = true; }
-        if (typeof comp.titleHolderQualifies !== "boolean") { comp.titleHolderQualifies = ["champions-league","europa-league"].includes(comp.category); changed = true; }
+        if (comp.category === "champions-league") {
+          if (comp.titleHolderQualifies !== false) { comp.titleHolderQualifies = false; changed = true; }
+        } else if (typeof comp.titleHolderQualifies !== "boolean") { comp.titleHolderQualifies = comp.category === "europa-league"; changed = true; }
         if (comp.autoSyncWorldTeams !== false) { comp.autoSyncWorldTeams = false; changed = true; }
         const hasPlayedMatches = (comp.results || []).some(round => (round.games || []).some(game => game.played !== false));
         const normalizedStarted = comp.finished ? true : (comp.started === true || hasPlayedMatches || Number(comp.currentMatchday || 0) > 0);
@@ -5896,6 +5898,7 @@
       currentWorldId = id;
       activeCompetitionId = null;
 
+      const titleHolderRosterRepaired = repairUnstartedChampionsLeagueRosters(currentWorld());
       const rosterChanged = synchronizeExistingCompetitionRosters(currentWorld());
       if (!Object.keys(currentWorld().currentTeamRankingPositions || {}).length) {
         const initialRanking = liveTeamRanking(currentWorld());
@@ -5904,7 +5907,7 @@
         currentWorld().previousWorldCupQualifiedTeamIds = initialRanking.slice(0,16).map(team => team.id);
       }
       calculateWorldCupQualification(currentWorld());
-      if (rosterChanged) saveData("");
+      if (rosterChanged || titleHolderRosterRepaired) saveData("");
 
       $("worldScreen").classList.add("hidden");
       $("careerScreen").classList.add("hidden");
@@ -6051,7 +6054,9 @@
       document.body.classList.add("career-mode");
       $("modeScreen").classList.add("hidden"); $("worldScreen").classList.add("hidden"); $("careerScreen").classList.add("hidden"); $("appScreen").classList.remove("hidden");
       $("backToWorldsBtn").textContent="← Exit Career"; $("deleteWorldBtn").classList.add("hidden"); $("worldTitle").textContent=career.name;
+      const titleHolderRosterRepaired=repairUnstartedChampionsLeagueRosters(career);
       career.competitions.filter(comp=>!comp.finished&&!comp.locked&&!(comp.fixtures||[]).length&&!(comp.results||[]).length&&comp.teamIds?.length>=2).forEach(comp=>setupCompetitionStage(comp));
+      if(titleHolderRosterRepaired)saveData("");
       switchTab("dashboard"); renderAll();
     }
 
@@ -7674,7 +7679,7 @@
         },
         qualificationRules: [],
         qualificationFallback: "highest-ranked",
-        titleHolderQualifies: ["champions-league","europa-league"].includes(category),
+        titleHolderQualifies: category === "europa-league",
         autoSyncWorldTeams: false,
         teamIds: selected,
         originalTeamIds: [...selected],
@@ -8315,7 +8320,7 @@
         createdSeason:1,
         qualificationRules:rules,
         qualificationFallback:source.qualificationFallback || "highest-ranked",
-        titleHolderQualifies:source.titleHolderQualifies === true,
+        titleHolderQualifies:category === "champions-league" ? false : source.titleHolderQualifies === true,
         rewards:JSON.parse(JSON.stringify(source.rewards || {})),
         structure,
         stages,
@@ -8614,6 +8619,70 @@
       const unique = [];
       groups.forEach(group => group.rows.forEach(entry => { if (!unique.some(item => item.teamId === entry.teamId)) unique.push(entry); }));
       return {groups,entries:unique,unfinished};
+    }
+
+    function championsLeagueEntriesFromSavedRules(world,destination,season) {
+      const entries = [];
+      completedQualificationLeagues(world).forEach(league => {
+        const standings = getSortedTable(league);
+        const rules = (league.qualificationRules || []).filter(rule => rule.destinationCompetitionId === destination.id);
+        if (!rules.length || validateQualificationRules(rules,standings.length,league.id)) return;
+        rules.forEach(rule => {
+          const range = qualificationRulePositions(rule,standings.length);
+          standings.slice(range.from - 1,range.to).forEach((row,index) => {
+            const position = range.from + index;
+            entries.push({teamId:row.teamId,sourceCompetitionId:league.id,sourcePosition:position,destinationCompetitionId:destination.id,qualifiedForSeason:season,reason:qualificationReason(league,position),priority:qualificationPriority(league,position,rule)});
+          });
+        });
+      });
+      return dedupeQualificationCandidates(entries,rankingPositionsFromList(liveTeamRanking(world)));
+    }
+
+    function repairUnstartedChampionsLeagueRosters(world = currentWorld()) {
+      if (!world) return false;
+      let changed = false;
+      (world.competitions || []).filter(comp => comp.category === "champions-league" && !isWorldCupCompetition(comp)).forEach(destination => {
+        if (destination.titleHolderQualifies !== false) { destination.titleHolderQualifies = false; changed = true; }
+        if (competitionHasStartedForQualification(destination)) return;
+        const entries = championsLeagueEntriesFromSavedRules(world,destination,Number(destination.season || world.worldSeason || 1));
+        if (!entries.length) return;
+        const ids = entries.map(entry => entry.teamId);
+        const current = competitionParticipantIds(destination);
+        const rosterDiffers = current.length !== ids.length || current.some(id => !ids.includes(id));
+        if (rosterDiffers || Number(destination.teamCount || 0) !== ids.length) {
+          destination.originalTeamIds = [...ids];
+          destination.teamIds = [...ids];
+          destination.teamCount = ids.length;
+          destination.structure = {...(destination.structure || {}),teamCount:ids.length};
+          destination.currentSeasonQualificationEntries = entries.map(entry => ({...entry}));
+          destination.fixtures = [];
+          destination.table = initializeTable(ids);
+          destination.results = [];
+          destination.knockoutHistory = [];
+          destination.groupTables = [];
+          destination.groupAssignments = [];
+          destination.currentRoundByes = [];
+          destination.currentStageIndex = 0;
+          destination.currentMatchday = 0;
+          destination.locked = false;
+          destination.started = false;
+          destination.completed = false;
+          destination.finished = false;
+          destination.status = "not-started";
+          if (isPureKnockoutCompetition(destination)) normalizePureKnockoutStages(destination,ids.length);
+          changed = true;
+        }
+        const pending = world.pendingQualificationRosters?.[destination.id];
+        if (pending && Number(pending.season) >= Number(world.worldSeason || 1)) {
+          pending.teamIds = [...ids];
+          pending.entries = entries.map(entry => ({...entry,qualifiedForSeason:Number(pending.season)}));
+          changed = true;
+        }
+        const before = (world.qualificationHistory || []).length;
+        world.qualificationHistory = (world.qualificationHistory || []).filter(entry => !(entry.destinationCompetitionId === destination.id && entry.sourceCompetitionId === destination.id && /title holder/i.test(entry.reason || "")));
+        if (world.qualificationHistory.length !== before) changed = true;
+      });
+      return changed;
     }
 
     function openLoadQualifiedTeamsDialog(compId) {
@@ -10496,7 +10565,7 @@
         const destination = world.competitions.find(comp => comp.id === destinationId);
         if (!destination) return {ok:false,error:"A qualification destination was deleted."};
         const target = Math.max(2,Math.min(128,Number(destination.structure?.teamCount || destination.teamCount || competitionParticipantIds(destination).length)));
-        const titleHolder = destination.titleHolderQualifies === true && destination.championId && teamById(destination.championId) ? [{teamId:destination.championId,sourceCompetitionId:destination.id,sourcePosition:1,destinationCompetitionId:destination.id,qualifiedForSeason:nextSeason,reason:`${destination.name} title holder`,priority:1}] : [];
+        const titleHolder = destination.category !== "champions-league" && destination.titleHolderQualifies === true && destination.championId && teamById(destination.championId) ? [{teamId:destination.championId,sourceCompetitionId:destination.id,sourcePosition:1,destinationCompetitionId:destination.id,qualifiedForSeason:nextSeason,reason:`${destination.name} title holder`,priority:1}] : [];
         let entries = dedupeQualificationCandidates([...titleHolder,...rawEntries],rankingPositions);
         if (entries.length > target) {
           const missed = entries.slice(target).map(entry => teamName(entry.teamId)).join(", ");
