@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V50.4 permanent version label */
+    /* V50.5 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V50.4 competition builder and data-driven competition themes */
+    /* V50.5 competition builder and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4388,7 +4388,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.4</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.5</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4456,7 +4456,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V50.4 · Save Manager.</p>
+          <p id="saveStatus">V50.5 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4828,7 +4828,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V50.4 · Competition Editor</div>
+          <div class="startup-kicker">V50.5 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -7458,7 +7458,7 @@
     function updateManageCompetitionTeamCount() {
       const selected = document.querySelectorAll(".manage-team-check:checked").length;
       $("manageCompetitionTeamsCount").textContent = `${selected} selected`;
-      $("manageCompetitionTeamsTarget").textContent = pendingManageTeamTarget === null ? "" : ` · choose exactly ${pendingManageTeamTarget}`;
+      $("manageCompetitionTeamsTarget").textContent = "";
     }
 
     function openManageCompetitionTeams(compId, targetCount = null) {
@@ -7482,10 +7482,9 @@
 
     function resetCompetitionForManagedTeams(comp, teamIds) {
       const ids = [...new Set(teamIds)].filter(id => currentWorld().teams.some(team => team.id === id));
-      comp.teamCount = ids.length;
       comp.teamIds = [...ids];
       comp.originalTeamIds = [...ids];
-      comp.structure = {...defaultCompetitionStructure(comp),...(comp.structure || {}),teamCount:ids.length};
+      comp.structure = {...defaultCompetitionStructure(comp),...(comp.structure || {})};
       comp.championsLeagueAutoQualified = false;
       comp.locked = false;
       comp.finished = false;
@@ -7504,7 +7503,7 @@
       comp.groupAssignments = [];
       comp.knockoutByes = [];
       normalizePureKnockoutStages(comp,ids.length);
-      if (ids.length >= 2) setupCompetitionStage(comp);
+      if (ids.length >= 2 && !competitionStartValidationMessage(comp)) setupCompetitionStage(comp);
       const world = currentWorld();
       if (world.pendingQualificationRosters) delete world.pendingQualificationRosters[comp.id];
     }
@@ -7520,11 +7519,6 @@
         error.classList.remove("hidden");
         return;
       }
-      if (pendingManageTeamTarget !== null && ids.length !== pendingManageTeamTarget) {
-        error.textContent = `Choose exactly ${pendingManageTeamTarget} team${pendingManageTeamTarget === 1 ? "" : "s"}.`;
-        error.classList.remove("hidden");
-        return;
-      }
       const hasProgress = !!(comp.finished || comp.results?.length || comp.currentMatchday || comp.currentStageIndex);
       if (hasProgress && !confirm("Changing participants will regenerate this competition's fixtures, results, and table. Continue?")) return;
       resetCompetitionForManagedTeams(comp,ids);
@@ -7534,6 +7528,24 @@
       pendingManageTeamTarget = null;
       renderAll();
       switchTab("competitions");
+    }
+
+    function competitionStartValidationMessage(comp) {
+      if (!comp || isWorldCupCompetition(comp)) return "";
+      const current = [...new Set((comp.originalTeamIds || comp.teamIds || []).filter(id => currentWorld().teams.some(team => team.id === id)))].length;
+      const configured = Math.max(0,Number(comp.teamCount ?? comp.structure?.teamCount ?? 0));
+      const required = configured > 0 ? configured : Math.max(2,current);
+      if (current === required && current >= 2) return "";
+      const difference = required - current;
+      if (difference > 0) return `Cannot start competition. ${comp.name} requires ${required} teams but currently has ${current}. Please add ${difference} more team${difference === 1 ? "" : "s"} before starting.`;
+      return `Cannot start competition. ${comp.name} is configured for ${required} teams but currently has ${current}. Please remove ${Math.abs(difference)} team${Math.abs(difference) === 1 ? "" : "s"} before starting.`;
+    }
+
+    function validateCompetitionCanStart(comp) {
+      const message = competitionStartValidationMessage(comp);
+      if (!message) return true;
+      showToast(message,true);
+      return false;
     }
 
     function renderCustomStages() {
@@ -8011,7 +8023,7 @@
       const teamCount = Math.max(0,Number($("competitionEditorTeamCount").value || 0));
       const type = $("competitionEditorStructureType").value;
       $("competitionEditorType").textContent = type === "league" ? "League" : type === "knockout" ? "Knockout Cup" : "Group Stage Tournament";
-      $("competitionEditorCurrentTeams").textContent = String(teamCount);
+      $("competitionEditorCurrentTeams").textContent = String((comp.originalTeamIds || comp.teamIds || []).length);
       $("competitionEditorQualificationSummary").innerHTML = pendingQualificationRules.length ? `<div class="startup-kicker">Qualification</div>${pendingQualificationRules.map(rule => {
         const destination = world.competitions.find(item => item.id === rule.destinationCompetitionId);
         return `<div class="qualification-summary-line"><strong>${escapeHtml(qualificationRuleLabel(rule,Math.max(2,teamCount)))}</strong><span>→ ${escapeHtml(destination?.name || "Choose destination")}</span></div>`;
@@ -8044,7 +8056,7 @@
       $("competitionEditorStructureType").disabled = fixedSuperLeague;
       $("competitionEditorTeamCount").disabled = fixedSuperLeague;
       $("competitionEditorLeagueTeams").disabled = fixedSuperLeague;
-      $("competitionEditorCurrentTeams").textContent = String(comp.teamCount || comp.teamIds?.length || 0);
+      $("competitionEditorCurrentTeams").textContent = String((comp.originalTeamIds || comp.teamIds || []).length);
       $("competitionEditorChampion").textContent = comp.championId ? teamName(comp.championId) : "None yet";
       $("competitionEditorCreatedSeason").textContent = String(comp.createdSeason || comp.season || 1);
       $("competitionEditorError").classList.add("hidden");
@@ -8092,15 +8104,8 @@
       if (!Number.isInteger(teamCount)) return showCompetitionEditorError("Team count must be a whole number.");
       if (teamCount === 1 || teamCount < 0) return showCompetitionEditorError("Use 0 teams for an empty competition, or choose at least 2 teams.");
       if (teamCount > 128) return showCompetitionEditorError("A competition cannot have more than 128 teams.");
-      if (comp.category !== "super-league" && teamCount > world.teams.length) return showCompetitionEditorError(`Only ${world.teams.length} club${world.teams.length === 1 ? " is" : "s are"} currently available. Create more teams before raising this limit.`);
       const duplicate = world.competitions.some(item => item.id !== comp.id && String(item.name || "").trim().toLowerCase() === name.toLowerCase());
       if (duplicate) return showCompetitionEditorError("A competition with that name already exists.");
-      const currentParticipants = (comp.originalTeamIds || comp.teamIds || []).length;
-      if (comp.category !== "super-league" && teamCount !== currentParticipants) {
-        showCompetitionEditorError(`Choose the ${teamCount} participating team${teamCount === 1 ? "" : "s"} before saving.`);
-        openManageCompetitionTeams(comp.id,teamCount);
-        return;
-      }
       const qualificationError = validateQualificationRules(pendingQualificationRules,teamCount,comp.id);
       if (qualificationError) { setCompetitionEditorTab("qualification"); return showCompetitionEditorError(qualificationError); }
 
@@ -8671,7 +8676,7 @@
           ${(knockoutStageIsActive(comp) || (comp.knockoutHistory || []).length) ? `
             <button type="button" class="btn secondary" id="openKnockoutJourneyBtn">📖 Tournament History</button>
           ` : ""}
-          ${!comp.finished && (comp.teamIds || []).length >= 2 ? `
+          ${!comp.finished && (comp.category !== "super-league" || (comp.teamIds || []).length >= 2) ? `
             <button type="button" class="btn" id="simulateMatchdayBtn">${stage === "Final" ? "Simulate Final" : (stage && !["League","Groups"].includes(stage) ? "Simulate Round" : "Simulate Matchday")}</button>
             <button type="button" class="btn success" id="simulateSeasonBtn">Simulate Season</button>
           ` : `
@@ -8778,6 +8783,7 @@
 
       $("simulateSeasonBtn")?.addEventListener("click", (event) => {
         event.preventDefault();
+        if (!validateCompetitionCanStart(comp)) return;
         pendingSeasonCompetitionId = comp.id;
         $("confirmSeasonDialog").showModal();
       });
@@ -9219,6 +9225,7 @@
         showToast("Competition not found", true);
         return;
       }
+      if (!validateCompetitionCanStart(comp)) return;
 
       const wasFinished = comp.finished;
       const isKnockout = knockoutStageIsActive(comp);
@@ -9901,6 +9908,7 @@
 
     function simulateSeason(compId) {
       const comp = currentWorld().competitions.find(c => c.id === compId);
+      if (!comp || !validateCompetitionCanStart(comp)) return;
       const wasFinished = comp.finished;
       let guard = 0;
       while (!comp.finished && guard < 500) {
@@ -11688,7 +11696,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V50.4</span>
+    <span>V50.5</span>
   </div>
 </body>
 </html>
