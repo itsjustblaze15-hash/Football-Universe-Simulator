@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V50.2 permanent version label */
+    /* V50.3 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V50.2 competition builder and data-driven competition themes */
+    /* V50.3 competition builder and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4388,7 +4388,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.2</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.3</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4456,7 +4456,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V50.2 · Save Manager.</p>
+          <p id="saveStatus">V50.3 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4811,7 +4811,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V50.2 · Competition Editor</div>
+          <div class="startup-kicker">V50.3 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -10029,7 +10029,7 @@
       if (comp.finished || comp.completed === true || comp.status === "completed") return true;
       if (comp.started === true || ["in-progress","active","started"].includes(comp.status)) return true;
       if (Number(comp.currentMatchday || 0) > 0) return true;
-      return (comp.results || []).some(round => (round.games || []).some(game => game.played !== false));
+      return (comp.results || []).some(round => (round.games || []).some(game => game.played === true));
     }
 
     function qualificationRouteKey(world,sourceId,destinationId) {
@@ -10053,13 +10053,30 @@
       return {entries};
     }
 
+    function incomingQualificationExpectedCount(world,destination) {
+      return incomingQualificationSources(world,destination).reduce((total,source) => {
+        const sourceCount = Math.max(0,competitionParticipantIds(source).length || Object.keys(source.table || {}).length || Number(source.structure?.teamCount || source.teamCount || 0));
+        return total + (source.qualificationRules || [])
+          .filter(rule => rule.destinationCompetitionId === destination.id)
+          .reduce((sum,rule) => {
+            const range = qualificationRulePositions(rule,sourceCount);
+            return sum + Math.max(0,range.to - range.from + 1);
+          },0);
+      },0);
+    }
+
+    function qualificationSourcesComplete(world,destination) {
+      const sources = incomingQualificationSources(world,destination);
+      return sources.length > 0 && sources.every(source => source.finished || source.completed === true || source.status === "completed");
+    }
+
     function rebuildUnstartedCompetitionFromQualification(destination,entries) {
       const world = currentWorld();
       const rankingPositions = rankingPositionsFromList(liveTeamRanking(world));
       const uniqueEntries = dedupeQualificationCandidates(entries,rankingPositions);
-      const configuredTarget = destination.category === "super-league"
-        ? 2
-        : Math.max(0,Math.min(128,Number(destination.structure?.teamCount ?? destination.teamCount ?? uniqueEntries.length)));
+      const explicitTarget = Math.max(0,Math.min(128,Number(destination.structure?.teamCount ?? destination.teamCount ?? 0)));
+      const expectedIncoming = Math.max(0,Math.min(128,incomingQualificationExpectedCount(world,destination)));
+      const configuredTarget = destination.category === "super-league" ? 2 : (explicitTarget || expectedIncoming || uniqueEntries.length);
       if (configuredTarget && uniqueEntries.length > configuredTarget) {
         return {ok:false,error:`${destination.name} allows ${configuredTarget} teams but ${uniqueEntries.length} qualified. Open Competition Editor and fix the qualification ranges.`};
       }
@@ -10088,10 +10105,16 @@
         destination.stages = ["Final"];
         destination.competitionType = "knockout";
         destination.structure = {...(destination.structure || {}),type:"knockout",teamCount:2,bracketSize:2,knockoutStage:"Final"};
+      } else if (!explicitTarget && configuredTarget) {
+        destination.teamCount = configuredTarget;
+        destination.structure = {...(destination.structure || {}),teamCount:configuredTarget};
       }
       if (isPureKnockoutCompetition(destination)) normalizePureKnockoutStages(destination,ids.length);
-      if (ids.length >= 2 && (!configuredTarget || ids.length >= Math.min(2,configuredTarget))) setupCompetitionStage(destination);
-      return {ok:true,entries:uniqueEntries};
+      const allSourcesFinished = qualificationSourcesComplete(world,destination);
+      const rosterReady = ids.length >= 2 && (!configuredTarget || ids.length >= configuredTarget);
+      if (allSourcesFinished && rosterReady) setupCompetitionStage(destination);
+      destination.status = allSourcesFinished && rosterReady ? "setup" : (ids.length ? "setup" : "not-started");
+      return {ok:true,entries:uniqueEntries,ready:allSourcesFinished && rosterReady,configuredTarget};
     }
 
     function queueQualificationEntriesForNextSeason(world,destination,entries) {
@@ -10131,6 +10154,14 @@
         const result = sourceQualificationEntries(world,source,destination,Number(world.worldSeason || 1));
         if (result.error) { source.qualificationProcessingError = result.error; return {ok:false,error:result.error,applied,queued}; }
         const routeKey = qualificationRouteKey(world,source.id,destination.id);
+        const existingSourceEntries = (destination.currentSeasonQualificationEntries || []).some(entry =>
+          entry.sourceCompetitionId === source.id && entry.destinationCompetitionId === destination.id
+        );
+        const existingQueuedEntries = (world.pendingQualificationRoutes || []).some(entry =>
+          entry.sourceCompetitionId === source.id && entry.destinationCompetitionId === destination.id &&
+          Number(entry.qualifiedForSeason) === Number(world.worldSeason || 1) + 1
+        );
+        if (world.currentSeasonQualificationRoutes.includes(routeKey) && (existingSourceEntries || existingQueuedEntries)) continue;
         if (competitionHasStartedForQualification(destination)) {
           queueQualificationEntriesForNextSeason(world,destination,result.entries);
           recordQualificationEntries(world,result.entries,Number(world.worldSeason || 1) + 1);
@@ -10159,7 +10190,11 @@
       const sources = incomingQualificationSources(world,comp);
       if (sources.length) {
         const unfinished = sources.filter(source => !source.finished);
-        if (unfinished.length) return `Waiting for ${comp.name} qualification`;
+        if (unfinished.length) {
+          const target = Math.max(0,Number(comp.structure?.teamCount ?? comp.teamCount ?? incomingQualificationExpectedCount(world,comp)));
+          const count = (comp.originalTeamIds || []).length;
+          return target ? `${comp.name}: ${count} of ${target} teams qualified · Waiting for ${unfinished.map(source => source.name).join(", ")}` : `Waiting for ${comp.name} qualification`;
+        }
         if (!(comp.originalTeamIds || []).length) return `Waiting for ${comp.name} qualification`;
       }
       if (comp.category === "super-league") return "Waiting for Super League final";
@@ -11590,7 +11625,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V50.2</span>
+    <span>V50.3</span>
   </div>
 </body>
 </html>
