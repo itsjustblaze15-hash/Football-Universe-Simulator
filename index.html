@@ -4292,6 +4292,9 @@
     /* V47 competition editor and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
+    .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    .competition-editor-tab{flex:1;min-width:120px}
+    .competition-editor-panel{display:none}.competition-editor-panel.active{display:block}
     .competition-editor-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:18px}
     .competition-editor-field{display:grid;gap:8px}
     .competition-editor-field.full{grid-column:1/-1}
@@ -4302,6 +4305,11 @@
     .competition-editor-summary-item{padding:12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid var(--border)}
     .competition-editor-summary-item strong{display:block;margin-top:4px}
     .competition-editor-error{margin-top:14px;border-color:rgba(239,68,68,.5)!important;background:rgba(239,68,68,.12)!important;color:#fecaca!important}
+    .qualification-rule-list{display:grid;gap:12px;margin-top:14px}
+    .qualification-rule{display:grid;grid-template-columns:140px minmax(90px,.65fr) minmax(150px,1fr) auto;gap:10px;align-items:end;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--panel-2)}
+    .qualification-rule label{display:grid;gap:6px}.qualification-rule .rule-position-fields{display:flex;gap:8px}.qualification-rule .rule-position-fields input{min-width:0}
+    .qualification-summary-list{display:grid;gap:7px;margin-top:10px}.qualification-summary-line{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.035)}
+    .badge-upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.badge-upload-row input{flex:1;min-width:210px}
     .competition-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
     .competition-card-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 
@@ -4351,7 +4359,7 @@
     body.competition-custom-theme:not(.world-cup-theme) .notice{background:rgba(var(--competition-rgb),.10)!important;border-color:rgba(var(--competition-rgb),.31)!important}
     body.competition-custom-theme:not(.world-cup-theme) .permanent-version-label span{color:var(--competition-color)!important}
 
-    @media(max-width:640px){.competition-editor-grid,.competition-editor-summary-grid{grid-template-columns:1fr}.competition-editor-field.full{grid-column:auto}.competition-actions{justify-content:stretch}.competition-actions .btn{flex:1}}
+    @media(max-width:640px){.competition-editor-grid,.competition-editor-summary-grid,.qualification-rule{grid-template-columns:1fr}.competition-editor-field.full{grid-column:auto}.competition-actions{justify-content:stretch}.competition-actions .btn{flex:1}.competition-editor-tab{min-width:0}.qualification-rule .btn{width:100%}}
 
 </style>
 </head>
@@ -4376,7 +4384,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V47.2</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V48</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4444,7 +4452,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V47.2 · Save Manager.</p>
+          <p id="saveStatus">V48 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4791,12 +4799,19 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V47.2 · Competition Editor</div>
+          <div class="startup-kicker">V48 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
       </div>
 
+      <div class="competition-editor-tabs" role="tablist" aria-label="Competition editor sections">
+        <button type="button" class="btn secondary competition-editor-tab active" data-editor-tab="general">General</button>
+        <button type="button" class="btn secondary competition-editor-tab" data-editor-tab="structure">Structure</button>
+        <button type="button" class="btn secondary competition-editor-tab" data-editor-tab="qualification">Qualification</button>
+      </div>
+
+      <section class="competition-editor-panel active" data-editor-panel="general">
       <div class="competition-editor-grid">
         <label class="competition-editor-field full" for="competitionEditorName">
           <span>Competition Name</span>
@@ -4816,9 +4831,34 @@
         <div class="competition-editor-field full">
           <span>Competition Badge</span>
           <div class="competition-editor-badge-preview" id="competitionEditorBadgePreview"></div>
-          <small class="muted">Badge replacement will be added in a future version.</small>
+          <div class="badge-upload-row">
+            <input id="competitionEditorBadgeInput" type="file" accept="image/png" />
+            <button type="button" class="btn secondary small" id="resetCompetitionBadgeBtn">Use Default Badge</button>
+          </div>
+          <small class="muted">PNG files are embedded into the save. Transparent backgrounds are preserved.</small>
         </div>
       </div>
+      </section>
+
+      <section class="competition-editor-panel" data-editor-panel="structure">
+        <div class="competition-editor-grid">
+          <label class="competition-editor-field full" for="competitionEditorStructureType"><span>Competition Structure</span>
+            <select id="competitionEditorStructureType"><option value="league">League</option><option value="knockout">Knockout Cup</option><option value="group-stage">Group Stage Tournament</option></select>
+          </label>
+          <label class="competition-editor-field" id="competitionEditorLeagueTeamsField" for="competitionEditorLeagueTeams"><span>Number of Teams</span><input id="competitionEditorLeagueTeams" type="number" min="2" max="128" step="1" /></label>
+          <label class="competition-editor-field hidden" id="competitionEditorBracketSizeField" for="competitionEditorBracketSize"><span>Bracket Size</span><select id="competitionEditorBracketSize"><option>2</option><option>4</option><option>8</option><option>16</option><option>32</option><option>64</option><option>128</option></select></label>
+          <label class="competition-editor-field hidden" id="competitionEditorGroupCountField" for="competitionEditorGroupCount"><span>Groups</span><input id="competitionEditorGroupCount" type="number" min="1" max="32" step="1" /></label>
+          <label class="competition-editor-field hidden" id="competitionEditorTeamsPerGroupField" for="competitionEditorTeamsPerGroup"><span>Teams per Group</span><input id="competitionEditorTeamsPerGroup" type="number" min="2" max="32" step="1" /></label>
+          <label class="competition-editor-field hidden" id="competitionEditorKnockoutStageField" for="competitionEditorKnockoutStage"><span>Knockout Stage</span><select id="competitionEditorKnockoutStage"><option value="none">None</option><option value="Final">Final</option><option value="Semifinals">Semifinals</option><option value="Quarterfinals">Quarterfinals</option><option value="Round of 16">Round of 16</option><option value="Round of 32">Round of 32</option></select></label>
+        </div>
+        <p class="notice">Structure settings are saved for this competition without rewriting an active season's fixtures.</p>
+      </section>
+
+      <section class="competition-editor-panel" data-editor-panel="qualification">
+        <p class="notice">Qualification rules are configuration only in V48. Promotion, relegation, and routing will be activated in a future update.</p>
+        <div id="qualificationRuleList" class="qualification-rule-list"></div>
+        <button type="button" class="btn secondary" id="addQualificationRuleBtn" style="margin-top:12px">＋ Add Qualification Rule</button>
+      </section>
 
       <div id="competitionEditorError" class="notice competition-editor-error hidden" role="alert"></div>
 
@@ -4830,6 +4870,7 @@
           <div class="competition-editor-summary-item"><span class="muted">Current Champion</span><strong id="competitionEditorChampion">None yet</strong></div>
           <div class="competition-editor-summary-item"><span class="muted">Created Season</span><strong id="competitionEditorCreatedSeason">1</strong></div>
         </div>
+        <div class="qualification-summary-list" id="competitionEditorQualificationSummary"></div>
       </section>
 
       <div class="dialog-actions competition-actions">
@@ -4952,6 +4993,9 @@
     let pendingCareerEliminationCompetitionId = null;
     let pendingWorldCupRevealCompetitionId = null;
     let pendingEditCompetitionId = null;
+    let pendingCompetitionBadgeData = "";
+    let pendingQualificationRules = [];
+    let activeCompetitionEditorTab = "general";
     let customStages = [];
 
     const $ = (id) => document.getElementById(id);
@@ -5013,6 +5057,28 @@
       return "Custom Competition";
     }
 
+    function inferCompetitionStructureType(comp) {
+      if (comp?.competitionType && ["league","knockout","group-stage"].includes(comp.competitionType)) return comp.competitionType;
+      const stages = Array.isArray(comp?.stages) ? comp.stages : [];
+      if (stages.includes("Groups")) return "group-stage";
+      if (stages.includes("League")) return "league";
+      return "knockout";
+    }
+
+    function defaultCompetitionStructure(comp) {
+      const type = inferCompetitionStructureType(comp);
+      const teams = Math.max(2,Math.min(128,Number(comp?.teamCount || comp?.originalTeamIds?.length || comp?.teamIds?.length || 2)));
+      const groups = Math.max(1,Math.min(32,Number(comp?.groupCount || Math.ceil(teams / 4))));
+      return {
+        type,
+        teamCount:teams,
+        bracketSize:[2,4,8,16,32,64,128].find(size => size >= teams) || 128,
+        groups,
+        teamsPerGroup:Math.max(2,Math.min(32,Math.ceil(teams / groups))),
+        knockoutStage:(comp?.stages || []).find(stage => ["Round of 32","Round of 16","Quarterfinals","Semifinals","Final"].includes(stage)) || "none"
+      };
+    }
+
     function normalizeCompetitionEditorFields(comp) {
       if (!comp) return false;
       let changed = false;
@@ -5037,6 +5103,15 @@
         if (comp.badge !== "worldCup") { comp.badge = "worldCup"; changed = true; }
         if (comp.primaryColor !== "#f6c453") { comp.primaryColor = "#f6c453"; changed = true; }
         if (comp.editable !== false) { comp.editable = false; changed = true; }
+      } else {
+        const type = inferCompetitionStructureType(comp);
+        const structure = {...defaultCompetitionStructure({...comp,competitionType:type}),...(comp.structure || {}),type};
+        if (comp.competitionType !== type) { comp.competitionType = type; changed = true; }
+        if (!comp.structure || JSON.stringify(comp.structure) !== JSON.stringify(structure)) {
+          comp.structure = structure; changed = true;
+        }
+        if (!Array.isArray(comp.qualificationRules)) { comp.qualificationRules = []; changed = true; }
+        if (comp.autoSyncWorldTeams !== false) { comp.autoSyncWorldTeams = false; changed = true; }
       }
 
       return changed;
@@ -6109,7 +6184,7 @@
       return !!comp &&
         !comp.isWorldCup &&
         comp.category !== "world-cup" &&
-        (comp.category === "league" || comp.category === "cup");
+        comp.autoSyncWorldTeams === true;
     }
 
     function synchronizeExistingCompetitionRosters(world = currentWorld()) {
@@ -7234,6 +7309,7 @@
         ? autoQualified
         : [...document.querySelectorAll(".competition-team-check:checked")].map(x => x.value);
       if (!name) return alert("Enter a competition name.");
+      if (world.competitions.some(comp => String(comp.name || "").trim().toLowerCase() === name.toLowerCase())) return alert("A competition with that name already exists.");
       if (selected.length < 2) return alert("Select at least two teams.");
       if (!customStages.length) return alert("Add at least one stage.");
 
@@ -7253,6 +7329,17 @@
         teamCount: selected.length,
         editable: true,
         createdSeason: Number(world.worldSeason || 1),
+        competitionType: customStages.includes("Groups") ? "group-stage" : customStages.includes("League") ? "league" : "knockout",
+        structure: {
+          type: customStages.includes("Groups") ? "group-stage" : customStages.includes("League") ? "league" : "knockout",
+          teamCount:selected.length,
+          bracketSize:[2,4,8,16,32,64,128].find(size => size >= selected.length) || 128,
+          groups:groupCount,
+          teamsPerGroup:Math.max(2,Math.ceil(selected.length / groupCount)),
+          knockoutStage:customStages.find(stage => ["Round of 32","Round of 16","Quarterfinals","Semifinals","Final"].includes(stage)) || "none"
+        },
+        qualificationRules: [],
+        autoSyncWorldTeams: false,
         teamIds: selected,
         originalTeamIds: [...selected],
         championsLeagueAutoQualified: category === "champions-league" && autoQualified.length === 24,
@@ -7453,6 +7540,7 @@
     function competitionBadgeSource(comp) {
       if (!comp) return null;
       const badge = comp.badge || defaultCompetitionBadge(comp);
+      if (typeof badge === "string" && badge.startsWith("data:image/")) return badge;
       if (isWorldCupCompetition(comp) || badge === "worldCup") return COMPETITION_BADGES.worldCup;
       if (badge === "league") return COMPETITION_BADGES.careerLeague;
       if (badge === "championsLeague") return COMPETITION_BADGES.championsLeague;
@@ -7479,9 +7567,105 @@
       const world = currentWorld();
       const comp = world?.competitions?.find(item => item.id === pendingEditCompetitionId);
       if (!comp) return;
-      const previewComp = {...comp,primaryColor:normalizeHexColor($("competitionEditorColor").value,comp.primaryColor)};
+      const previewComp = {...comp,badge:pendingCompetitionBadgeData || defaultCompetitionBadge(comp),primaryColor:normalizeHexColor($("competitionEditorColor").value,comp.primaryColor)};
       const token = competitionColorTokens(previewComp);
       $("competitionEditorBadgePreview").innerHTML = `<div class="competition-icon" style="${competitionColorStyle(previewComp)};background:linear-gradient(180deg,${token.color},rgb(${token.dark.join(",")}))">${competitionBadgeHtml(previewComp,"🏆")}</div>`;
+    }
+
+    function setCompetitionEditorTab(tab) {
+      activeCompetitionEditorTab = tab;
+      document.querySelectorAll(".competition-editor-tab").forEach(button => button.classList.toggle("active",button.dataset.editorTab === tab));
+      document.querySelectorAll(".competition-editor-panel").forEach(panel => panel.classList.toggle("active",panel.dataset.editorPanel === tab));
+    }
+
+    function updateCompetitionStructureFields() {
+      const type = $("competitionEditorStructureType").value;
+      $("competitionEditorLeagueTeamsField").classList.toggle("hidden",type !== "league");
+      $("competitionEditorBracketSizeField").classList.toggle("hidden",type !== "knockout");
+      ["competitionEditorGroupCountField","competitionEditorTeamsPerGroupField","competitionEditorKnockoutStageField"].forEach(id => $(id).classList.toggle("hidden",type !== "group-stage"));
+      updateCompetitionEditorSummary();
+    }
+
+    function qualificationDestinationOptions(selectedId="") {
+      const world = currentWorld();
+      const options = (world?.competitions || []).filter(item => item.id !== pendingEditCompetitionId && item.editable !== false && !isWorldCupCompetition(item));
+      return `<option value="">Choose destination</option>${options.map(item => `<option value="${escapeHtml(item.id)}" ${item.id === selectedId ? "selected" : ""}>${escapeHtml(item.name)}</option>`).join("")}`;
+    }
+
+    function renderQualificationRules() {
+      const list = $("qualificationRuleList");
+      list.innerHTML = pendingQualificationRules.length ? pendingQualificationRules.map((rule,index) => `
+        <div class="qualification-rule" data-rule-index="${index}">
+          <label><span>Range</span><select class="qualification-range-type"><option value="top" ${rule.rangeType === "top" ? "selected" : ""}>Top</option><option value="positions" ${rule.rangeType === "positions" ? "selected" : ""}>Positions</option><option value="bottom" ${rule.rangeType === "bottom" ? "selected" : ""}>Bottom</option></select></label>
+          <label><span>${rule.rangeType === "positions" ? "From / To" : "Places"}</span><span class="rule-position-fields">${rule.rangeType === "positions" ? `<input class="qualification-from" type="number" min="1" max="128" value="${Number(rule.from || 1)}"><input class="qualification-to" type="number" min="1" max="128" value="${Number(rule.to || rule.from || 1)}">` : `<input class="qualification-count" type="number" min="1" max="128" value="${Number(rule.count || 1)}">`}</span></label>
+          <label><span>Destination Competition</span><select class="qualification-destination">${qualificationDestinationOptions(rule.destinationCompetitionId)}</select></label>
+          <button type="button" class="btn danger small remove-qualification-rule">Remove</button>
+        </div>`).join("") : `<p class="muted">No qualification rules. Add one to connect this competition to another editable competition.</p>`;
+      updateCompetitionEditorSummary();
+    }
+
+    function syncQualificationRulesFromEditor() {
+      document.querySelectorAll(".qualification-rule").forEach(row => {
+        const rule = pendingQualificationRules[Number(row.dataset.ruleIndex)];
+        if (!rule) return;
+        rule.rangeType = row.querySelector(".qualification-range-type").value;
+        rule.from = Number(row.querySelector(".qualification-from")?.value || 1);
+        rule.to = Number(row.querySelector(".qualification-to")?.value || rule.from);
+        rule.count = Number(row.querySelector(".qualification-count")?.value || 1);
+        rule.destinationCompetitionId = row.querySelector(".qualification-destination").value;
+      });
+    }
+
+    function qualificationRulePositions(rule,teamCount) {
+      if (rule.rangeType === "top") return {from:1,to:Number(rule.count)};
+      if (rule.rangeType === "bottom") return {from:teamCount - Number(rule.count) + 1,to:teamCount};
+      return {from:Number(rule.from),to:Number(rule.to)};
+    }
+
+    function qualificationRuleLabel(rule,teamCount) {
+      const range = qualificationRulePositions(rule,teamCount);
+      if (rule.rangeType === "top") return `Top ${rule.count}`;
+      if (rule.rangeType === "bottom") return `Bottom ${rule.count}`;
+      return range.from === range.to ? `${range.from}${ordinalSuffix(range.from)}` : `${range.from}–${range.to}`;
+    }
+
+    function ordinalSuffix(number) {
+      const value = Number(number); const mod100 = value % 100;
+      return mod100 >= 11 && mod100 <= 13 ? "th" : ({1:"st",2:"nd",3:"rd"}[value % 10] || "th");
+    }
+
+    function validateQualificationRules(rules,teamCount,compId) {
+      const world = currentWorld();
+      const occupied = new Set();
+      for (const rule of rules) {
+        if (!rule.destinationCompetitionId) return "Choose a destination for every qualification rule.";
+        if (rule.destinationCompetitionId === compId) return "A competition cannot qualify into itself.";
+        const destination = world?.competitions?.find(item => item.id === rule.destinationCompetitionId && item.editable !== false && !isWorldCupCompetition(item));
+        if (!destination) return "One qualification destination is no longer available.";
+        const range = qualificationRulePositions(rule,teamCount);
+        if (!Number.isInteger(range.from) || !Number.isInteger(range.to) || range.from < 1 || range.to < range.from || range.to > teamCount) return `Qualification ranges must stay between 1 and ${teamCount}.`;
+        for (let position=range.from;position<=range.to;position++) {
+          if (occupied.has(position)) return `Qualification ranges overlap at position ${position}.`;
+          occupied.add(position);
+        }
+      }
+      if (occupied.size > teamCount) return "There are more qualifying places than teams.";
+      return "";
+    }
+
+    function updateCompetitionEditorSummary() {
+      const world = currentWorld();
+      const comp = world?.competitions?.find(item => item.id === pendingEditCompetitionId);
+      if (!comp) return;
+      syncQualificationRulesFromEditor();
+      const teamCount = Math.max(0,Number($("competitionEditorTeamCount").value || 0));
+      const type = $("competitionEditorStructureType").value;
+      $("competitionEditorType").textContent = type === "league" ? "League" : type === "knockout" ? "Knockout Cup" : "Group Stage Tournament";
+      $("competitionEditorCurrentTeams").textContent = String(teamCount);
+      $("competitionEditorQualificationSummary").innerHTML = pendingQualificationRules.length ? `<div class="startup-kicker">Qualification</div>${pendingQualificationRules.map(rule => {
+        const destination = world.competitions.find(item => item.id === rule.destinationCompetitionId);
+        return `<div class="qualification-summary-line"><strong>${escapeHtml(qualificationRuleLabel(rule,Math.max(2,teamCount)))}</strong><span>→ ${escapeHtml(destination?.name || "Choose destination")}</span></div>`;
+      }).join("")}` : `<div class="qualification-summary-line"><span class="muted">Qualification</span><span>None configured</span></div>`;
     }
 
     function openCompetitionEditor(compId) {
@@ -7493,15 +7677,27 @@
       }
 
       pendingEditCompetitionId = comp.id;
+      pendingCompetitionBadgeData = comp.badge || defaultCompetitionBadge(comp);
+      pendingQualificationRules = (comp.qualificationRules || []).map(rule => ({...rule,id:rule.id || uid()}));
       $("competitionEditorName").value = comp.name || "";
       $("competitionEditorColor").value = normalizeHexColor(comp.primaryColor,defaultCompetitionPrimaryColor(comp));
       $("competitionEditorTeamCount").value = Math.max(2,Math.min(128,Number(comp.teamCount || comp.teamIds?.length || 2)));
-      $("competitionEditorType").textContent = competitionTypeLabel(comp);
+      const structure = {...defaultCompetitionStructure(comp),...(comp.structure || {})};
+      $("competitionEditorStructureType").value = structure.type || inferCompetitionStructureType(comp);
+      $("competitionEditorLeagueTeams").value = structure.teamCount || comp.teamCount;
+      $("competitionEditorBracketSize").value = String(structure.bracketSize || 16);
+      $("competitionEditorGroupCount").value = structure.groups || 4;
+      $("competitionEditorTeamsPerGroup").value = structure.teamsPerGroup || 4;
+      $("competitionEditorKnockoutStage").value = structure.knockoutStage || "none";
       $("competitionEditorCurrentTeams").textContent = String(comp.teamCount || comp.teamIds?.length || 0);
       $("competitionEditorChampion").textContent = comp.championId ? teamName(comp.championId) : "None yet";
       $("competitionEditorCreatedSeason").textContent = String(comp.createdSeason || comp.season || 1);
       $("competitionEditorError").classList.add("hidden");
       $("competitionEditorError").textContent = "";
+      $("competitionEditorBadgeInput").value = "";
+      setCompetitionEditorTab("general");
+      renderQualificationRules();
+      updateCompetitionStructureFields();
       updateCompetitionEditorBadgePreview();
       $("competitionEditorDialog").showModal();
       $("competitionEditorName").focus();
@@ -7533,6 +7729,8 @@
       const name = $("competitionEditorName").value.trim().replace(/\s+/g," ");
       const color = normalizeHexColor($("competitionEditorColor").value,comp.primaryColor);
       const teamCount = Number($("competitionEditorTeamCount").value);
+      syncQualificationRulesFromEditor();
+      const structureType = $("competitionEditorStructureType").value;
 
       if (!name) return showCompetitionEditorError("Enter a competition name.");
       if (/^World Cup(?: \d+)?$/i.test(name)) return showCompetitionEditorError("World Cup is a reserved name and cannot be used.");
@@ -7541,20 +7739,46 @@
       if (teamCount > 128) return showCompetitionEditorError("A competition cannot have more than 128 teams.");
       const duplicate = world.competitions.some(item => item.id !== comp.id && String(item.name || "").trim().toLowerCase() === name.toLowerCase());
       if (duplicate) return showCompetitionEditorError("A competition with that name already exists.");
+      const qualificationError = validateQualificationRules(pendingQualificationRules,teamCount,comp.id);
+      if (qualificationError) { setCompetitionEditorTab("qualification"); return showCompetitionEditorError(qualificationError); }
+
+      const bracketSize = Number($("competitionEditorBracketSize").value);
+      const groupCount = Number($("competitionEditorGroupCount").value);
+      const teamsPerGroup = Number($("competitionEditorTeamsPerGroup").value);
+      if (structureType === "knockout" && ![2,4,8,16,32,64,128].includes(bracketSize)) return showCompetitionEditorError("Choose a valid knockout bracket size.");
+      if (structureType === "group-stage" && (!Number.isInteger(groupCount) || groupCount < 1 || groupCount > 32)) return showCompetitionEditorError("Groups must be between 1 and 32.");
+      if (structureType === "group-stage" && (!Number.isInteger(teamsPerGroup) || teamsPerGroup < 2 || teamsPerGroup > 32)) return showCompetitionEditorError("Teams per group must be between 2 and 32.");
 
       const oldName = comp.name;
       comp.name = name;
       comp.primaryColor = color;
       comp.teamCount = teamCount;
       comp.editable = true;
-      comp.badge = comp.badge || defaultCompetitionBadge(comp);
+      comp.badge = pendingCompetitionBadgeData || defaultCompetitionBadge(comp);
       comp.createdSeason = Number(comp.createdSeason || comp.season || 1);
+      comp.competitionType = structureType;
+      comp.structure = {
+        type:structureType,
+        teamCount,
+        bracketSize,
+        groups:groupCount,
+        teamsPerGroup,
+        knockoutStage:$("competitionEditorKnockoutStage").value
+      };
+      comp.qualificationRules = pendingQualificationRules.map(rule => ({
+        id:rule.id || uid(),rangeType:rule.rangeType,
+        from:Number(rule.from || 1),to:Number(rule.to || rule.from || 1),count:Number(rule.count || 1),
+        destinationCompetitionId:rule.destinationCompetitionId
+      }));
+      comp.autoSyncWorldTeams = false;
       if (oldName !== name) updateCompetitionNameReferences(world,comp,oldName,name);
 
       const saved = saveData("Competition updated");
       if (!saved) return showCompetitionEditorError("The competition changed, but browser storage is full and could not save it.");
       $("competitionEditorDialog").close();
       pendingEditCompetitionId = null;
+      pendingCompetitionBadgeData = "";
+      pendingQualificationRules = [];
       renderAll();
       switchTab("competitions");
     }
@@ -7840,6 +8064,7 @@
           mainContent = `
             <div class="final-stage">
               <div>
+                <div class="competition-icon" style="margin:0 auto 12px">${competitionBadgeHtml(comp,"🏆")}</div>
                 <div class="final-title">🏆 ${escapeHtml(comp.name)} Final</div>
                 <div class="final-teams">
                   <div class="final-team">
@@ -7910,8 +8135,7 @@
 
           <aside class="side-stack">
             <div class="card">
-              <div class="muted">🏟️ Competition</div>
-              <div class="metric" style="font-size:22px">${escapeHtml(comp.name)}</div>
+              <div style="display:flex;align-items:center;gap:12px"><div class="competition-icon">${competitionBadgeHtml(comp,"🏆")}</div><div><div class="muted">🏟️ Competition</div><div class="metric" style="font-size:22px">${escapeHtml(comp.name)}</div></div></div>
               <div class="toolbar" style="margin:12px 0 0">
                 <span class="badge">Season ${comp.season}</span>
                 <span class="badge">${escapeHtml(stage || "Complete")}</span>
@@ -7920,7 +8144,7 @@
 
             ${latestMatchday ? `
               <div class="card">
-                <h2>⚽ Latest Results</h2>
+                <h2 style="display:flex;align-items:center;gap:10px"><span class="competition-icon" style="width:38px;height:38px">${competitionBadgeHtml(comp,"⚽")}</span> Latest Results</h2>
                 <div class="muted" style="margin-bottom:10px">
                   ${escapeHtml(latestMatchday.stage)} · Matchday ${latestMatchday.matchday}
                 </div>
@@ -10171,17 +10395,64 @@ function renderWorldCupQualification() {
     $("createCompetitionBtn").addEventListener("click", createCompetition);
     $("competitionEditorColor").addEventListener("input", updateCompetitionEditorBadgePreview);
     $("competitionEditorTeamCount").addEventListener("input", event => {
-      $("competitionEditorCurrentTeams").textContent = event.target.value || "0";
+      $("competitionEditorLeagueTeams").value = event.target.value;
+      updateCompetitionEditorSummary();
+    });
+    $("competitionEditorLeagueTeams").addEventListener("input", event => {
+      $("competitionEditorTeamCount").value = event.target.value;
+      updateCompetitionEditorSummary();
+    });
+    $("competitionEditorStructureType").addEventListener("change", updateCompetitionStructureFields);
+    ["competitionEditorBracketSize","competitionEditorGroupCount","competitionEditorTeamsPerGroup","competitionEditorKnockoutStage","competitionEditorName"].forEach(id => $(id).addEventListener("input",updateCompetitionEditorSummary));
+    document.querySelectorAll(".competition-editor-tab").forEach(button => button.addEventListener("click",() => setCompetitionEditorTab(button.dataset.editorTab)));
+    $("addQualificationRuleBtn").addEventListener("click",() => {
+      syncQualificationRulesFromEditor();
+      pendingQualificationRules.push({id:uid(),rangeType:"top",count:1,from:1,to:1,destinationCompetitionId:""});
+      renderQualificationRules();
+    });
+    $("qualificationRuleList").addEventListener("input",event => {
+      const row = event.target.closest(".qualification-rule");
+      if (!row) return;
+      syncQualificationRulesFromEditor();
+      if (event.target.classList.contains("qualification-range-type")) renderQualificationRules();
+      else updateCompetitionEditorSummary();
+    });
+    $("qualificationRuleList").addEventListener("click",event => {
+      const button = event.target.closest(".remove-qualification-rule");
+      if (!button) return;
+      syncQualificationRulesFromEditor();
+      pendingQualificationRules.splice(Number(button.closest(".qualification-rule").dataset.ruleIndex),1);
+      renderQualificationRules();
+    });
+    $("competitionEditorBadgeInput").addEventListener("change",event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.type !== "image/png") { event.target.value = ""; return showCompetitionEditorError("Choose a PNG badge image."); }
+      const reader = new FileReader();
+      reader.onload = () => { pendingCompetitionBadgeData = String(reader.result || ""); updateCompetitionEditorBadgePreview(); updateCompetitionEditorSummary(); };
+      reader.onerror = () => showCompetitionEditorError("That badge could not be read. Try another PNG file.");
+      reader.readAsDataURL(file);
+    });
+    $("resetCompetitionBadgeBtn").addEventListener("click",() => {
+      const comp = currentWorld()?.competitions?.find(item => item.id === pendingEditCompetitionId);
+      if (!comp) return;
+      pendingCompetitionBadgeData = defaultCompetitionBadge(comp);
+      $("competitionEditorBadgeInput").value = "";
+      updateCompetitionEditorBadgePreview();
     });
     $("saveCompetitionEditorBtn").addEventListener("click", saveCompetitionEditor);
     ["closeCompetitionEditorBtn","cancelCompetitionEditorBtn"].forEach(id => {
       $(id).addEventListener("click", () => {
         $("competitionEditorDialog").close();
         pendingEditCompetitionId = null;
+        pendingCompetitionBadgeData = "";
+        pendingQualificationRules = [];
       });
     });
     $("competitionEditorDialog").addEventListener("close", () => {
       pendingEditCompetitionId = null;
+      pendingCompetitionBadgeData = "";
+      pendingQualificationRules = [];
     });
     $("confirmSimSeasonBtn").addEventListener("click", () => {
       $("confirmSeasonDialog").close();
@@ -10241,7 +10512,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V47.2</span>
+    <span>V48</span>
   </div>
 </body>
 </html>
