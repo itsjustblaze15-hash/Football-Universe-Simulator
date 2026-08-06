@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V50.1 permanent version label */
+    /* V50.2 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V50.1 competition builder and data-driven competition themes */
+    /* V50.2 competition builder and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4388,7 +4388,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.1</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.2</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4456,7 +4456,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V50.1 · Save Manager.</p>
+          <p id="saveStatus">V50.2 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4811,7 +4811,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V50.1 · Competition Editor</div>
+          <div class="startup-kicker">V50.2 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -4903,6 +4903,24 @@
         <button type="button" class="btn success" id="continueQualificationBtn">Continue</button>
       </div>
     </div>
+  </dialog>
+
+  <dialog id="loadCompetitionsDialog" class="archive-dialog">
+    <div class="archive-header"><div><div class="startup-kicker">Competition Templates</div><h2>Load Competitions From Save</h2></div><button type="button" class="btn secondary small" id="closeLoadCompetitionsBtn">Close</button></div>
+    <div class="form-row">
+      <label>Choose Source<select id="competitionTemplateSourceType"><option value="universe">Universe World</option><option value="career">Club Career Save</option><option value="file">Import Competition File</option></select></label>
+      <label id="competitionTemplateSaveField">Save<select id="competitionTemplateSaveSelect"></select></label>
+    </div>
+    <input id="competitionTemplateFileInput" type="file" accept=".json,application/json" multiple class="hidden">
+    <div id="competitionTemplateImportMessage" class="notice">Choose a source, then select one or more competitions.</div>
+    <div id="competitionTemplatePicker" class="builder-team-grid" style="margin-top:16px"></div>
+    <div class="dialog-actions"><button type="button" class="btn secondary" id="cancelLoadCompetitionsBtn">Cancel</button><button type="button" class="btn success" id="importCompetitionTemplatesBtn">Import Competitions</button></div>
+  </dialog>
+
+  <dialog id="competitionImportConflictDialog">
+    <h2 id="competitionImportConflictTitle">Duplicate Competition</h2>
+    <p id="competitionImportConflictMessage" class="muted"></p>
+    <div class="dialog-actions" style="flex-wrap:wrap"><button type="button" class="btn secondary" id="skipImportedCompetitionBtn">Skip</button><button type="button" class="btn" id="renameImportedCompetitionBtn">Rename Imported</button><button type="button" class="btn danger" id="replaceImportedCompetitionBtn">Replace Existing</button></div>
   </dialog>
 
   <dialog id="randomSelectionDialog">
@@ -5055,6 +5073,9 @@
     let activeCompetitionEditorTab = "general";
     let pendingGlobalSeasonTransition = null;
     let qualificationDetailsExpanded = false;
+    let competitionTemplateImportSource = null;
+    let pendingCompetitionTemplateImports = [];
+    let pendingCompetitionImportConflict = null;
     let customStages = [];
 
     const $ = (id) => document.getElementById(id);
@@ -5191,6 +5212,13 @@
         if (!["highest-ranked","previous-participants","random","leave-empty"].includes(comp.qualificationFallback)) { comp.qualificationFallback = "highest-ranked"; changed = true; }
         if (typeof comp.titleHolderQualifies !== "boolean") { comp.titleHolderQualifies = ["champions-league","europa-league"].includes(comp.category); changed = true; }
         if (comp.autoSyncWorldTeams !== false) { comp.autoSyncWorldTeams = false; changed = true; }
+        const hasPlayedMatches = (comp.results || []).some(round => (round.games || []).some(game => game.played !== false));
+        const normalizedStarted = comp.finished ? true : (comp.started === true || hasPlayedMatches || Number(comp.currentMatchday || 0) > 0);
+        const normalizedStatus = comp.finished ? "completed" : normalizedStarted ? "in-progress" : ((comp.status === "setup" || comp.status === "not-started") ? comp.status : "not-started");
+        if (comp.started !== normalizedStarted) { comp.started = normalizedStarted; changed = true; }
+        if (comp.status !== normalizedStatus) { comp.status = normalizedStatus; changed = true; }
+        if (comp.completed !== !!comp.finished) { comp.completed = !!comp.finished; changed = true; }
+        if (!Array.isArray(comp.currentSeasonQualificationEntries)) { comp.currentSeasonQualificationEntries = []; changed = true; }
         if (comp.category === "super-league") {
           if (!comp.superLeagueSources || typeof comp.superLeagueSources !== "object") { comp.superLeagueSources = {championsLeagueId:"",europaLeagueId:""}; changed = true; }
           if (comp.competitionType !== "knockout") { comp.competitionType = "knockout"; changed = true; }
@@ -5236,6 +5264,8 @@
         if (!Array.isArray(world.qualificationHistory)) { world.qualificationHistory = []; changed = true; }
         if (!world.pendingQualificationRosters || typeof world.pendingQualificationRosters !== "object") { world.pendingQualificationRosters = {}; changed = true; }
         if (!Array.isArray(world.qualificationProcessingKeys)) { world.qualificationProcessingKeys = []; changed = true; }
+        if (!Array.isArray(world.currentSeasonQualificationRoutes)) { world.currentSeasonQualificationRoutes = []; changed = true; }
+        if (!Array.isArray(world.pendingQualificationRoutes)) { world.pendingQualificationRoutes = []; changed = true; }
 
         if (typeof world.regularSeasonsSinceWorldCup !== "number") {
           world.regularSeasonsSinceWorldCup = 0;
@@ -5408,6 +5438,8 @@
         if (!Array.isArray(career.qualificationHistory)) { career.qualificationHistory = []; changed = true; }
         if (!career.pendingQualificationRosters || typeof career.pendingQualificationRosters !== "object") { career.pendingQualificationRosters = {}; changed = true; }
         if (!Array.isArray(career.qualificationProcessingKeys)) { career.qualificationProcessingKeys = []; changed = true; }
+        if (!Array.isArray(career.currentSeasonQualificationRoutes)) { career.currentSeasonQualificationRoutes = []; changed = true; }
+        if (!Array.isArray(career.pendingQualificationRoutes)) { career.pendingQualificationRoutes = []; changed = true; }
         career.developmentPoints = Number(career.developmentPoints || 0);
         career.completedRewards = Array.isArray(career.completedRewards) ? career.completedRewards : [];
         career.completedObjectives = Array.isArray(career.completedObjectives) ? career.completedObjectives : [];
@@ -6682,6 +6714,7 @@
       const active = regular.filter(c => !c.finished).length;
       const finished = regular.filter(c => c.finished).length;
       const allFinished = allRegularCompetitionsFinished(world);
+      const waitingMessages = regular.filter(comp => !comp.finished).map(comp => competitionWaitingMessage(world,comp));
       const news = world.currentNews || [];
 
       $("tab-dashboard").innerHTML = `
@@ -6706,16 +6739,19 @@
           <p class="muted">
             ${allFinished
               ? "Every regular competition is finished. All competitions can now advance together."
-              : `${active} competition${active === 1 ? "" : "s"} still need to be completed before the world can advance.`}
+              : escapeHtml(waitingMessages[0] || `${active} competitions still need to be completed before the world can advance.`)}
           </p>
           <div class="global-season-status">
-            ${regular.map(comp => `<span class="badge ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆" : "▶"} ${escapeHtml(comp.name)}</span>`).join("")}
+            ${regular.map(comp => `<span class="badge ${comp.finished ? "status-finished" : ""}" title="${escapeHtml(competitionWaitingMessage(world,comp))}">${comp.finished ? "🏆" : "⏳"} ${escapeHtml(comp.name)}</span>`).join("")}
           </div>
-          ${allFinished && !worldCupDue(world) ? `
-            <button type="button" class="btn success" id="startGlobalSeasonBtn" style="margin-top:16px">
-              Start World Season ${(world.worldSeason || 1) + 1}
-            </button>
-          ` : ""}
+          <div class="toolbar" style="margin-top:16px">
+            ${allFinished && !worldCupDue(world) ? `
+              <button type="button" class="btn success" id="startGlobalSeasonBtn">
+                Start World Season ${(world.worldSeason || 1) + 1}
+              </button>
+            ` : ""}
+            <button type="button" class="btn secondary" id="loadCompetitionsFromSaveDashboardBtn">Load Competitions From Save</button>
+          </div>
         </section>
 
         <div class="grid two" style="margin-top:16px;align-items:start">
@@ -6754,6 +6790,7 @@
       `;
 
       $("startGlobalSeasonBtn")?.addEventListener("click", startGlobalNextSeason);
+      $("loadCompetitionsFromSaveDashboardBtn")?.addEventListener("click", openLoadCompetitionsDialog);
       $("dashboardWorldCupCard")?.addEventListener("click", () => switchTab("world-cup-qualification"));
       bindNewsButtons($("tab-dashboard"));
     }
@@ -7411,6 +7448,9 @@
       comp.championsLeagueAutoQualified = false;
       comp.locked = false;
       comp.finished = false;
+      comp.status = "not-started";
+      comp.started = false;
+      comp.completed = false;
       comp.championId = null;
       comp.runnerUpId = null;
       comp.currentStageIndex = 0;
@@ -7591,6 +7631,11 @@
         knockoutHistory: [],
         isWorldCup: false,
         championId: null,
+        runnerUpId: null,
+        status: "not-started",
+        started: false,
+        completed: false,
+        currentSeasonQualificationEntries: [],
         superLeagueSources: category === "super-league" ? {
           championsLeagueId:$("superLeagueChampionsSource")?.value || "",
           europaLeagueId:$("superLeagueEuropaSource")?.value || ""
@@ -7834,7 +7879,13 @@
 
     function qualificationDestinationOptions(selectedId="") {
       const world = currentWorld();
-      const options = (world?.competitions || []).filter(item => item.id !== pendingEditCompetitionId && item.editable !== false && !isWorldCupCompetition(item) && item.category !== "super-league");
+      const options = (world?.competitions || []).filter(item =>
+        item.id !== pendingEditCompetitionId &&
+        item.editable !== false &&
+        !isWorldCupCompetition(item) &&
+        !item.recoveredFromHistory &&
+        item.archived !== true
+      );
       return `<option value="">Choose destination</option>${options.map(item => `<option value="${escapeHtml(item.id)}" ${item.id === selectedId ? "selected" : ""}>${escapeHtml(item.name)}</option>`).join("")}`;
     }
 
@@ -7892,7 +7943,13 @@
       for (const rule of rules) {
         if (!rule.destinationCompetitionId) return "Choose a destination for every qualification rule.";
         if (rule.destinationCompetitionId === compId) return "A competition cannot qualify into itself.";
-        const destination = world?.competitions?.find(item => item.id === rule.destinationCompetitionId && item.editable !== false && !isWorldCupCompetition(item) && item.category !== "super-league");
+        const destination = world?.competitions?.find(item =>
+          item.id === rule.destinationCompetitionId &&
+          item.editable !== false &&
+          !isWorldCupCompetition(item) &&
+          !item.recoveredFromHistory &&
+          item.archived !== true
+        );
         if (!destination) return "One qualification destination is no longer available.";
         const range = qualificationRulePositions(rule,teamCount);
         if (!Number.isInteger(range.from) || !Number.isInteger(range.to) || range.from < 1 || range.to < range.from || range.to > teamCount) return `Qualification ranges must stay between 1 and ${teamCount}.`;
@@ -8099,6 +8156,168 @@
       });
     }
 
+
+    function availableCompetitionTemplateSaves(type) {
+      if (type === "career") return (data.careerSaves || []).map(save => ({id:save.id,name:save.name || save.saveName || "Career Save",competitions:save.competitions || []}));
+      return (data.worlds || []).map(save => ({id:save.id,name:save.name || "Universe World",competitions:save.competitions || []}));
+    }
+
+    function renderCompetitionTemplateSourceOptions() {
+      const type = $("competitionTemplateSourceType").value;
+      const fileMode = type === "file";
+      $("competitionTemplateSaveField").classList.toggle("hidden",fileMode);
+      $("competitionTemplateFileInput").classList.toggle("hidden",!fileMode);
+      if (fileMode) {
+        competitionTemplateImportSource = null;
+        $("competitionTemplatePicker").innerHTML = `<div class="notice">Choose one or more exported JSON files.</div>`;
+        return;
+      }
+      const saves = availableCompetitionTemplateSaves(type).filter(save => save.id !== currentWorld()?.id);
+      $("competitionTemplateSaveSelect").innerHTML = saves.map(save => `<option value="${escapeHtml(save.id)}">${escapeHtml(save.name)}</option>`).join("");
+      competitionTemplateImportSource = saves[0] || null;
+      renderCompetitionTemplatePicker();
+    }
+
+    function renderCompetitionTemplatePicker() {
+      const competitions = (competitionTemplateImportSource?.competitions || []).filter(comp => !isWorldCupCompetition(comp) && !comp.recoveredFromHistory && comp.archived !== true);
+      $("competitionTemplateImportMessage").textContent = competitions.length ? "Select the competition setups to import. Teams, fixtures, results, winners, and history will not be copied." : "No editable competition templates were found in this source.";
+      $("competitionTemplatePicker").innerHTML = competitions.map((comp,index) => `<label class="check"><input type="checkbox" class="competition-template-check" value="${index}" checked><span><strong>${escapeHtml(comp.name)}</strong><small class="muted" style="display:block">${escapeHtml(competitionVisual(comp).label)}</small></span></label>`).join("");
+    }
+
+    function openLoadCompetitionsDialog() {
+      if (worldCupIsActive(currentWorld())) return showToast("Finish the World Cup before loading competition templates.",true);
+      competitionTemplateImportSource = null;
+      pendingCompetitionTemplateImports = [];
+      $("competitionTemplateSourceType").value = "universe";
+      $("competitionTemplateFileInput").value = "";
+      renderCompetitionTemplateSourceOptions();
+      $("loadCompetitionsDialog").showModal();
+    }
+
+    function extractCompetitionTemplateSource(parsed,name="Imported file") {
+      if (Array.isArray(parsed)) return {id:uid(),name,competitions:parsed};
+      if (Array.isArray(parsed?.competitions)) return {id:parsed.id || uid(),name:parsed.name || name,competitions:parsed.competitions};
+      if (parsed?.category && parsed?.name) return {id:uid(),name,competitions:[parsed]};
+      return null;
+    }
+
+    async function readCompetitionTemplateFiles(files) {
+      const competitions = [];
+      for (const file of files) {
+        try {
+          const parsed = JSON.parse(await file.text());
+          const source = extractCompetitionTemplateSource(parsed,file.name);
+          if (source) competitions.push(...source.competitions);
+        } catch (error) {
+          showToast(`${file.name} is not a valid competition save file.`,true);
+        }
+      }
+      competitionTemplateImportSource = {id:uid(),name:"Imported Competition Files",competitions};
+      renderCompetitionTemplatePicker();
+    }
+
+    function resolveCompetitionImportConflict(existing,incoming) {
+      return new Promise(resolve => {
+        pendingCompetitionImportConflict = {existing,incoming,resolve};
+        $("competitionImportConflictTitle").textContent = `A competition named "${incoming.name}" already exists.`;
+        $("competitionImportConflictMessage").textContent = "Choose whether to rename the imported competition, skip it, or replace the existing competition with a fresh template.";
+        $("competitionImportConflictDialog").showModal();
+      });
+    }
+
+    function closeCompetitionImportConflict(choice) {
+      const pending = pendingCompetitionImportConflict;
+      pendingCompetitionImportConflict = null;
+      $("competitionImportConflictDialog").close();
+      pending?.resolve(choice);
+    }
+
+    function freshCompetitionFromTemplate(source,newId,idMap,nameOverride="") {
+      const category = source.category || "league";
+      const structure = JSON.parse(JSON.stringify(source.structure || defaultCompetitionStructure(source)));
+      const stages = Array.isArray(source.stages) ? [...source.stages] : category === "super-league" ? ["Final"] : ["League"];
+      const rules = (source.qualificationRules || []).map(rule => ({
+        ...JSON.parse(JSON.stringify(rule)),
+        id:uid(),
+        destinationCompetitionId:idMap.get(rule.destinationCompetitionId) || ""
+      })).filter(rule => rule.destinationCompetitionId);
+      const competition = {
+        id:newId,
+        name:nameOverride || source.name || "Imported Competition",
+        category,
+        competitionType:source.competitionType || structure.type || inferCompetitionStructureType(source),
+        primaryColor:source.primaryColor || defaultCompetitionPrimaryColor(category),
+        badge:source.badge || defaultCompetitionBadge(category),
+        teamCount:Number(source.teamCount ?? structure.teamCount ?? 0),
+        editable:true,
+        createdSeason:1,
+        qualificationRules:rules,
+        qualificationFallback:source.qualificationFallback || "highest-ranked",
+        titleHolderQualifies:source.titleHolderQualifies === true,
+        rewards:JSON.parse(JSON.stringify(source.rewards || {})),
+        structure,
+        stages,
+        groupCount:Number(source.groupCount || structure.groups || 1),
+        timesPlayed:Number(source.timesPlayed || 1),
+        advanceCount:Number(source.advanceCount || 1),
+        groupAdvancePerGroup:Number(source.groupAdvancePerGroup || 1),
+        customSettings:JSON.parse(JSON.stringify(source.customSettings || {})),
+        superLeagueSources:category === "super-league" ? {championsLeagueId:idMap.get(source.superLeagueSources?.championsLeagueId) || "",europaLeagueId:idMap.get(source.superLeagueSources?.europaLeagueId) || ""} : undefined,
+        season:1,status:"not-started",started:false,completed:false,finished:false,locked:false,
+        teamIds:[],originalTeamIds:[],participants:[],fixtures:[],results:[],history:[],table:{},groupTables:[],groupAssignments:[],knockoutHistory:[],currentRoundByes:[],currentStageIndex:0,currentMatchday:0,championId:null,runnerUpId:null,currentSeasonQualificationEntries:[]
+      };
+      normalizeCompetitionEditorFields(competition);
+      competition.season = 1; competition.createdSeason = 1; competition.status = "not-started"; competition.started = false; competition.completed = false; competition.finished = false;
+      competition.teamIds = []; competition.originalTeamIds = []; competition.fixtures = []; competition.results = []; competition.table = {}; competition.knockoutHistory = []; competition.championId = null; competition.runnerUpId = null;
+      return competition;
+    }
+
+    async function importSelectedCompetitionTemplates() {
+      const sourceCompetitions = competitionTemplateImportSource?.competitions || [];
+      const selected = [...document.querySelectorAll(".competition-template-check:checked")].map(box => sourceCompetitions[Number(box.value)]).filter(Boolean).filter(comp => !isWorldCupCompetition(comp));
+      if (!selected.length) return showToast("Select at least one competition to import.",true);
+      const world = currentWorld();
+      const decisions = [];
+      const idMap = new Map();
+      sourceCompetitions.forEach(sourceComp => {
+        const matching = world.competitions.find(comp => !comp.recoveredFromHistory && comp.name.trim().toLowerCase() === String(sourceComp.name || "").trim().toLowerCase());
+        if (matching) idMap.set(sourceComp.id,matching.id);
+      });
+      for (const source of selected) {
+        const existing = world.competitions.find(comp => !comp.recoveredFromHistory && comp.name.trim().toLowerCase() === String(source.name || "").trim().toLowerCase());
+        let action = "add", name = source.name || "Imported Competition", targetId = uid();
+        if (existing) {
+          action = await resolveCompetitionImportConflict(existing,source);
+          if (action === "skip") { idMap.set(source.id,existing.id); continue; }
+          if (action === "replace") targetId = existing.id;
+          if (action === "rename") {
+            const requested = prompt(`Rename imported competition "${name}":`,`${name} Copy`);
+            if (!requested?.trim()) continue;
+            name = requested.trim();
+            if (world.competitions.some(comp => comp.name.trim().toLowerCase() === name.toLowerCase())) { showToast(`A competition named "${name}" already exists.`,true); continue; }
+          }
+        }
+        idMap.set(source.id,targetId);
+        decisions.push({source,action,name,targetId,existing});
+      }
+      const imported = [];
+      decisions.forEach(decision => {
+        const fresh = freshCompetitionFromTemplate(decision.source,decision.targetId,idMap,decision.name);
+        if (decision.action === "replace" && decision.existing) {
+          const index = world.competitions.indexOf(decision.existing);
+          world.competitions.splice(index,1,fresh);
+        } else world.competitions.push(fresh);
+        imported.push(fresh);
+      });
+      if (!imported.length) return;
+      saveData(`${imported.length} competition template${imported.length===1?"":"s"} imported`);
+      $("loadCompetitionsDialog").close();
+      activeCompetitionId = null;
+      renderCompetitions();
+      renderDashboard();
+      showToast(`${imported.length} fresh competition${imported.length===1?"":"s"} imported.`);
+    }
+
     function renderCompetitions() {
       const world = currentWorld();
       restoreCompetitionCardsFromHistory(world);
@@ -8136,9 +8355,10 @@
             </button>
           ` : `
             <button class="btn secondary" disabled>
-              🌍 Finish ${regularCompetitions(world).filter(c => !c.finished).length} competition${regularCompetitions(world).filter(c => !c.finished).length === 1 ? "" : "s"} first
+              🌍 ${escapeHtml(competitionWaitingMessage(world,regularCompetitions(world).find(c => !c.finished)) || `Finish ${regularCompetitions(world).filter(c => !c.finished).length} competitions first`)}
             </button>
           `}
+          <button class="btn secondary" id="loadCompetitionsFromSaveBtn" ${worldCupActive ? "disabled" : ""}>Load Competitions From Save</button>
         </div>
 
         <div class="competition-list">
@@ -8173,7 +8393,7 @@
                   <div style="margin-top:6px">
                     ${lockedByWorldCup
                       ? `<span class="badge locked-world-cup-badge">Locked during World Cup</span>`
-                      : `<span class="badge ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : "▶ Active"}</span>`}
+                      : `<span class="badge ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : `⏳ ${escapeHtml(competitionWaitingMessage(world,comp))}`}</span>`}
                   </div>
                 </div>
                 <div class="actions competition-card-actions">
@@ -8189,6 +8409,7 @@
 
       $("addCompetitionBtn")?.addEventListener("click", openCompetitionDialog);
       $("startGlobalSeasonFromCompetitionsBtn")?.addEventListener("click", startGlobalNextSeason);
+      $("loadCompetitionsFromSaveBtn")?.addEventListener("click", openLoadCompetitionsDialog);
 
       document.querySelectorAll(".open-competition").forEach(button => {
         button.addEventListener("click", () => {
@@ -9298,6 +9519,11 @@
       }
 
       comp.locked = true;
+      if (!isWorldCupCompetition(comp)) {
+        comp.started = true;
+        comp.status = "in-progress";
+        comp.completed = false;
+      }
       const stage = comp.stages[comp.currentStageIndex];
       let round = comp.fixtures?.[comp.currentMatchday];
 
@@ -9533,6 +9759,11 @@
 
     function finishCompetition(comp, commitWorldCup=false) {
       comp.finished = true;
+      if (!isWorldCupCompetition(comp)) {
+        comp.started = true;
+        comp.status = "completed";
+        comp.completed = true;
+      }
       if ((comp.isWorldCup||comp.category==="world-cup")&&!commitWorldCup) {
         comp.worldCupFinalizationPending=true;
         return;
@@ -9597,6 +9828,8 @@
 
       if (!comp.isWorldCup) {
         calculateWorldCupQualification(world);
+        const sameSeasonResult = processSameSeasonQualificationFromSource(world,comp);
+        if (!sameSeasonResult.ok) showToast(sameSeasonResult.error,true);
         prepareSuperLeagueFinals(world);
       }
 
@@ -9790,6 +10023,149 @@
       return `Finished ${position}${ordinalSuffix(position)} in ${source.name}`;
     }
 
+
+    function competitionHasStartedForQualification(comp) {
+      if (!comp) return false;
+      if (comp.finished || comp.completed === true || comp.status === "completed") return true;
+      if (comp.started === true || ["in-progress","active","started"].includes(comp.status)) return true;
+      if (Number(comp.currentMatchday || 0) > 0) return true;
+      return (comp.results || []).some(round => (round.games || []).some(game => game.played !== false));
+    }
+
+    function qualificationRouteKey(world,sourceId,destinationId) {
+      return `${Number(world.worldSeason || 1)}:${sourceId}:${destinationId}`;
+    }
+
+    function sourceQualificationEntries(world,source,destination,season) {
+      const positions = competitionFinalPositions(source);
+      if (!positions.length) return {error:`${source.name} has no completed final ranking to use for qualification.`};
+      const rules = (source.qualificationRules || []).filter(rule => rule.destinationCompetitionId === destination.id);
+      const validationError = validateQualificationRules(rules,positions.length,source.id);
+      if (validationError) return {error:`${source.name}: ${validationError}`};
+      const entries = [];
+      rules.forEach(rule => {
+        const range = qualificationRulePositions(rule,positions.length);
+        positions.slice(range.from - 1,range.to).forEach((teamId,index) => {
+          const position = range.from + index;
+          entries.push({teamId,sourceCompetitionId:source.id,sourcePosition:position,destinationCompetitionId:destination.id,qualifiedForSeason:season,reason:qualificationReason(source,position),priority:qualificationPriority(source,position,rule)});
+        });
+      });
+      return {entries};
+    }
+
+    function rebuildUnstartedCompetitionFromQualification(destination,entries) {
+      const world = currentWorld();
+      const rankingPositions = rankingPositionsFromList(liveTeamRanking(world));
+      const uniqueEntries = dedupeQualificationCandidates(entries,rankingPositions);
+      const configuredTarget = destination.category === "super-league"
+        ? 2
+        : Math.max(0,Math.min(128,Number(destination.structure?.teamCount ?? destination.teamCount ?? uniqueEntries.length)));
+      if (configuredTarget && uniqueEntries.length > configuredTarget) {
+        return {ok:false,error:`${destination.name} allows ${configuredTarget} teams but ${uniqueEntries.length} qualified. Open Competition Editor and fix the qualification ranges.`};
+      }
+      const ids = uniqueEntries.map(entry => entry.teamId).filter(id => world.teams.some(team => team.id === id));
+      destination.currentSeasonQualificationEntries = uniqueEntries.map(entry => ({...entry}));
+      destination.originalTeamIds = [...ids];
+      destination.teamIds = [...ids];
+      destination.locked = false;
+      destination.finished = false;
+      destination.completed = false;
+      destination.started = false;
+      destination.status = ids.length ? "setup" : "not-started";
+      destination.championId = null;
+      destination.runnerUpId = null;
+      destination.currentStageIndex = 0;
+      destination.currentMatchday = 0;
+      destination.fixtures = [];
+      destination.table = initializeTable(ids);
+      destination.results = [];
+      destination.knockoutHistory = [];
+      destination.groupTables = [];
+      destination.groupAssignments = [];
+      destination.currentRoundByes = [];
+      if (destination.category === "super-league") {
+        destination.teamCount = 2;
+        destination.stages = ["Final"];
+        destination.competitionType = "knockout";
+        destination.structure = {...(destination.structure || {}),type:"knockout",teamCount:2,bracketSize:2,knockoutStage:"Final"};
+      }
+      if (isPureKnockoutCompetition(destination)) normalizePureKnockoutStages(destination,ids.length);
+      if (ids.length >= 2 && (!configuredTarget || ids.length >= Math.min(2,configuredTarget))) setupCompetitionStage(destination);
+      return {ok:true,entries:uniqueEntries};
+    }
+
+    function queueQualificationEntriesForNextSeason(world,destination,entries) {
+      const nextSeason = Number(world.worldSeason || 1) + 1;
+      world.pendingQualificationRoutes = Array.isArray(world.pendingQualificationRoutes) ? world.pendingQualificationRoutes : [];
+      entries.forEach(entry => {
+        const queued = {...entry,qualifiedForSeason:nextSeason};
+        const duplicate = world.pendingQualificationRoutes.some(item =>
+          Number(item.qualifiedForSeason) === nextSeason &&
+          item.teamId === queued.teamId &&
+          item.sourceCompetitionId === queued.sourceCompetitionId &&
+          item.destinationCompetitionId === queued.destinationCompetitionId
+        );
+        if (!duplicate) world.pendingQualificationRoutes.push(queued);
+      });
+    }
+
+    function recordQualificationEntries(world,entries,season) {
+      world.qualificationHistory = Array.isArray(world.qualificationHistory) ? world.qualificationHistory : [];
+      entries.forEach(entry => {
+        const duplicate = world.qualificationHistory.some(item => Number(item.season) === Number(season) && item.teamId === entry.teamId && item.destinationCompetitionId === entry.destinationCompetitionId);
+        if (!duplicate) world.qualificationHistory.push({...entry,season,timestamp:Date.now()});
+      });
+    }
+
+    function processSameSeasonQualificationFromSource(world,source) {
+      if (!world || !source || isWorldCupCompetition(source) || !source.finished) return {ok:true,applied:[],queued:[]};
+      const applied = [], queued = [];
+      world.currentSeasonQualificationRoutes = Array.isArray(world.currentSeasonQualificationRoutes) ? world.currentSeasonQualificationRoutes : [];
+      const destinationIds = [...new Set((source.qualificationRules || []).map(rule => rule.destinationCompetitionId).filter(Boolean))];
+      for (const destinationId of destinationIds) {
+        const destination = world.competitions.find(comp => comp.id === destinationId && !isWorldCupCompetition(comp) && comp.editable !== false && !comp.recoveredFromHistory && comp.archived !== true);
+        if (!destination) {
+          source.qualificationProcessingError = `${source.name} points to a missing or deleted destination competition.`;
+          return {ok:false,error:source.qualificationProcessingError,applied,queued};
+        }
+        const result = sourceQualificationEntries(world,source,destination,Number(world.worldSeason || 1));
+        if (result.error) { source.qualificationProcessingError = result.error; return {ok:false,error:result.error,applied,queued}; }
+        const routeKey = qualificationRouteKey(world,source.id,destination.id);
+        if (competitionHasStartedForQualification(destination)) {
+          queueQualificationEntriesForNextSeason(world,destination,result.entries);
+          recordQualificationEntries(world,result.entries,Number(world.worldSeason || 1) + 1);
+          queued.push(destination.id);
+          continue;
+        }
+        const merged = [...(destination.currentSeasonQualificationEntries || []),...result.entries];
+        const rebuilt = rebuildUnstartedCompetitionFromQualification(destination,merged);
+        if (!rebuilt.ok) { destination.qualificationBlockingError = rebuilt.error; return {ok:false,error:rebuilt.error,applied,queued}; }
+        destination.qualificationBlockingError = "";
+        if (!world.currentSeasonQualificationRoutes.includes(routeKey)) world.currentSeasonQualificationRoutes.push(routeKey);
+        recordQualificationEntries(world,result.entries,Number(world.worldSeason || 1));
+        applied.push(destination.id);
+      }
+      source.qualificationProcessingError = "";
+      return {ok:true,applied,queued};
+    }
+
+    function incomingQualificationSources(world,destination) {
+      return regularCompetitions(world).filter(source => (source.qualificationRules || []).some(rule => rule.destinationCompetitionId === destination.id));
+    }
+
+    function competitionWaitingMessage(world,comp) {
+      if (comp.finished) return "";
+      if (competitionHasStartedForQualification(comp)) return `Waiting for ${comp.name} completion`;
+      const sources = incomingQualificationSources(world,comp);
+      if (sources.length) {
+        const unfinished = sources.filter(source => !source.finished);
+        if (unfinished.length) return `Waiting for ${comp.name} qualification`;
+        if (!(comp.originalTeamIds || []).length) return `Waiting for ${comp.name} qualification`;
+      }
+      if (comp.category === "super-league") return "Waiting for Super League final";
+      return `Waiting for ${comp.name} completion`;
+    }
+
     function qualificationGraphError(world) {
       const graph = new Map();
       regularCompetitions(world).forEach(source => {
@@ -9825,6 +10201,8 @@
         if (validationError) return {error:`${source.name}: ${validationError}`};
         for (const rule of rules) {
           const destination = world.competitions.find(comp => comp.id === rule.destinationCompetitionId);
+          const immediateRouteKey = destination ? qualificationRouteKey(world,source.id,destination.id) : "";
+          if (immediateRouteKey && (world.currentSeasonQualificationRoutes || []).includes(immediateRouteKey)) continue;
           if (!destination || destination.recoveredFromHistory) return {error:`${source.name} points to a missing or deleted destination competition.`};
           if (isWorldCupCompetition(destination) || isWorldCupCompetition(source)) return {error:"Normal qualification rules cannot route teams into or out of the World Cup."};
           const range = qualificationRulePositions(rule,positions.length);
@@ -10018,6 +10396,9 @@
         comp.teamCount = 0;
         comp.locked = false;
         comp.finished = false;
+        comp.status = "not-started";
+        comp.started = false;
+        comp.completed = false;
         comp.championId = null;
         comp.runnerUpId = null;
         comp.currentStageIndex = 0;
@@ -10037,9 +10418,12 @@
         : [];
       const allWorldTeamIds = world.teams.map(team => team.id).slice(0, MAX_TEAMS);
 
+      const hasIncomingQualificationRules = regularCompetitions(world).some(source => (source.qualificationRules || []).some(rule => rule.destinationCompetitionId === comp.id));
       const originalIds = (
         hasPendingRoster
           ? pendingRoster.teamIds
+          : hasIncomingQualificationRules
+          ? []
           : competitionShouldUseAllWorldTeams(comp)
           ? allWorldTeamIds
           : qualifiedIds.length === 24
@@ -10065,6 +10449,9 @@
       comp.season = nextSeason;
       comp.locked = false;
       comp.finished = false;
+      comp.status = "not-started";
+      comp.started = false;
+      comp.completed = false;
       comp.championId = null;
       comp.currentStageIndex = 0;
       comp.currentMatchday = 0;
@@ -10109,6 +10496,8 @@
       });
 
       world.worldSeason = nextSeason;
+      world.currentSeasonQualificationRoutes = [];
+      world.pendingQualificationRoutes = [];
       if (currentGameMode === "club-career") {
         world.careerSeason = nextSeason;
         world.seasonObjective = createCareerObjective(world);
@@ -11158,6 +11547,19 @@ function renderWorldCupQualification() {
     $("closeImportTeamsBtn").addEventListener("click", () => $("importTeamsDialog").close());
     $("cancelImportTeamsBtn").addEventListener("click", () => $("importTeamsDialog").close());
 
+    $("competitionTemplateSourceType").addEventListener("change",renderCompetitionTemplateSourceOptions);
+    $("competitionTemplateSaveSelect").addEventListener("change",event => {
+      const type = $("competitionTemplateSourceType").value;
+      competitionTemplateImportSource = availableCompetitionTemplateSaves(type).find(save => save.id === event.target.value) || null;
+      renderCompetitionTemplatePicker();
+    });
+    $("competitionTemplateFileInput").addEventListener("change",event => readCompetitionTemplateFiles([...event.target.files]));
+    $("importCompetitionTemplatesBtn").addEventListener("click",importSelectedCompetitionTemplates);
+    ["closeLoadCompetitionsBtn","cancelLoadCompetitionsBtn"].forEach(id => $(id).addEventListener("click",() => $("loadCompetitionsDialog").close()));
+    $("skipImportedCompetitionBtn").addEventListener("click",() => closeCompetitionImportConflict("skip"));
+    $("renameImportedCompetitionBtn").addEventListener("click",() => closeCompetitionImportConflict("rename"));
+    $("replaceImportedCompetitionBtn").addEventListener("click",() => closeCompetitionImportConflict("replace"));
+
     $("startWorldCupBtn").addEventListener("click", createWorldCupCompetition);
 
     $("closeCareerEliminationBtn").addEventListener("click",()=>{
@@ -11188,7 +11590,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V50.1</span>
+    <span>V50.2</span>
   </div>
 </body>
 </html>
