@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V50 permanent version label */
+    /* V50.1 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V50 competition builder and data-driven competition themes */
+    /* V50.1 competition builder and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4388,7 +4388,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.1</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4456,7 +4456,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V50 · Save Manager.</p>
+          <p id="saveStatus">V50.1 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4811,7 +4811,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V50 · Competition Editor</div>
+          <div class="startup-kicker">V50.1 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -9269,7 +9269,15 @@
 
     function maybeShowCareerElimination(comp) {
       const career=currentCareerSave(),team=controlledCareerTeam(career);
-      if (!career||!team||!careerEliminationEligibleCompetition(comp)||comp.finished||(comp.teamIds||[]).includes(team.id)) return false;
+      if (!career||!team||!careerEliminationEligibleCompetition(comp)||comp.finished) return false;
+      const participantIds=new Set([
+        ...(comp.originalTeamIds||[]),
+        ...Object.keys(comp.table||{}),
+        ...(comp.groupAssignments||[]).flat(),
+        ...(comp.results||[]).flatMap(round=>(round.games||[]).flatMap(game=>[game.homeId,game.awayId])),
+        ...(comp.knockoutHistory||[]).flatMap(round=>(round.games||[]).flatMap(game=>[game.homeId,game.awayId]))
+      ].filter(Boolean));
+      if (!participantIds.has(team.id)||(comp.teamIds||[]).includes(team.id)) return false;
       const key=`${comp.id}:${comp.season||1}`;
       career.careerEliminationNotices=Array.isArray(career.careerEliminationNotices)?career.careerEliminationNotices:[];
       if (career.careerEliminationNotices.includes(key)) return false;
@@ -11180,7 +11188,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V50</span>
+    <span>V50.1</span>
   </div>
 </body>
 </html>
