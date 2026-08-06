@@ -4049,7 +4049,7 @@
     }
 
 
-    /* V50.3 permanent version label */
+    /* V50.4 permanent version label */
     .permanent-version-label {
       position: fixed;
       left: 14px;
@@ -4289,7 +4289,7 @@
     .career-only{display:none!important}body.career-mode .career-only{display:block!important}body.career-mode .universe-only{display:none!important}
     @media(max-width:800px){.mode-choice-grid,.career-option-grid,.career-save-grid,.career-dashboard-grid,.career-development-grid,.legacy-trophy-room,.career-rival-grid{grid-template-columns:1fr}.career-club-picker{grid-template-columns:1fr 1fr}.career-hero{grid-template-columns:1fr;text-align:center}.career-hero .logo-stack{margin:auto}}
 
-    /* V50.3 competition builder and data-driven competition themes */
+    /* V50.4 competition builder and data-driven competition themes */
     .competition-editor-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0}
     .competition-editor-shell{padding:24px}
     .competition-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
@@ -4388,7 +4388,7 @@
           <button type="button" class="btn success" id="enterClubCareerBtn">Start Club Career</button>
         </article>
       </div>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.3</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V50.4</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -4456,7 +4456,7 @@
         <div class="brand">
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V50.3 · Save Manager.</p>
+          <p id="saveStatus">V50.4 · Save Manager.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -4539,19 +4539,24 @@
   <dialog id="importTeamsDialog" class="import-teams-dialog">
     <div class="archive-header">
       <div>
-        <div class="season-complete-kicker">📥 Load Teams</div>
-        <h2>Load Teams From Another World</h2>
+        <div class="season-complete-kicker">📥 Import Teams</div>
+        <h2>Import Teams</h2>
       </div>
       <button type="button" class="btn secondary small" id="closeImportTeamsBtn">Close</button>
     </div>
 
-    <div class="form-group">
-      <label for="importSourceWorldSelect">Source world</label>
+    <div class="form-row">
+      <label>Choose Source<select id="teamImportSourceType"><option value="save">Load From Another World</option><option value="file">Import Team File</option></select></label>
+      <label id="teamImportSaveField" for="importSourceWorldSelect">World or career<select id="importSourceWorldSelect"></select></label>
+    </div>
+    <input id="teamImportFileInput" type="file" accept=".json,application/json" multiple class="hidden">
+    <div class="form-group" id="teamImportRecordsField">
+      <label class="check"><input id="preserveImportedTeamRecords" type="checkbox"> Explicitly preserve trophies, World Cup wins, and team history</label>
       <select id="importSourceWorldSelect"></select>
     </div>
 
     <div class="notice" style="margin-bottom:14px">
-      Only the team name, logo, and club color will be copied. The career begins in Season 1 at 70 overall with no trophies, rankings, records, rivalries, or history.
+      Team identity and starting overall are copied. Records and history are reset unless you explicitly preserve them above.
     </div>
 
     <div class="toolbar" style="justify-content:space-between">
@@ -4566,8 +4571,20 @@
 
     <div class="dialog-actions">
       <button type="button" class="btn secondary" id="cancelImportTeamsBtn">Cancel</button>
-      <button type="button" class="btn" id="confirmImportTeamsBtn">Load Selected Teams</button>
+      <button type="button" class="btn" id="confirmImportTeamsBtn">Import Selected Teams</button>
     </div>
+  </dialog>
+
+  <dialog id="exportTeamsDialog" class="import-teams-dialog">
+    <div class="archive-header"><div><div class="season-complete-kicker">Portable JSON</div><h2>Select Teams to Export</h2></div><button type="button" class="btn secondary small" id="closeExportTeamsBtn">Close</button></div>
+    <div class="toolbar"><button type="button" class="btn secondary small" id="selectAllExportTeamsBtn">Select All</button><button type="button" class="btn secondary small" id="clearExportTeamsBtn">Clear All</button></div>
+    <div id="exportTeamPicker" class="builder-team-grid"></div>
+    <div class="dialog-actions"><button type="button" class="btn secondary" id="cancelExportTeamsBtn">Cancel</button><button type="button" class="btn" id="confirmExportTeamsBtn">Export Selected</button></div>
+  </dialog>
+
+  <dialog id="teamImportConflictDialog">
+    <h2 id="teamImportConflictTitle">Duplicate Team</h2><p class="muted">Choose how to handle this name collision. Existing data will never be overwritten without your confirmation.</p>
+    <div class="dialog-actions" style="flex-wrap:wrap"><button type="button" class="btn secondary" id="skipImportedTeamBtn">Skip</button><button type="button" class="btn" id="renameImportedTeamBtn">Rename Imported</button><button type="button" class="btn danger" id="replaceImportedTeamBtn">Replace Existing</button></div>
   </dialog>
 
   <dialog id="deleteConfirmDialog" class="delete-confirm-dialog">
@@ -4811,7 +4828,7 @@
     <div class="competition-editor-shell">
       <div class="archive-header">
         <div>
-          <div class="startup-kicker">V50.3 · Competition Editor</div>
+          <div class="startup-kicker">V50.4 · Competition Editor</div>
           <h2>Edit Competition</h2>
         </div>
         <button type="button" class="btn secondary small" id="closeCompetitionEditorBtn">Close</button>
@@ -4906,9 +4923,9 @@
   </dialog>
 
   <dialog id="loadCompetitionsDialog" class="archive-dialog">
-    <div class="archive-header"><div><div class="startup-kicker">Competition Templates</div><h2>Load Competitions From Save</h2></div><button type="button" class="btn secondary small" id="closeLoadCompetitionsBtn">Close</button></div>
+    <div class="archive-header"><div><div class="startup-kicker">Competition Templates</div><h2>Import Competitions</h2></div><button type="button" class="btn secondary small" id="closeLoadCompetitionsBtn">Close</button></div>
     <div class="form-row">
-      <label>Choose Source<select id="competitionTemplateSourceType"><option value="universe">Universe World</option><option value="career">Club Career Save</option><option value="file">Import Competition File</option></select></label>
+      <label>Choose Source<select id="competitionTemplateSourceType"><option value="universe">Load From Another World</option><option value="career">Load From Another Career</option><option value="file">Import Competition File</option></select></label>
       <label id="competitionTemplateSaveField">Save<select id="competitionTemplateSaveSelect"></select></label>
     </div>
     <input id="competitionTemplateFileInput" type="file" accept=".json,application/json" multiple class="hidden">
@@ -4921,6 +4938,13 @@
     <h2 id="competitionImportConflictTitle">Duplicate Competition</h2>
     <p id="competitionImportConflictMessage" class="muted"></p>
     <div class="dialog-actions" style="flex-wrap:wrap"><button type="button" class="btn secondary" id="skipImportedCompetitionBtn">Skip</button><button type="button" class="btn" id="renameImportedCompetitionBtn">Rename Imported</button><button type="button" class="btn danger" id="replaceImportedCompetitionBtn">Replace Existing</button></div>
+  </dialog>
+
+  <dialog id="exportCompetitionsDialog" class="archive-dialog">
+    <div class="archive-header"><div><div class="startup-kicker">Portable JSON</div><h2>Select Competitions to Export</h2></div><button type="button" class="btn secondary small" id="closeExportCompetitionsBtn">Close</button></div>
+    <div class="toolbar"><button type="button" class="btn secondary small" id="selectAllExportCompetitionsBtn">Select All</button><button type="button" class="btn secondary small" id="clearExportCompetitionsBtn">Clear All</button></div>
+    <div id="exportCompetitionPicker" class="builder-team-grid"></div>
+    <div class="dialog-actions"><button type="button" class="btn secondary" id="cancelExportCompetitionsBtn">Cancel</button><button type="button" class="btn success" id="confirmExportCompetitionsBtn">Export Selected</button></div>
   </dialog>
 
   <dialog id="randomSelectionDialog">
@@ -5076,6 +5100,9 @@
     let competitionTemplateImportSource = null;
     let pendingCompetitionTemplateImports = [];
     let pendingCompetitionImportConflict = null;
+    let teamImportSource = null;
+    let pendingTeamImportConflict = null;
+    const PORTABLE_EXPORT_VERSION = 1;
     let customStages = [];
 
     const $ = (id) => document.getElementById(id);
@@ -6037,6 +6064,14 @@
       setTimeout(() => URL.revokeObjectURL(url),500);
     }
 
+    function downloadPortableJson(payload, filename) {
+      const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url),500);
+    }
+
     function exportWorld(id) {
       const world = data.worlds.find(item => item.id === id);
       if (!world) return showToast("World save not found.",true);
@@ -6750,7 +6785,7 @@
                 Start World Season ${(world.worldSeason || 1) + 1}
               </button>
             ` : ""}
-            <button type="button" class="btn secondary" id="loadCompetitionsFromSaveDashboardBtn">Load Competitions From Save</button>
+            <button type="button" class="btn secondary" id="loadCompetitionsFromSaveDashboardBtn">Import Competitions</button>
           </div>
         </section>
 
@@ -6831,7 +6866,8 @@
         <div class="toolbar">
           <button class="btn" id="addTeamBtn" ${world.teams.length >= MAX_TEAMS ? "disabled" : ""}>+ Create Team</button>
           <button class="btn secondary" id="bulkAddTeamsBtn" ${world.teams.length >= MAX_TEAMS ? "disabled" : ""}>＋ Bulk Create</button>
-          <button class="btn secondary" id="loadTeamsBtn" ${data.worlds.filter(w => w.id !== world.id && w.teams?.length).length ? "" : "disabled"}>📥 Load Teams From World</button>
+          <button class="btn secondary" id="importTeamsBtn">📥 Import Teams</button>
+          <button class="btn secondary" id="exportTeamsBtn" ${world.teams.length ? "" : "disabled"}>📤 Export Teams</button>
           <button class="btn secondary" id="resetAllStrengthsBtn" ${world.teams.length ? "" : "disabled"}>↺ Reset All Strengths to 70</button>
           <span class="muted">${world.teams.length}/${MAX_TEAMS} teams created · Strengths now rise and fall with form and balance</span>
         </div>
@@ -6857,67 +6893,80 @@
       `;
       $("addTeamBtn")?.addEventListener("click", openNewTeamDialog);
       $("bulkAddTeamsBtn")?.addEventListener("click", openBulkTeamDialog);
-      $("loadTeamsBtn")?.addEventListener("click", openImportTeamsDialog);
+      $("importTeamsBtn")?.addEventListener("click", openImportTeamsDialog);
+      $("exportTeamsBtn")?.addEventListener("click", openExportTeamsDialog);
       $("resetAllStrengthsBtn")?.addEventListener("click", resetAllTeamStrengths);
       document.querySelectorAll(".edit-team").forEach(btn => btn.addEventListener("click", () => openEditTeamDialog(btn.dataset.id, Number(btn.dataset.index))));
       document.querySelectorAll(".delete-team").forEach(btn => btn.addEventListener("click", () => deleteTeam(btn.dataset.id, Number(btn.dataset.index))));
     }
 
     function availableImportWorlds() {
-      return data.worlds.filter(world =>
-        world.id !== currentWorldId && Array.isArray(world.teams) && world.teams.length
+      return [...(data.worlds || []),...(data.careerSaves || [])].filter(save =>
+        save.id !== currentWorld()?.id && Array.isArray(save.teams) && save.teams.length
       );
     }
 
     function openImportTeamsDialog() {
       const worlds = availableImportWorlds();
-      if (!worlds.length) {
-        showToast("No other world has teams to load.", true);
-        return;
-      }
-
-      $("importSourceWorldSelect").innerHTML = worlds.map(world => `
-        <option value="${world.id}">${escapeHtml(world.name)} · ${world.teams.length} teams</option>
+      $("teamImportSourceType").value = "save";
+      $("teamImportFileInput").value = "";
+      $("preserveImportedTeamRecords").checked = false;
+      $("importSourceWorldSelect").innerHTML = worlds.map(save => `
+        <option value="${save.id}">${escapeHtml(save.name)} · ${escapeHtml(save.mode === "club-career" ? "Career" : "World")} · ${save.teams.length} teams</option>
       `).join("");
-
-      renderImportTeamPicker(worlds[0].id);
+      teamImportSource = worlds[0] || null;
+      renderTeamImportSourceMode();
       $("importTeamsDialog").showModal();
     }
 
-    function renderImportTeamPicker(sourceWorldId) {
-      const sourceWorld = data.worlds.find(world => world.id === sourceWorldId);
+    function renderTeamImportSourceMode() {
+      const fileMode = $("teamImportSourceType").value === "file";
+      $("teamImportSaveField").classList.toggle("hidden",fileMode);
+      $("teamImportFileInput").classList.toggle("hidden",!fileMode);
+      if (fileMode) { teamImportSource = null; $("importTeamPicker").innerHTML = `<div class="notice">Choose a football-universe-teams.json file.</div>`; }
+      else { teamImportSource = availableImportWorlds().find(save => save.id === $("importSourceWorldSelect").value) || null; renderImportTeamPicker(); }
+    }
+
+    function renderImportTeamPicker() {
+      const sourceWorld = teamImportSource;
       const targetWorld = currentWorld();
       if (!sourceWorld) {
         $("importTeamPicker").innerHTML = `<p class="muted">Source world not found.</p>`;
         return;
       }
 
-      const existingNames = new Set(
-        targetWorld.teams.map(team => team.name.trim().toLowerCase())
-      );
-
       $("importTeamPicker").innerHTML = sourceWorld.teams.map(team => {
-        const duplicateName = existingNames.has(team.name.trim().toLowerCase());
         return `
-          <label class="check ${duplicateName ? "muted" : ""}">
+          <label class="check">
             <input
               type="checkbox"
               class="import-team-check"
               value="${team.id}"
-              ${duplicateName ? "disabled" : ""}
+              checked
             >
             ${teamLogo(team)}
             <span style="min-width:0">
               <strong style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(team.name)}</strong>
-              <small class="muted">${duplicateName ? "Already exists in this world" : `Strength ${team.strength}`}</small>
+              <small class="muted">Starting overall ${Number(team.startingOverall ?? team.strength ?? 70)}</small>
             </span>
           </label>`;
       }).join("");
     }
 
-    function importSelectedTeams() {
+    function resolveTeamImportConflict(existing,incoming) {
+      return new Promise(resolve => { pendingTeamImportConflict={existing,incoming,resolve}; $("teamImportConflictTitle").textContent=`A team named "${incoming.name}" already exists.`; $("teamImportConflictDialog").showModal(); });
+    }
+
+    function closeTeamImportConflict(choice) { const pending=pendingTeamImportConflict; pendingTeamImportConflict=null; $("teamImportConflictDialog").close(); pending?.resolve(choice); }
+
+    function freshImportedTeam(source,nameOverride="",preserve=false) {
+      const strength=clamp(Number(source.startingOverall ?? source.strength ?? 70),0,100);
+      return {id:uid(),name:nameOverride||source.name,shortName:source.shortName||source.short||"",strength,startingOverall:strength,color:source.color||source.primaryColor||randomColor(),secondaryColor:source.secondaryColor||"",logoData:source.logoData||source.logo||"",identityData:JSON.parse(JSON.stringify(source.identityData||source.teamIdentity||{})),trophies:preserve?Number(source.trophies||0):0,worldCupWins:preserve?Number(source.worldCupWins||0):0,permanentWorldCupWins:preserve?Number(source.permanentWorldCupWins||source.worldCupWins||0):0,matchHistory:preserve?JSON.parse(JSON.stringify(source.matchHistory||[])):[],competitionHistory:preserve?JSON.parse(JSON.stringify(source.competitionHistory||[])):[],rankingHistory:preserve?JSON.parse(JSON.stringify(source.rankingHistory||source.rankings||[])):[],lastStrengthChange:0,strengthHistory:preserve&&Array.isArray(source.strengthHistory)?JSON.parse(JSON.stringify(source.strengthHistory)):[{season:1,strength,competition:"Imported starting rating"}]};
+    }
+
+    async function importSelectedTeams() {
       const targetWorld = currentWorld();
-      const sourceWorld = data.worlds.find(world => world.id === $("importSourceWorldSelect").value);
+      const sourceWorld = teamImportSource;
       if (!sourceWorld) return showToast("Source world not found.", true);
 
       const selectedIds = new Set(
@@ -6928,44 +6977,36 @@
       const availableSlots = MAX_TEAMS - targetWorld.teams.length;
       if (availableSlots <= 0) return showToast("This world already has 30 teams.", true);
 
-      const existingNames = new Set(
-        targetWorld.teams.map(team => team.name.trim().toLowerCase())
-      );
+      const sourceTeams = sourceWorld.teams.filter(team => selectedIds.has(team.id)).slice(0,availableSlots);
+      const preserve=$("preserveImportedTeamRecords").checked;
+      let imported=0;
+      for (const sourceTeam of sourceTeams) {
+        const existing=targetWorld.teams.find(team=>String(team.name).trim().toLowerCase()===String(sourceTeam.name).trim().toLowerCase());
+        let action="add",name=sourceTeam.name;
+        if(existing){ action=await resolveTeamImportConflict(existing,sourceTeam); if(action==="skip")continue; if(action==="rename"){const requested=prompt(`Rename imported team "${name}":`,`${name} Copy`);if(!requested?.trim())continue;name=requested.trim();if(targetWorld.teams.some(t=>t.name.trim().toLowerCase()===name.toLowerCase())){showToast(`A team named "${name}" already exists.`,true);continue;}} }
+        const fresh=freshImportedTeam(sourceTeam,name,preserve);
+        if(action==="replace"){fresh.id=existing.id;targetWorld.teams.splice(targetWorld.teams.indexOf(existing),1,fresh);}else targetWorld.teams.push(fresh);
+        imported++;
+      }
 
-      const sourceTeams = sourceWorld.teams.filter(team =>
-        selectedIds.has(team.id) && !existingNames.has(team.name.trim().toLowerCase())
-      );
-
-      const teamsToCopy = sourceTeams.slice(0, availableSlots);
-
-      teamsToCopy.forEach(sourceTeam => {
-        const strength = clamp(Number(sourceTeam.strength), 0, 100);
-        targetWorld.teams.push({
-          id: uid(),
-          name: sourceTeam.name,
-          strength,
-          color: sourceTeam.color || randomColor(),
-          logoData: sourceTeam.logoData || "",
-          trophies: 0,
-          worldCupWins: 0,
-          permanentWorldCupWins: 0,
-          lastStrengthChange: 0,
-          strengthHistory: [{
-            season: 1,
-            strength,
-            competition: "Imported starting rating"
-          }]
-        });
-      });
-
-      saveData(`${teamsToCopy.length} team${teamsToCopy.length === 1 ? "" : "s"} loaded`);
+      if(!imported)return;
+      saveData(`${imported} team${imported === 1 ? "" : "s"} imported`);
       $("importTeamsDialog").close();
       renderAll();
 
-      if (sourceTeams.length > availableSlots) {
+      if (selectedIds.size > availableSlots) {
         showToast(`Only ${availableSlots} teams fit. This world now has 30 teams.`, true);
       }
     }
+
+    async function readTeamImportFiles(files) {
+      const teams=[];
+      for(const file of files){try{if(!/\.json$/i.test(file.name)&&file.type!=="application/json")throw new Error("Incorrect file type");const parsed=JSON.parse(await file.text());if(parsed?.exportType!=="football-universe-teams"||parsed?.exportVersion!==PORTABLE_EXPORT_VERSION||!Array.isArray(parsed.teams))throw new Error("Unsupported or invalid team export");parsed.teams.forEach(team=>{if(!team||typeof team.name!=="string"||!team.name.trim())throw new Error("A required team name is missing");teams.push({...team,id:team.id||uid()});});}catch(error){showToast(`${file.name}: ${error.message}`,true);}}
+      const seen=new Set();teams.forEach(team=>{if(seen.has(team.id)||currentWorld().teams.some(t=>t.id===team.id))team.id=uid();seen.add(team.id);});teamImportSource={id:uid(),name:"Imported Team File",teams};renderImportTeamPicker();
+    }
+
+    function openExportTeamsDialog(){const world=currentWorld();$("exportTeamPicker").innerHTML=world.teams.map(team=>`<label class="check"><input type="checkbox" class="export-team-check" value="${team.id}"><span><strong>${escapeHtml(team.name)}</strong><small class="muted" style="display:block">Overall ${team.strength}</small></span></label>`).join("");$("exportTeamsDialog").showModal();}
+    function exportSelectedTeams(){const ids=new Set([...document.querySelectorAll(".export-team-check:checked")].map(box=>box.value));const teams=currentWorld().teams.filter(team=>ids.has(team.id)).map(team=>({id:team.id,name:team.name,shortName:team.shortName||team.short||"",logoData:team.logoData||"",color:team.color||"",secondaryColor:team.secondaryColor||"",startingOverall:Number(team.startingOverall??team.strength??70),identityData:team.identityData||team.teamIdentity||{}}));if(!teams.length)return showToast("Select at least one team to export.",true);downloadPortableJson({exportType:"football-universe-teams",exportVersion:PORTABLE_EXPORT_VERSION,createdAt:new Date().toISOString(),teams},"football-universe-teams.json");$("exportTeamsDialog").close();showToast(`${teams.length} team${teams.length===1?"":"s"} exported`);}
 
     function parseBulkTeamNames(value) {
       const seen = new Set();
@@ -8205,11 +8246,15 @@
       const competitions = [];
       for (const file of files) {
         try {
+          if (!/\.json$/i.test(file.name) && file.type !== "application/json") throw new Error("Incorrect file type");
           const parsed = JSON.parse(await file.text());
+          if (parsed?.exportType && (parsed.exportType !== "football-universe-competitions" || parsed.exportVersion !== PORTABLE_EXPORT_VERSION)) throw new Error("Unsupported competition export version");
           const source = extractCompetitionTemplateSource(parsed,file.name);
-          if (source) competitions.push(...source.competitions);
+          if (!source) throw new Error("Required competition fields are missing");
+          source.competitions.forEach(comp=>{if(!comp||typeof comp.name!=="string"||typeof comp.category!=="string")throw new Error("Required competition name or category is missing");});
+          competitions.push(...source.competitions);
         } catch (error) {
-          showToast(`${file.name} is not a valid competition save file.`,true);
+          showToast(`${file.name}: ${error.message || "Invalid competition file"}`,true);
         }
       }
       competitionTemplateImportSource = {id:uid(),name:"Imported Competition Files",competitions};
@@ -8318,6 +8363,11 @@
       showToast(`${imported.length} fresh competition${imported.length===1?"":"s"} imported.`);
     }
 
+    function competitionTemplateForExport(comp){return {id:comp.id,name:comp.name,category:comp.category,competitionType:comp.competitionType,primaryColor:comp.primaryColor,badge:comp.badge,teamCount:Number(comp.teamCount||0),qualificationRules:JSON.parse(JSON.stringify(comp.qualificationRules||[])),qualificationFallback:comp.qualificationFallback||"highest-ranked",titleHolderQualifies:comp.titleHolderQualifies===true,rewards:JSON.parse(JSON.stringify(comp.rewards||{})),structure:JSON.parse(JSON.stringify(comp.structure||{})),stages:[...(comp.stages||[])],groupCount:Number(comp.groupCount||1),timesPlayed:Number(comp.timesPlayed||1),advanceCount:Number(comp.advanceCount||1),groupAdvancePerGroup:Number(comp.groupAdvancePerGroup||1),customSettings:JSON.parse(JSON.stringify(comp.customSettings||{})),superLeagueSources:JSON.parse(JSON.stringify(comp.superLeagueSources||{})),editable:true};}
+    function editableExportCompetitions(){return currentWorld().competitions.filter(comp=>!isWorldCupCompetition(comp)&&comp.editable!==false&&!comp.recoveredFromHistory&&comp.archived!==true);}
+    function openExportCompetitionsDialog(){const comps=editableExportCompetitions();$("exportCompetitionPicker").innerHTML=comps.map(comp=>`<label class="check"><input type="checkbox" class="export-competition-check" value="${comp.id}"><span><strong>${escapeHtml(comp.name)}</strong><small class="muted" style="display:block">${escapeHtml(competitionVisual(comp).label)}</small></span></label>`).join("")||`<div class="notice">No editable competitions can be exported.</div>`;$("exportCompetitionsDialog").showModal();}
+    function exportSelectedCompetitions(){const ids=new Set([...document.querySelectorAll(".export-competition-check:checked")].map(box=>box.value));const competitions=editableExportCompetitions().filter(comp=>ids.has(comp.id)).map(competitionTemplateForExport);if(!competitions.length)return showToast("Select at least one competition to export.",true);downloadPortableJson({exportType:"football-universe-competitions",exportVersion:PORTABLE_EXPORT_VERSION,createdAt:new Date().toISOString(),competitions},"football-universe-competitions.json");$("exportCompetitionsDialog").close();showToast(`${competitions.length} competition template${competitions.length===1?"":"s"} exported`);}
+
     function renderCompetitions() {
       const world = currentWorld();
       restoreCompetitionCardsFromHistory(world);
@@ -8358,7 +8408,8 @@
               🌍 ${escapeHtml(competitionWaitingMessage(world,regularCompetitions(world).find(c => !c.finished)) || `Finish ${regularCompetitions(world).filter(c => !c.finished).length} competitions first`)}
             </button>
           `}
-          <button class="btn secondary" id="loadCompetitionsFromSaveBtn" ${worldCupActive ? "disabled" : ""}>Load Competitions From Save</button>
+          <button class="btn secondary" id="loadCompetitionsFromSaveBtn" ${worldCupActive ? "disabled" : ""}>📥 Import Competitions</button>
+          <button class="btn secondary" id="exportCompetitionsBtn" ${editableExportCompetitions().length ? "" : "disabled"}>📤 Export Competitions</button>
         </div>
 
         <div class="competition-list">
@@ -8410,6 +8461,7 @@
       $("addCompetitionBtn")?.addEventListener("click", openCompetitionDialog);
       $("startGlobalSeasonFromCompetitionsBtn")?.addEventListener("click", startGlobalNextSeason);
       $("loadCompetitionsFromSaveBtn")?.addEventListener("click", openLoadCompetitionsDialog);
+      $("exportCompetitionsBtn")?.addEventListener("click", openExportCompetitionsDialog);
 
       document.querySelectorAll(".open-competition").forEach(button => {
         button.addEventListener("click", () => {
@@ -11566,9 +11618,9 @@ function renderWorldCupQualification() {
     $("closeHallOfFameBtn").addEventListener("click", () => $("hallOfFameDialog").close());
     $("closeSeasonAwardsBtn").addEventListener("click", () => $("seasonAwardsDialog").close());
 
-    $("importSourceWorldSelect").addEventListener("change", event => {
-      renderImportTeamPicker(event.target.value);
-    });
+    $("teamImportSourceType").addEventListener("change",renderTeamImportSourceMode);
+    $("importSourceWorldSelect").addEventListener("change", event => { teamImportSource=availableImportWorlds().find(save=>save.id===event.target.value)||null;renderImportTeamPicker(); });
+    $("teamImportFileInput").addEventListener("change",event=>readTeamImportFiles([...event.target.files]));
 
     $("selectAllImportTeamsBtn").addEventListener("click", () => {
       document.querySelectorAll(".import-team-check:not(:disabled)").forEach(box => box.checked = true);
@@ -11581,6 +11633,13 @@ function renderWorldCupQualification() {
     $("confirmImportTeamsBtn").addEventListener("click", importSelectedTeams);
     $("closeImportTeamsBtn").addEventListener("click", () => $("importTeamsDialog").close());
     $("cancelImportTeamsBtn").addEventListener("click", () => $("importTeamsDialog").close());
+    $("skipImportedTeamBtn").addEventListener("click",()=>closeTeamImportConflict("skip"));
+    $("renameImportedTeamBtn").addEventListener("click",()=>closeTeamImportConflict("rename"));
+    $("replaceImportedTeamBtn").addEventListener("click",()=>closeTeamImportConflict("replace"));
+    $("selectAllExportTeamsBtn").addEventListener("click",()=>document.querySelectorAll(".export-team-check").forEach(box=>box.checked=true));
+    $("clearExportTeamsBtn").addEventListener("click",()=>document.querySelectorAll(".export-team-check").forEach(box=>box.checked=false));
+    $("confirmExportTeamsBtn").addEventListener("click",exportSelectedTeams);
+    ["closeExportTeamsBtn","cancelExportTeamsBtn"].forEach(id=>$(id).addEventListener("click",()=>$("exportTeamsDialog").close()));
 
     $("competitionTemplateSourceType").addEventListener("change",renderCompetitionTemplateSourceOptions);
     $("competitionTemplateSaveSelect").addEventListener("change",event => {
@@ -11594,6 +11653,10 @@ function renderWorldCupQualification() {
     $("skipImportedCompetitionBtn").addEventListener("click",() => closeCompetitionImportConflict("skip"));
     $("renameImportedCompetitionBtn").addEventListener("click",() => closeCompetitionImportConflict("rename"));
     $("replaceImportedCompetitionBtn").addEventListener("click",() => closeCompetitionImportConflict("replace"));
+    $("selectAllExportCompetitionsBtn").addEventListener("click",()=>document.querySelectorAll(".export-competition-check").forEach(box=>box.checked=true));
+    $("clearExportCompetitionsBtn").addEventListener("click",()=>document.querySelectorAll(".export-competition-check").forEach(box=>box.checked=false));
+    $("confirmExportCompetitionsBtn").addEventListener("click",exportSelectedCompetitions);
+    ["closeExportCompetitionsBtn","cancelExportCompetitionsBtn"].forEach(id=>$(id).addEventListener("click",()=>$("exportCompetitionsDialog").close()));
 
     $("startWorldCupBtn").addEventListener("click", createWorldCupCompetition);
 
@@ -11625,7 +11688,7 @@ function renderWorldCupQualification() {
 
   <div class="permanent-version-label" aria-label="Application version">
     <strong>Football Universe Simulator</strong>
-    <span>V50.3</span>
+    <span>V50.4</span>
   </div>
 </body>
 </html>
