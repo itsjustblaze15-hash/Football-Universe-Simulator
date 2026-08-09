@@ -2432,6 +2432,83 @@
       margin: 10px 0;
     }
 
+    .tournament-chances {
+      margin-top: 16px;
+      padding: 22px;
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+      background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 42%),
+        var(--panel-2);
+    }
+
+    .tournament-chances-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tournament-chances-header h2 { margin: 0; }
+
+    .tournament-chances-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tournament-chance-row {
+      display: grid;
+      grid-template-columns: minmax(170px, .8fr) minmax(160px, 1.2fr) 52px;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--panel) 88%, transparent);
+    }
+
+    .tournament-chance-team {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 900;
+    }
+
+    .tournament-chance-team .logo { width: 42px; height: 42px; flex: 0 0 42px; }
+    .tournament-chance-team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .tournament-favorite {
+      display: block;
+      margin-top: 2px;
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .tournament-chance-track {
+      height: 11px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.3);
+    }
+
+    .tournament-chance-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 62%, white));
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 42%, transparent);
+    }
+
+    .tournament-chance-percent { text-align: right; font-size: 20px; font-weight: 1000; }
+
+    @media (max-width: 700px) {
+      .tournament-chance-row { grid-template-columns: minmax(0, 1fr) 52px; }
+      .tournament-chance-track { grid-column: 1 / -1; grid-row: 2; }
+    }
+
     .final-stage {
       min-height: 610px;
       display: grid;
@@ -9035,6 +9112,7 @@
               </div>
             </div>`;
         }
+        mainContent += tournamentWinChancesHtml(comp);
       }
 
       $("tab-competitions").innerHTML = `
@@ -9229,6 +9307,103 @@
 
     function teamById(id) {
       return currentWorld().teams.find(t => t.id === id);
+    }
+
+    function poissonProbabilities(lambda, maxGoals=18) {
+      const probabilities = [Math.exp(-lambda)];
+      for (let goals=1; goals<=maxGoals; goals++) probabilities[goals] = probabilities[goals-1] * lambda / goals;
+      const total = probabilities.reduce((sum,value)=>sum+value,0);
+      probabilities[maxGoals] += Math.max(0,1-total);
+      return probabilities;
+    }
+
+    function getMatchWinProbability(homeId, awayId, comp=null, stageOverride=null) {
+      const home = teamById(homeId), away = teamById(awayId);
+      if (!home || !away) return .5;
+      const category = comp?.category || "league";
+      const stage = stageOverride || comp?.stages?.[comp.currentStageIndex];
+      const knockout = stage && !["League","Groups"].includes(stage);
+      const neutral = !!comp?.isWorldCup || category === "world-cup" || (knockout && stage === "Final");
+      const variance = category === "league" ? 1.15 : ["champions-league","europa-league"].includes(category) ? 1.22 : category === "world-cup" || comp?.isWorldCup ? 1.18 : 1.28;
+      const homePower = Number(home.strength || 0) + (neutral ? 0 : (category === "league" ? 2 : 1)) + clamp(averageForm(homeId),-1.5,1.5);
+      const awayPower = Number(away.strength || 0) + clamp(averageForm(awayId),-1.5,1.5);
+      const gap = homePower-awayPower;
+      const baseGoals = knockout ? 1.18 : 1.22;
+      const attackSwing = gap/(category === "league" ? 22 : 20);
+      const dominanceBonus = Math.max(0,Math.abs(gap)-14)/55;
+      const samples = 41;
+      let homeWin = 0;
+
+      for (let sample=0; sample<samples; sample++) {
+        const swing = (((sample+.5)/samples)-.5)*variance;
+        const homeExpected = clamp(baseGoals+attackSwing+(gap>0?dominanceBonus:0)+swing,.08,5.4);
+        const awayExpected = clamp(baseGoals-attackSwing+(gap<0?dominanceBonus:0)-swing,.08,5.4);
+        const homeGoals = poissonProbabilities(homeExpected);
+        const awayGoals = poissonProbabilities(awayExpected);
+        let sampleWin = 0, tie = 0;
+        for (let hg=0; hg<homeGoals.length; hg++) for (let ag=0; ag<awayGoals.length; ag++) {
+          const chance = homeGoals[hg]*awayGoals[ag];
+          if (hg>ag) sampleWin += chance;
+          else if (hg===ag) tie += chance;
+        }
+        const tieBreakChance = knockout ? 1/(1+Math.exp(-gap/11)) : .5;
+        homeWin += sampleWin + tie*tieBreakChance;
+      }
+      return clamp(homeWin/samples,.000001,.999999);
+    }
+
+    function roundedPercentages(items) {
+      const total = items.reduce((sum,item)=>sum+item.probability,0) || 1;
+      const prepared = items.map((item,index)=>{
+        const exact = item.probability/total*100;
+        return {...item,index,exact,percent:Math.max(1,Math.floor(exact))};
+      });
+      let difference = 100-prepared.reduce((sum,item)=>sum+item.percent,0);
+      const order = prepared.slice().sort((a,b)=>difference>=0 ? (b.exact-b.percent)-(a.exact-a.percent) : (b.percent-b.exact)-(a.percent-a.exact));
+      let cursor = 0;
+      while (difference !== 0 && cursor < 1000) {
+        const item = order[cursor%order.length];
+        if (difference>0) { item.percent++; difference--; }
+        else if (item.percent>1) { item.percent--; difference++; }
+        cursor++;
+      }
+      return prepared;
+    }
+
+    function tournamentWinProbabilities(comp) {
+      if (!comp || comp.finished || comp.championId) return [];
+      const stage = comp.stages?.[comp.currentStageIndex];
+      const games = comp.fixtures?.[comp.currentMatchday] || [];
+      if (stage === "Final" && games.length === 1) {
+        const game = games[0];
+        const homeChance = getMatchWinProbability(game.homeId,game.awayId,comp,"Final");
+        return roundedPercentages([{teamId:game.homeId,probability:homeChance},{teamId:game.awayId,probability:1-homeChance}]);
+      }
+      if (stage !== "Semifinals" || games.length !== 2) return [];
+      const [first,second] = games;
+      const firstHome = getMatchWinProbability(first.homeId,first.awayId,comp,"Semifinals");
+      const secondHome = getMatchWinProbability(second.homeId,second.awayId,comp,"Semifinals");
+      const finalistsA = [{teamId:first.homeId,reach:firstHome},{teamId:first.awayId,reach:1-firstHome}];
+      const finalistsB = [{teamId:second.homeId,reach:secondHome},{teamId:second.awayId,reach:1-secondHome}];
+      const probabilities = [];
+      finalistsA.forEach(team=>probabilities.push({teamId:team.teamId,probability:team.reach*finalistsB.reduce((sum,opponent)=>sum+opponent.reach*getMatchWinProbability(team.teamId,opponent.teamId,comp,"Final"),0)}));
+      finalistsB.forEach(team=>probabilities.push({teamId:team.teamId,probability:team.reach*finalistsA.reduce((sum,opponent)=>sum+opponent.reach*getMatchWinProbability(team.teamId,opponent.teamId,comp,"Final"),0)}));
+      return roundedPercentages(probabilities);
+    }
+
+    function tournamentWinChancesHtml(comp) {
+      const stage = comp?.stages?.[comp.currentStageIndex];
+      const chances = tournamentWinProbabilities(comp).sort((a,b)=>b.probability-a.probability || teamName(a.teamId).localeCompare(teamName(b.teamId)));
+      if (!chances.length) return "";
+      const favoriteId = chances[0].teamId;
+      return `<section class="card tournament-chances" aria-label="${stage === "Final" ? "Final" : "Tournament"} Win Chances">
+        <div class="tournament-chances-header"><h2>🏆 ${stage === "Final" ? "Final" : "Tournament"} Win Chances</h2><span class="badge">Total 100%</span></div>
+        <div class="tournament-chances-list">${chances.map(item=>`<div class="tournament-chance-row">
+          <div class="tournament-chance-team">${teamLogo(teamById(item.teamId))}<div class="tournament-chance-team-name">${escapeHtml(teamName(item.teamId))}${item.teamId===favoriteId?`<span class="tournament-favorite">⭐ Favorite</span>`:""}</div></div>
+          <div class="tournament-chance-track" role="progressbar" aria-label="${escapeHtml(teamName(item.teamId))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${item.percent}"><div class="tournament-chance-fill" style="width:${item.percent}%"></div></div>
+          <div class="tournament-chance-percent">${item.percent}%</div>
+        </div>`).join("")}</div>
+      </section>`;
     }
 
     function simulateScore(homeId, awayId, knockout=false, comp=null) {
