@@ -4446,7 +4446,7 @@
 
 
 /* =========================================================
-   V52 TEST — UI-ONLY HUB REDESIGN
+   V52 — UI-ONLY HUB REDESIGN
    Keeps V51 gameplay/logic intact. Inspired by the supplied
    reference layout: strong left rail, compact top header,
    denser central hub, premium blue FUS identity.
@@ -4899,7 +4899,7 @@ body.world-cup-theme .startup-kicker{
 
 
 /* =========================================================
-   V52 TEST 2 — sidebar readability + competition card grid
+   V52 2 — sidebar readability + competition card grid
    ========================================================= */
 
 /* 1) Larger sidebar/nav text */
@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V52 TEST";
+  content:"V52";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5044,6 +5044,27 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
   }
 }
 
+
+
+/* V52 OFFICIAL */
+#appScreen .brand::after{
+  content:"V52" !important;
+}
+
+/* Remove old/duplicate bottom-left version displays */
+.app-nav .version,
+.app-nav .version-card,
+.app-nav .sidebar-version,
+.app-nav .app-version,
+.app-nav .footer-version,
+.version-card,
+.version-indicator,
+.sidebar-version,
+.app-version,
+.footer-version{
+  display:none !important;
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -5158,7 +5179,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V52 TEST · UI Preview.</p>
+          <p id="saveStatus">V52</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -12909,8 +12930,7 @@ function renderWorldCupQualification() {
     applyOfficialFusLogo();
   </script>
 
-  <div class="permanent-version-label" aria-label="Application version">
-    <strong>Football Universe Simulator</strong>
+  <div class="permanent-version-label" aria-label="Application version"></strong>
     <span>V51</span>
   </div>
 </body>
