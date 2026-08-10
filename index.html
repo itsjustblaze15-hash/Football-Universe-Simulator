@@ -5065,6 +5065,118 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
   display:none !important;
 }
 
+
+
+/* =========================================================
+   V52.1 — requested cleanup
+   ========================================================= */
+
+/* Actual FUS logo above Dashboard; remove the old text pseudo-brand. */
+.app-nav::before{
+  display:none !important;
+  content:none !important;
+}
+.sidebar-fus-brand{
+  min-height:64px;
+  display:grid;
+  place-items:center;
+  padding:8px 10px 12px;
+  margin-bottom:7px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.sidebar-fus-logo{
+  display:block;
+  width:min(112px,82%);
+  height:42px;
+  object-fit:contain;
+  object-position:center;
+}
+
+/* The old bottom-left version badge is gone completely. */
+.permanent-version-label{
+  display:none !important;
+}
+
+/* Semifinal cards: physically smaller, but club identity larger. */
+.knockout-grid.round-four{
+  grid-template-rows:repeat(2,minmax(150px,auto)) !important;
+  align-content:start !important;
+  gap:12px !important;
+}
+.knockout-grid.round-four .knockout-match-card{
+  min-height:150px !important;
+  padding:14px 16px !important;
+  border-radius:14px !important;
+}
+.knockout-grid.round-four .knockout-team{
+  gap:13px !important;
+}
+.knockout-grid.round-four .knockout-team .logo{
+  width:64px !important;
+  height:64px !important;
+  flex:0 0 64px !important;
+  font-size:18px !important;
+}
+.knockout-grid.round-four .knockout-team-name{
+  font-size:clamp(20px,2.2vw,28px) !important;
+}
+.knockout-grid.round-four .knockout-vs{
+  margin:5px 0 !important;
+  font-size:12px !important;
+}
+
+/* Every custom competition's knockout visuals inherit its actual chosen color. */
+body.competition-custom-theme:not(.world-cup-theme) .knockout-match-card{
+  border-color:rgba(var(--competition-rgb),.34) !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(var(--competition-rgb),.13),transparent 45%),
+    linear-gradient(180deg,rgba(var(--competition-rgb),.07),transparent 58%),
+    rgba(var(--competition-deep-rgb),.96) !important;
+}
+body.competition-custom-theme:not(.world-cup-theme) .knockout-vs{
+  color:var(--competition-color) !important;
+}
+body.competition-custom-theme:not(.world-cup-theme) .tournament-chances{
+  border-color:rgba(var(--competition-rgb),.38) !important;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(var(--competition-rgb),.16),transparent 42%),
+    linear-gradient(180deg,rgba(var(--competition-rgb),.06),transparent 65%),
+    rgba(var(--competition-deep-rgb),.96) !important;
+}
+body.competition-custom-theme:not(.world-cup-theme) .tournament-chance-row{
+  border-color:rgba(var(--competition-rgb),.28) !important;
+  background:rgba(var(--competition-dark-rgb),.50) !important;
+}
+body.competition-custom-theme:not(.world-cup-theme) .tournament-chance-track{
+  background:rgba(var(--competition-rgb),.13) !important;
+}
+body.competition-custom-theme:not(.world-cup-theme) .tournament-chance-fill{
+  background:linear-gradient(
+    90deg,
+    rgb(var(--competition-rgb)),
+    color-mix(in srgb,var(--competition-color) 58%,white)
+  ) !important;
+  box-shadow:0 0 14px rgba(var(--competition-rgb),.38) !important;
+}
+body.competition-custom-theme:not(.world-cup-theme) .tournament-chance-percent{
+  color:color-mix(in srgb,var(--competition-color) 72%,white) !important;
+}
+
+/* World Cup remains gold and overrides custom competition treatment. */
+body.world-cup-theme .knockout-match-card,
+body.world-cup-theme .tournament-chances,
+body.world-cup-theme .tournament-chance-row{
+  border-color:rgba(246,196,83,.34) !important;
+}
+body.world-cup-theme .tournament-chance-fill{
+  background:linear-gradient(90deg,#f6c453,#ffe299) !important;
+  box-shadow:0 0 14px rgba(246,196,83,.38) !important;
+}
+body.world-cup-theme .tournament-chance-percent,
+body.world-cup-theme .knockout-vs{
+  color:#f6c453 !important;
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -5189,6 +5301,9 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
       <div class="page-shell">
         <nav class="app-nav">
+          <div class="sidebar-fus-brand" aria-label="FUS">
+            <img id="fusSidebarLogo" class="fus-logo sidebar-fus-logo hidden" alt="FUS logo">
+          </div>
           <button class="tab active" data-tab="dashboard">🏠 Dashboard</button>
           <button class="tab" data-tab="teams">🛡️ Teams</button>
           <button class="tab" data-tab="competitions">🏆 Competitions</button>
@@ -5834,7 +5949,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
     function seasonDisplay(season=1) { return `Season ${Number(season || 1)} • ${footballSeasonYear(season)}`; }
     function applyOfficialFusLogo() {
       if (!FUS_LOGO_DATA) return;
-      [$("fusStartupLogo"),$("fusHeaderLogo")].filter(Boolean).forEach(image => { image.src=FUS_LOGO_DATA; image.classList.remove("hidden"); });
+      [$("fusStartupLogo"),$("fusHeaderLogo"),$("fusSidebarLogo")].filter(Boolean).forEach(image => { image.src=FUS_LOGO_DATA; image.classList.remove("hidden"); });
       const favicon=$("fusFavicon"); if (favicon) favicon.href=FUS_LOGO_DATA;
     }
     const COMPETITION_BADGES = {
@@ -8531,7 +8646,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
         groupAdvancePerGroup,
         timesPlayed: Number($("timesPlayedInput").value),
         advanceCount: Math.max(1, Math.min(Number($("advanceCountInput").value), selected.length)),
-        season: 1,
+        season: Number(world.worldSeason || 1),
         locked: false,
         finished: false,
         fixtures: [],
@@ -11160,43 +11275,172 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
       });
     }
 
+
     function evolveWorldTeamStrengths(world) {
-      const season=Number(world.worldSeason||1);
-      const seasonHistory=(world.history||[]).filter(entry=>Number(entry.season||0)===season&&!isWorldCupHistoryEntry(entry,world));
-      const finished=(world.competitions||[]).filter(comp=>!isWorldCupCompetition(comp)&&comp.finished);
-      world.teams.forEach((team,index) => {
-        const oldStrength=Number(team.strength??70);
-        const profile=team.developmentProfile&&typeof team.developmentProfile==="object"?team.developmentProfile:{baseline:Number(team.startingOverall??oldStrength),potential:clamp(Number(team.startingOverall??oldStrength)+4+(index%5),58,94),momentum:0,stability:.6};
-        let performance=0,meaningfulEvents=[];
-        finished.forEach(comp=>{
-          const positions=competitionFinalPositions(comp),place=positions.indexOf(team.id)+1;
-          if(!place)return;
-          if(comp.category==="league"){
-            const size=Math.max(2,positions.length),percentile=1-(place-1)/(size-1);
-            performance+=(percentile-.5)*2.2;
-            if(place===1)meaningfulEvents.push(`${comp.name} champion`);else if(place<=4)meaningfulEvents.push(`${comp.name} top four`);else if(place>Math.ceil(size*.75))meaningfulEvents.push(`${comp.name} lower-quarter finish`);
-          } else if(place===1){performance+=comp.category==="champions-league"?1.25:comp.category==="europa-league"?1:.65;meaningfulEvents.push(`${comp.name} champion`)}
-          else if(place===2){performance+=comp.category==="champions-league"?.55:.3;meaningfulEvents.push(`${comp.name} finalist`)}
-          else if(place<=4&&["champions-league","europa-league"].includes(comp.category))performance+=.2;
+      const season = Number(world.worldSeason || 1);
+      const finished = (world.competitions || []).filter(comp =>
+        !isWorldCupCompetition(comp) &&
+        comp.finished &&
+        Number(comp.season || season) === season
+      );
+
+      world.teams.forEach(team => {
+        const oldStrength = Number(team.strength ?? 70);
+        const baseline = Number(team.startingOverall ?? team.developmentProfile?.baseline ?? oldStrength);
+
+        team.developmentProfile =
+          team.developmentProfile && typeof team.developmentProfile === "object"
+            ? team.developmentProfile
+            : {};
+
+        const profile = team.developmentProfile;
+        profile.baseline = Number(profile.baseline ?? baseline);
+        profile.seasonsWithoutTrophy = Number(profile.seasonsWithoutTrophy || 0);
+
+        let seasonScore = 0;
+        let trophiesWon = 0;
+        let meaningfulEvents = [];
+        let participated = false;
+
+        finished.forEach(comp => {
+          const positions = competitionFinalPositions(comp);
+          const place = positions.indexOf(team.id) + 1;
+          if (!place) return;
+
+          participated = true;
+          const size = Math.max(2, positions.length);
+
+          if (comp.category === "league") {
+            const topQuarter = Math.max(1, Math.ceil(size * .25));
+            const bottomQuarterStart = Math.max(1, Math.floor(size * .75) + 1);
+
+            if (place === 1) {
+              seasonScore += 1.8;
+              trophiesWon += 1;
+              meaningfulEvents.push(`${comp.name} champion`);
+            } else if (place <= topQuarter) {
+              seasonScore += .8;
+              meaningfulEvents.push(`${comp.name} top-${topQuarter}`);
+            } else if (place <= Math.ceil(size / 2)) {
+              seasonScore += .15;
+            } else if (place >= Math.max(bottomQuarterStart, size - 2)) {
+              seasonScore -= 1.0;
+              meaningfulEvents.push(`${comp.name} poor finish`);
+            } else if (place >= bottomQuarterStart) {
+              seasonScore -= .6;
+            }
+            return;
+          }
+
+          const isChampion = place === 1;
+          const isRunnerUp = place === 2;
+
+          if (isChampion) {
+            trophiesWon += 1;
+            if (comp.category === "champions-league") seasonScore += 1.8;
+            else if (comp.category === "europa-league") seasonScore += 1.35;
+            else if (comp.category === "super-league") seasonScore += .85;
+            else seasonScore += .75;
+            meaningfulEvents.push(`${comp.name} champion`);
+          } else if (isRunnerUp) {
+            if (comp.category === "champions-league") seasonScore += .65;
+            else if (comp.category === "europa-league") seasonScore += .45;
+            else seasonScore += .25;
+            meaningfulEvents.push(`${comp.name} finalist`);
+          } else if (place <= 4 && ["champions-league","europa-league"].includes(comp.category)) {
+            seasonScore += .2;
+          }
         });
-        const previousMomentum=Number(profile.momentum||0);
-        const contextualNoise=Math.random()<.12?(Math.random()<.5?-.45:.45):0;
-        let movementScore=performance*.58+previousMomentum*.34+contextualNoise;
-        if(oldStrength>=90&&movementScore>0)movementScore*=.45;
-        if(oldStrength>=94&&movementScore>0)movementScore=0;
-        if(oldStrength<=60&&movementScore<0)movementScore*=.45;
-        const potential=Number(profile.potential||94);
-        if(oldStrength>potential&&movementScore>0)movementScore*=.35;
-        let change=movementScore>=1.25?2:movementScore>=.38?1:movementScore<=-1.25?-2:movementScore<=-.38?-1:0;
-        change=clamp(change,-2,2);
-        team.strength=clamp(oldStrength+change,50,96);
-        team.lastStrengthChange=team.strength-oldStrength;
-        profile.momentum=clamp(performance*.45+previousMomentum*.5,-2.5,2.5);
-        profile.baseline=Number(profile.baseline??oldStrength);profile.potential=potential;team.developmentProfile=profile;
-        team.strengthHistory=team.strengthHistory||[{season:1,strength:oldStrength,competition:"Starting rating"}];
-        team.strengthHistory.push({season:season+1,strength:team.strength,competition:meaningfulEvents.length?`Season performance: ${meaningfulEvents.slice(0,2).join(", ")}`:"Season performance: stable"});
+
+        // Trophy drought matters. Elite ratings must be defended over time.
+        if (trophiesWon > 0) profile.seasonsWithoutTrophy = 0;
+        else profile.seasonsWithoutTrophy += 1;
+
+        let change = 0;
+
+        // Performance-driven movement. No meaningless random +/-1 changes.
+        if (seasonScore >= 2.6) change = 2;
+        else if (seasonScore >= .8) change = 1;
+        else if (seasonScore <= -1.5) change = -2;
+        else if (seasonScore <= -.55) change = -1;
+
+        // A highly-rated club that wins nothing for several seasons slowly declines.
+        // One trophyless season does not punish them, but 3+ begins to matter.
+        if (
+          oldStrength >= 82 &&
+          profile.seasonsWithoutTrophy >= 3 &&
+          seasonScore < 1.25
+        ) {
+          change -= 1;
+        }
+
+        if (
+          oldStrength >= 76 &&
+          profile.seasonsWithoutTrophy >= 5 &&
+          seasonScore <= .25
+        ) {
+          change -= 1;
+        }
+
+        // Avoid runaway giants.
+        if (oldStrength >= 92 && change > 1) change = 1;
+        if (oldStrength >= 95 && change > 0) change = 0;
+
+        // Fallen clubs must have a path back.
+        // Their original/starter level acts as a long-term anchor, not a guarantee.
+        const deficitToBaseline = baseline - oldStrength;
+        if (deficitToBaseline >= 10 && seasonScore >= .2) {
+          change = Math.max(change, 1);
+        }
+        if (deficitToBaseline >= 16 && seasonScore >= .8) {
+          change = Math.max(change, 2);
+        }
+
+        // Deeply fallen established clubs get a modest rebuild floor if they stop
+        // performing terribly, so they are not permanently trapped around 55-60.
+        if (
+          baseline >= 78 &&
+          oldStrength <= 62 &&
+          seasonScore > -.55
+        ) {
+          change = Math.max(change, 1);
+        }
+
+        // If a team did not participate in any completed competition, do not
+        // manufacture a rating move.
+        if (!participated) change = 0;
+
+        change = clamp(change, -2, 2);
+
+        const newStrength = clamp(oldStrength + change, 55, 96);
+        team.strength = newStrength;
+        team.lastStrengthChange = newStrength - oldStrength;
+
+        profile.lastSeasonScore = Number(seasonScore.toFixed(2));
+        profile.lastSeasonTrophies = trophiesWon;
+        team.developmentProfile = profile;
+
+        team.strengthHistory = team.strengthHistory || [
+          {season:1,strength:oldStrength,competition:"Starting rating"}
+        ];
+
+        let reason = "Season performance: stable";
+        if (meaningfulEvents.length) {
+          reason = `Season performance: ${meaningfulEvents.slice(0,2).join(", ")}`;
+        } else if (profile.seasonsWithoutTrophy >= 3 && team.lastStrengthChange < 0) {
+          reason = `Trophy drought: ${profile.seasonsWithoutTrophy} seasons`;
+        } else if (deficitToBaseline >= 10 && team.lastStrengthChange > 0) {
+          reason = "Rebuild season";
+        }
+
+        team.strengthHistory.push({
+          season: season + 1,
+          strength: team.strength,
+          competition: reason
+        });
       });
     }
+
 
     function competitionParticipantIds(comp) {
       return [...new Set([
@@ -12929,9 +13173,5 @@ function renderWorldCupQualification() {
     renderCareerSaveList();
     applyOfficialFusLogo();
   </script>
-
-  <div class="permanent-version-label" aria-label="Application version"></strong>
-    <span>V51</span>
-  </div>
 </body>
 </html>
