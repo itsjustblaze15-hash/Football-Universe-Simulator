@@ -4443,6 +4443,607 @@
 
     @media(max-width:640px){.competition-editor-grid,.competition-editor-summary-grid,.qualification-rule{grid-template-columns:1fr}.competition-editor-field.full{grid-column:auto}.competition-actions{justify-content:stretch}.competition-actions .btn{flex:1}.competition-editor-tab{min-width:0}.qualification-rule .btn{width:100%}}
 
+
+
+/* =========================================================
+   V52 TEST — UI-ONLY HUB REDESIGN
+   Keeps V51 gameplay/logic intact. Inspired by the supplied
+   reference layout: strong left rail, compact top header,
+   denser central hub, premium blue FUS identity.
+   ========================================================= */
+
+:root{
+  --bg:#050a13;
+  --bg-2:#081120;
+  --panel:rgba(10,18,33,.96);
+  --panel-2:rgba(14,25,44,.96);
+  --panel-3:rgba(18,33,57,.96);
+  --text:#f7faff;
+  --muted:#8ea2bd;
+  --accent:#3d8cff;
+  --accent-2:#1f66e5;
+  --accent-soft:rgba(61,140,255,.14);
+  --border:rgba(133,166,211,.13);
+  --border-strong:rgba(133,166,211,.24);
+  --success:#3d8cff;
+  --shadow:0 18px 48px rgba(0,0,0,.34);
+}
+
+body:not(.world-cup-theme){
+  background:
+    radial-gradient(circle at 78% 0%, rgba(44,105,220,.12), transparent 31%),
+    radial-gradient(circle at 20% 90%, rgba(30,88,190,.08), transparent 34%),
+    linear-gradient(180deg,#050a13 0%,#07101e 48%,#050a13 100%);
+  background-attachment:fixed;
+}
+
+body:not(.world-cup-theme)::before{
+  opacity:.028;
+  background-size:72px 72px;
+}
+
+.app{
+  width:min(1680px,100%);
+  padding:18px 22px 28px;
+}
+
+#appScreen .topbar{
+  min-height:78px;
+  margin:0 0 14px;
+  padding:12px 16px;
+  border-radius:15px;
+  background:
+    linear-gradient(90deg,rgba(15,29,52,.98),rgba(8,16,30,.98)),
+    var(--panel);
+  border:1px solid rgba(110,150,205,.15);
+  box-shadow:0 10px 30px rgba(0,0,0,.22);
+}
+
+#appScreen .topbar::after{
+  display:none;
+}
+
+#appScreen .brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+
+#appScreen .brand #backToWorldsBtn{
+  order:-2;
+}
+
+#appScreen .fus-header-logo{
+  order:-1;
+  width:72px;
+  max-height:34px;
+  object-fit:contain;
+  margin:0 2px 0 0 !important;
+}
+
+#appScreen .brand h1{
+  margin:0 !important;
+  font-size:clamp(18px,2.2vw,27px);
+  letter-spacing:-.025em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#appScreen .brand p{
+  margin:2px 0 0;
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#7288a5;
+}
+
+#appScreen > .page-shell,
+.page-shell{
+  grid-template-columns:218px minmax(0,1fr);
+  gap:14px;
+  align-items:start;
+}
+
+.app-nav{
+  top:14px;
+  gap:3px;
+  padding:10px 8px;
+  border-radius:14px;
+  min-height:calc(100vh - 120px);
+  background:
+    linear-gradient(180deg,rgba(10,19,34,.99),rgba(6,12,23,.99));
+  border:1px solid rgba(120,153,199,.13);
+  box-shadow:0 14px 34px rgba(0,0,0,.25);
+}
+
+.app-nav::before{
+  content:"FUS";
+  display:block;
+  padding:8px 11px 11px;
+  margin-bottom:4px;
+  color:#f6f9ff;
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.22em;
+  opacity:.92;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.app-nav .tab{
+  min-height:38px;
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:760;
+  color:#8fa2ba;
+  text-align:left;
+  background:transparent;
+  border:1px solid transparent;
+  box-shadow:none;
+}
+
+.app-nav .tab:hover{
+  color:#e9f2ff;
+  background:rgba(74,135,224,.08);
+  border-color:rgba(90,149,234,.10);
+}
+
+.app-nav .tab.active{
+  color:#fff;
+  background:linear-gradient(90deg,rgba(45,118,230,.27),rgba(38,96,196,.08));
+  border-color:rgba(77,145,245,.30);
+  box-shadow:inset 3px 0 0 #4f9cff;
+  transform:none;
+}
+
+.app-content{
+  min-width:0;
+  width:100%;
+}
+
+.tab-panel{
+  animation:v52PanelIn .16s ease-out;
+}
+
+@keyframes v52PanelIn{
+  from{opacity:.72;transform:translateY(3px)}
+  to{opacity:1;transform:none}
+}
+
+.card{
+  border-radius:13px;
+  padding:14px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.018),transparent 46%),
+    rgba(10,19,34,.96);
+  border:1px solid rgba(125,157,202,.13);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  backdrop-filter:blur(10px);
+}
+
+.card h2,.card h3{
+  letter-spacing:-.015em;
+}
+
+.metric-card{
+  min-height:92px;
+}
+
+.metric{
+  font-size:28px;
+  margin-top:5px;
+}
+
+.grid{
+  gap:12px;
+}
+
+.grid.two{gap:12px}
+.grid.three{gap:12px}
+
+.career-hero{
+  min-height:145px !important;
+  padding:20px !important;
+  border-radius:15px !important;
+  background:
+    radial-gradient(circle at 86% 15%,rgba(62,140,255,.14),transparent 30%),
+    linear-gradient(135deg,rgba(16,35,64,.98),rgba(7,16,30,.98)) !important;
+  border:1px solid rgba(84,145,233,.20) !important;
+  box-shadow:0 16px 38px rgba(0,0,0,.24) !important;
+}
+
+.career-hero .logo{
+  width:78px !important;
+  height:78px !important;
+}
+
+.career-hero h1{
+  margin:4px 0 8px !important;
+  font-size:clamp(26px,4vw,43px) !important;
+}
+
+.career-overall{
+  font-size:50px !important;
+  line-height:1 !important;
+}
+
+.career-dashboard-grid{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:12px !important;
+  margin-top:12px !important;
+  align-items:stretch;
+}
+
+.career-dashboard-grid > .card{
+  min-height:128px;
+}
+
+.career-dashboard-grid > .card:nth-last-child(-n+3){
+  min-height:150px;
+}
+
+.career-stat-number{
+  font-size:36px !important;
+  line-height:1 !important;
+  margin:7px 0 4px !important;
+}
+
+.startup-kicker{
+  color:#5ba2ff;
+  font-size:10px;
+  letter-spacing:.13em;
+}
+
+.stage{
+  padding:9px 10px;
+  margin:6px 0;
+  border-radius:8px;
+  background:
+    linear-gradient(90deg,rgba(61,140,255,.055),transparent 62%),
+    rgba(13,25,43,.92);
+}
+
+.btn{
+  border-radius:9px;
+  padding:9px 13px;
+  font-size:13px;
+  background:linear-gradient(180deg,#5fa6ff,#347ff0);
+  box-shadow:0 6px 15px rgba(37,99,235,.17);
+}
+
+.btn.small{
+  padding:7px 9px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.badge{
+  padding:5px 8px;
+  font-size:11px;
+  color:#a9ceff;
+  background:rgba(61,140,255,.10);
+  border-color:rgba(61,140,255,.18);
+}
+
+.team-row,.competition-row{
+  padding:10px 11px;
+  gap:11px;
+  border-radius:10px;
+  background:
+    linear-gradient(90deg,rgba(61,140,255,.035),transparent 45%),
+    rgba(13,24,42,.95);
+}
+
+.logo{
+  background:#142d50;
+}
+
+.table-wrap{
+  border-radius:10px;
+  background:rgba(3,9,18,.55);
+}
+
+th,td{
+  padding:8px 7px;
+}
+
+th{
+  color:#8095af;
+  background:rgba(255,255,255,.018);
+}
+
+tbody tr:hover{
+  background:rgba(61,140,255,.045);
+}
+
+.competition-layout{
+  grid-template-columns:minmax(0,3.35fr) minmax(260px,.95fr);
+  gap:12px;
+  margin-top:12px;
+}
+
+.competition-main-card{
+  min-height:500px;
+}
+
+.side-stack{
+  gap:12px;
+  top:14px;
+}
+
+.side-stack .card{
+  padding:12px;
+}
+
+.global-season-card{
+  margin-top:12px;
+  padding:15px;
+  border-radius:13px;
+  background:
+    radial-gradient(circle at 88% 10%,rgba(61,140,255,.08),transparent 34%),
+    rgba(10,19,34,.96);
+  border-color:rgba(89,150,236,.18);
+}
+
+.notice{
+  padding:10px 11px;
+  border-radius:9px;
+  color:#9fb3cc;
+}
+
+.toolbar{
+  gap:8px;
+  margin-bottom:10px;
+}
+
+input,select,textarea{
+  background:#07111f;
+  border-color:rgba(125,157,202,.19);
+  border-radius:9px;
+  padding:9px 10px;
+}
+
+input:focus,select:focus,textarea:focus{
+  background:#09162a;
+}
+
+.competition-builder-main{
+  background:#07101e;
+}
+
+.competition-builder-sidebar{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(61,140,255,.15),transparent 34%),
+    linear-gradient(180deg,#0d1c32,#07101e);
+}
+
+.builder-section{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.018),transparent),
+    rgba(9,18,32,.82);
+}
+
+.builder-actions{
+  background:rgba(7,16,30,.98);
+}
+
+/* Preserve World Cup identity as a distinct gold event. */
+body.world-cup-theme .app-nav .tab.active{
+  color:#1c1303;
+  background:linear-gradient(90deg,#f3c85f,#d7a52f);
+  border-color:rgba(246,196,83,.48);
+  box-shadow:inset 3px 0 0 #fff0bd;
+}
+
+body.world-cup-theme .career-hero{
+  background:
+    radial-gradient(circle at 86% 15%,rgba(246,196,83,.18),transparent 30%),
+    linear-gradient(135deg,rgba(65,43,9,.98),rgba(25,17,5,.98)) !important;
+  border-color:rgba(246,196,83,.27) !important;
+}
+
+body.world-cup-theme .startup-kicker{
+  color:#f6c453;
+}
+
+/* Responsive: preserve the rail feel on desktop, collapse cleanly below. */
+@media (max-width:1100px){
+  .page-shell{
+    grid-template-columns:190px minmax(0,1fr);
+  }
+  .career-dashboard-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width:760px){
+  .app{padding:10px}
+  #appScreen .topbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .page-shell{
+    grid-template-columns:1fr;
+  }
+  .app-nav{
+    position:relative;
+    top:auto;
+    min-height:0;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:8px;
+  }
+  .app-nav::before{
+    grid-column:1/-1;
+  }
+  .career-dashboard-grid{
+    grid-template-columns:1fr !important;
+  }
+  .competition-layout{
+    grid-template-columns:1fr;
+  }
+  .side-stack{
+    position:relative;
+    top:auto;
+  }
+}
+
+@media (max-width:480px){
+  .app-nav{
+    grid-template-columns:1fr;
+  }
+}
+
+
+
+/* =========================================================
+   V52 TEST 2 — sidebar readability + competition card grid
+   ========================================================= */
+
+/* 1) Larger sidebar/nav text */
+.app-nav .tab{
+  font-size:14px !important;
+  min-height:42px !important;
+  padding:10px 12px !important;
+  font-weight:800 !important;
+}
+
+/* 2) Put version next to FUS logo in top header */
+#appScreen .brand::after{
+  content:"V52 TEST";
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:4px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(61,140,255,.12);
+  border:1px solid rgba(61,140,255,.26);
+  color:#bcd7ff;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.10em;
+  white-space:nowrap;
+}
+
+/* Hide legacy bottom-left version/footer blocks if present */
+.app-nav .version,
+.app-nav .version-card,
+.version-card,
+.version-indicator,
+.sidebar-version,
+.app-version,
+.footer-version{
+  display:none !important;
+}
+
+/* 3) Competition list becomes a two-column card grid */
+.competition-list{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:14px !important;
+  align-items:stretch;
+}
+
+.competition-row{
+  grid-template-columns:auto minmax(0,1fr) !important;
+  grid-template-areas:
+    "icon copy"
+    "actions actions";
+  min-height:160px !important;
+  padding:18px !important;
+  border-radius:16px !important;
+  align-content:start !important;
+  gap:14px !important;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(61,140,255,.10),transparent 28%),
+    linear-gradient(180deg,rgba(255,255,255,.018),transparent 46%),
+    rgba(10,19,34,.97) !important;
+  border:1px solid rgba(125,157,202,.16) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.20) !important;
+}
+
+.competition-row > .competition-icon,
+.competition-row > .logo{
+  grid-area:icon;
+  width:66px !important;
+  height:66px !important;
+  border-radius:18px !important;
+  align-self:start;
+}
+
+.competition-row > div:nth-child(2){
+  grid-area:copy;
+  min-width:0;
+}
+
+.competition-row .toolbar,
+.competition-row > div:last-child{
+  grid-area:actions;
+}
+
+.competition-row .btn{
+  min-width:92px;
+}
+
+/* Make competition titles feel more like proper hub cards */
+.competition-row strong,
+.competition-row .world-name{
+  font-size:20px !important;
+  letter-spacing:-.02em;
+}
+
+/* 4) Active World Cup becomes a full-width hero card */
+.competition-row.world-cup-card,
+.competition-row[data-category="world-cup"],
+.competition-row[data-competition-type="world-cup"]{
+  grid-column:1 / -1 !important;
+  min-height:230px !important;
+  padding:24px !important;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(246,196,83,.20),transparent 28%),
+    radial-gradient(circle at 18% 85%,rgba(246,196,83,.08),transparent 30%),
+    linear-gradient(135deg,rgba(62,42,8,.98),rgba(22,15,4,.99)) !important;
+  border-color:rgba(246,196,83,.34) !important;
+  box-shadow:0 18px 42px rgba(0,0,0,.28), inset 0 0 0 1px rgba(246,196,83,.05) !important;
+}
+
+.competition-row.world-cup-card .competition-icon,
+.competition-row[data-category="world-cup"] .competition-icon,
+.competition-row[data-competition-type="world-cup"] .competition-icon{
+  width:92px !important;
+  height:92px !important;
+  border-radius:24px !important;
+  box-shadow:0 0 28px rgba(246,196,83,.20) !important;
+}
+
+.competition-row.world-cup-card strong,
+.competition-row[data-category="world-cup"] strong,
+.competition-row[data-competition-type="world-cup"] strong{
+  font-size:28px !important;
+  color:#f6d77d !important;
+}
+
+/* Keep normal competition cards blue */
+body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
+  border-color:rgba(79,156,255,.34) !important;
+  transform:translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width:900px){
+  .competition-list{
+    grid-template-columns:1fr !important;
+  }
+  .competition-row.world-cup-card,
+  .competition-row[data-category="world-cup"],
+  .competition-row[data-competition-type="world-cup"]{
+    grid-column:auto !important;
+  }
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -4557,7 +5158,7 @@
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V51 · Save Manager.</p>
+          <p id="saveStatus">V52 TEST · UI Preview.</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
