@@ -5177,6 +5177,115 @@ body.world-cup-theme .knockout-vs{
   color:#f6c453 !important;
 }
 
+
+
+/* =========================================================
+   V52.2 — World Cup takeover fixes
+   ========================================================= */
+
+/* When the World Cup is active, the LEFT SIDEBAR must also switch
+   from the normal blue FUS theme to the World Cup gold/black theme. */
+body.world-cup-theme .app-nav{
+  background:
+    radial-gradient(circle at 50% 0%, rgba(246,196,83,.14), transparent 30%),
+    linear-gradient(180deg, rgba(38,27,8,.99), rgba(13,9,3,.99)) !important;
+  border-color:rgba(246,196,83,.30) !important;
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.32),
+    inset 0 0 0 1px rgba(246,196,83,.04) !important;
+}
+
+body.world-cup-theme .sidebar-fus-brand{
+  border-bottom-color:rgba(246,196,83,.18) !important;
+}
+
+body.world-cup-theme .app-nav .tab{
+  color:#cdbb91 !important;
+}
+
+body.world-cup-theme .app-nav .tab:hover{
+  color:#fff5d8 !important;
+  background:rgba(246,196,83,.08) !important;
+  border-color:rgba(246,196,83,.13) !important;
+}
+
+body.world-cup-theme .app-nav .tab.active{
+  color:#201503 !important;
+  background:linear-gradient(180deg,#ffe08b,#e8b73f) !important;
+  border-color:rgba(255,234,170,.48) !important;
+  box-shadow:
+    0 8px 20px rgba(246,196,83,.20),
+    inset 3px 0 0 #fff4c8 !important;
+}
+
+/* Active World Cup = true two-column hero.
+   It should occupy the same horizontal space as TWO normal competition cards. */
+.competition-list > .competition-row.world-cup-featured{
+  grid-column:1 / -1 !important;
+  width:100% !important;
+  min-height:250px !important;
+  padding:28px 30px !important;
+  grid-template-columns:110px minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:24px !important;
+  border-radius:18px !important;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(246,196,83,.28),transparent 28%),
+    radial-gradient(circle at 18% 88%,rgba(246,196,83,.08),transparent 28%),
+    linear-gradient(135deg,rgba(93,62,10,.98),rgba(30,19,4,.99)) !important;
+  border-color:rgba(246,196,83,.58) !important;
+  box-shadow:
+    0 22px 52px rgba(0,0,0,.34),
+    inset 0 0 0 1px rgba(255,224,135,.08),
+    0 0 32px rgba(246,196,83,.10) !important;
+}
+
+.competition-list > .competition-row.world-cup-featured::after{
+  right:3% !important;
+  bottom:-58px !important;
+  font-size:230px !important;
+  opacity:.075 !important;
+}
+
+.competition-list > .competition-row.world-cup-featured .competition-icon{
+  width:96px !important;
+  height:96px !important;
+  border-radius:24px !important;
+  font-size:50px !important;
+}
+
+.competition-list > .competition-row.world-cup-featured .world-cup-featured-title{
+  font-size:clamp(48px,6vw,76px) !important;
+}
+
+.competition-list > .competition-row.world-cup-featured .world-cup-featured-stage{
+  font-size:20px !important;
+}
+
+.competition-list > .competition-row.world-cup-featured .world-cup-featured-copy{
+  font-size:15px !important;
+}
+
+.competition-list > .competition-row.world-cup-featured .open-competition{
+  min-width:170px !important;
+  padding:13px 18px !important;
+  font-size:14px !important;
+}
+
+/* On smaller screens the World Cup still remains the dominant card,
+   but naturally collapses to a single-column layout. */
+@media (max-width:900px){
+  .competition-list > .competition-row.world-cup-featured{
+    grid-column:1 !important;
+    grid-template-columns:auto minmax(0,1fr) !important;
+    min-height:210px !important;
+  }
+  .competition-list > .competition-row.world-cup-featured .open-competition{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+  }
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
