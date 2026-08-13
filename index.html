@@ -5286,6 +5286,102 @@ body.world-cup-theme .app-nav .tab.active{
   }
 }
 
+
+
+/* =========================================================
+   V52.3 — Four Crown World Record
+   ========================================================= */
+.four-crown-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  border-color:rgba(246,196,83,.30) !important;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(246,196,83,.12),transparent 30%),
+    var(--panel) !important;
+}
+.four-crown-total{
+  min-width:68px;
+  height:68px;
+  display:grid;
+  place-items:center;
+  border-radius:18px;
+  color:var(--gold);
+  font-size:30px;
+  font-weight:950;
+  background:rgba(246,196,83,.10);
+  border:1px solid rgba(246,196,83,.24);
+}
+.four-crown-list{
+  display:grid;
+  gap:11px;
+}
+.four-crown-card{
+  display:grid;
+  grid-template-columns:42px minmax(220px,.8fr) minmax(0,1.5fr);
+  align-items:center;
+  gap:15px;
+  border-color:rgba(246,196,83,.20) !important;
+  background:
+    linear-gradient(90deg,rgba(246,196,83,.055),transparent 48%),
+    var(--panel) !important;
+}
+.four-crown-rank{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  color:var(--gold);
+  font-weight:950;
+  background:rgba(246,196,83,.10);
+  border:1px solid rgba(246,196,83,.20);
+}
+.four-crown-club{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.four-crown-club .logo{
+  width:54px;
+  height:54px;
+  flex:0 0 54px;
+}
+.four-crown-team-name{
+  font-size:18px;
+  font-weight:950;
+}
+.four-crown-trophies{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  justify-content:flex-end;
+}
+.four-crown-trophy{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:7px 9px;
+  border-radius:999px;
+  color:#f7e1a5;
+  font-size:12px;
+  font-weight:850;
+  background:rgba(246,196,83,.08);
+  border:1px solid rgba(246,196,83,.18);
+}
+@media(max-width:760px){
+  .four-crown-header{align-items:flex-start}
+  .four-crown-card{
+    grid-template-columns:38px minmax(0,1fr);
+  }
+  .four-crown-trophies{
+    grid-column:1/-1;
+    justify-content:flex-start;
+  }
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -12733,6 +12829,7 @@ function renderWorldCupQualification() {
       const stats = calculateWorldStats(world);
       const categories = [
         {key:"all", label:"🏆 Most Trophies"},
+        {key:"four-crown", label:"👑 Four Crown"},
         {key:"champions-league", label:"⭐ Champions League"},
         {key:"europa-league", label:"🟠 Europa League"},
         {key:"super-league", label:"🏆 Super League"},
@@ -12741,6 +12838,79 @@ function renderWorldCupQualification() {
         {key:"world-cup", label:"🌍 World Cup"},
         {key:"records", label:"📚 All-Time Records"}
       ];
+
+
+      // "Four Crown" = one club winning all four pillars in the SAME world season:
+      // 1) a League title
+      // 2) a Cup/Knockout title
+      // 3) Champions League OR Europa League
+      // 4) Super League
+      //
+      // This is calculated from permanent world history, so it also works for
+      // old saves and does not require new save-data fields.
+      const fourCrownBySeason = new Map();
+
+      world.history.forEach(h => {
+        if (!h?.championId || !h?.season) return;
+
+        const comp = world.competitions.find(c => c.id === h.competitionId);
+        const historyName = String(h.competitionName || comp?.name || "").toLowerCase();
+
+        const category = comp?.category || (
+          historyName.includes("world cup") ? "world-cup" :
+          historyName.includes("champions") ? "champions-league" :
+          historyName.includes("europa") ? "europa-league" :
+          historyName.includes("super league") ? "super-league" :
+          historyName.includes("cup") || historyName.includes("knockout") || historyName.includes("tournament") ? "cup" :
+          "league"
+        );
+
+        // World Cup does not count toward the Four Crown.
+        if (category === "world-cup") return;
+
+        const key = `${Number(h.season)}::${h.championId}`;
+        if (!fourCrownBySeason.has(key)) {
+          fourCrownBySeason.set(key, {
+            season: Number(h.season),
+            teamId: h.championId,
+            league: [],
+            cup: [],
+            europe: [],
+            superLeague: []
+          });
+        }
+
+        const entry = fourCrownBySeason.get(key);
+        const trophy = {
+          name: h.competitionName || comp?.name || "Competition",
+          category
+        };
+
+        if (category === "league") entry.league.push(trophy);
+        else if (category === "cup") entry.cup.push(trophy);
+        else if (category === "champions-league" || category === "europa-league") entry.europe.push(trophy);
+        else if (category === "super-league") entry.superLeague.push(trophy);
+      });
+
+      const fourCrownRecords = [...fourCrownBySeason.values()]
+        .filter(entry =>
+          entry.league.length &&
+          entry.cup.length &&
+          entry.europe.length &&
+          entry.superLeague.length
+        )
+        .map(entry => {
+          // Keep the four defining trophies first. If a club somehow won
+          // multiple qualifying trophies in one season, show those extras too.
+          entry.trophies = [
+            ...entry.league,
+            ...entry.cup,
+            ...entry.europe,
+            ...entry.superLeague
+          ];
+          return entry;
+        })
+        .sort((a,b) => b.season - a.season);
 
       $("tab-records").innerHTML = `
         <div class="tabs" id="recordTabs">
@@ -12751,6 +12921,69 @@ function renderWorldCupQualification() {
 
       function drawRecordCategory(key) {
         document.querySelectorAll("[data-record]").forEach(b => b.classList.toggle("active", b.dataset.record === key));
+
+        if (key === "four-crown") {
+          $("recordCategoryContent").innerHTML = `
+            <div class="card four-crown-header">
+              <div>
+                <div class="startup-kicker">👑 Ultimate Single-Season Domination</div>
+                <h2 style="margin:5px 0 6px">Four Crown</h2>
+                <p class="muted" style="margin:0">
+                  Awarded when one club wins a League, a Cup, Champions League or Europa League,
+                  and the Super League in the same season.
+                </p>
+              </div>
+              <div class="four-crown-total">${fourCrownRecords.length}</div>
+            </div>
+
+            <div class="four-crown-list" style="margin-top:14px">
+              ${fourCrownRecords.length ? fourCrownRecords.map((record,index) => {
+                const team = world.teams.find(t => t.id === record.teamId);
+                const uniqueTrophies = [];
+                const seenNames = new Set();
+                record.trophies.forEach(trophy => {
+                  const trophyKey = String(trophy.name || "").toLowerCase();
+                  if (seenNames.has(trophyKey)) return;
+                  seenNames.add(trophyKey);
+                  uniqueTrophies.push(trophy);
+                });
+
+                return `
+                  <article class="card four-crown-card">
+                    <div class="four-crown-rank">${index + 1}</div>
+                    <div class="four-crown-club">
+                      ${team ? teamLogo(team) : `<div class="logo">?</div>`}
+                      <div>
+                        <div class="four-crown-team-name">${escapeHtml(team?.name || "Unknown Club")}</div>
+                        <div class="muted">Season ${record.season}</div>
+                      </div>
+                    </div>
+                    <div class="four-crown-trophies">
+                      ${uniqueTrophies.map(trophy => {
+                        const icon =
+                          trophy.category === "league" ? "🥇" :
+                          trophy.category === "cup" ? "🏅" :
+                          trophy.category === "champions-league" ? "⭐" :
+                          trophy.category === "europa-league" ? "🟠" :
+                          trophy.category === "super-league" ? "🏆" : "🏆";
+                        return `<span class="four-crown-trophy">${icon} ${escapeHtml(trophy.name)}</span>`;
+                      }).join("")}
+                    </div>
+                  </article>
+                `;
+              }).join("") : `
+                <div class="card" style="text-align:center;padding:34px">
+                  <div style="font-size:44px;margin-bottom:10px">👑</div>
+                  <h3 style="margin-bottom:6px">No Four Crown Yet</h3>
+                  <p class="muted" style="margin:0">
+                    No club has won all four required trophies in a single season yet.
+                  </p>
+                </div>
+              `}
+            </div>
+          `;
+          return;
+        }
 
         if (key === "records") {
           const recordCards = [
