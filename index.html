@@ -5385,61 +5385,114 @@ body.world-cup-theme .app-nav .tab.active{
 
 
 /* =========================================================
-   V52.4 — competition-card champion logos
+   V52.5 — competition-card champion logos + World Cup stars
    ========================================================= */
 
-/* Leave room in finished cards for the champion crest on the right. */
+/* Leave room on finished competition cards for the champion crest. */
 .competition-row{
   position:relative !important;
 }
 .competition-row:has(.competition-card-winner){
-  padding-right:126px !important;
+  padding-right:138px !important;
 }
 
-/* Current-season winner badge. It disappears automatically on the next
-   regular season because regular competition championId is reset. */
+/* Winner identity block mirrors the rest of the game's club-logo language:
+   permanent World Cup stars above the crest, crest centered below. */
 .competition-card-winner{
   position:absolute;
-  top:20px;
+  top:13px;
   right:22px;
-  width:86px;
-  height:86px;
+  width:102px;
+  min-height:105px;
   z-index:3;
+  display:grid;
+  grid-template-rows:20px 78px auto;
+  justify-items:center;
+  align-items:center;
+  overflow:visible;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.28));
+}
+
+.competition-card-winner-stars{
+  min-height:20px;
+  width:max-content;
+  max-width:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  white-space:nowrap;
+  overflow:visible;
+  line-height:1;
+}
+
+.competition-card-winner-stars .world-cup-star{
+  font-size:22px !important;
+  line-height:1;
+  flex:0 0 auto;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.38)) !important;
+}
+
+.competition-card-winner-logo{
+  width:78px;
+  height:78px;
   display:grid;
   place-items:center;
   overflow:hidden;
-  border-radius:18px;
   background:transparent;
-  filter:drop-shadow(0 10px 16px rgba(0,0,0,.32));
 }
-.competition-card-winner img{
+
+.competition-card-winner-logo img{
   width:100%;
   height:100%;
   object-fit:contain;
   display:block;
 }
+
 .competition-card-winner-fallback{
   border-radius:50%;
   color:#fff;
   font-size:18px;
   font-weight:950;
   background:var(--winner-color,#31563e);
-  border:2px solid rgba(255,255,255,.25);
+  border:3px solid rgba(255,255,255,.30);
 }
 
-/* The World Cup hero keeps the latest World Cup champion visible until
-   somebody else wins the next World Cup. */
+.competition-card-your-club{
+  margin-top:3px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#f5c842;
+  color:#1b1203;
+  border:1px solid rgba(255,232,145,.75);
+  font-size:9px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.11em;
+  white-space:nowrap;
+}
+
+/* Active World Cup hero: same champion treatment, slightly larger.
+   The latest World Cup champion remains displayed until replaced. */
 .competition-row.world-cup-featured:has(.competition-card-winner){
-  padding-right:160px !important;
+  padding-right:178px !important;
 }
 .competition-row.world-cup-featured .competition-card-winner{
-  width:110px;
-  height:110px;
-  top:26px;
+  width:132px;
+  min-height:137px;
+  grid-template-rows:24px 100px auto;
+  top:20px;
   right:28px;
 }
+.competition-row.world-cup-featured .competition-card-winner-stars .world-cup-star{
+  font-size:25px !important;
+}
+.competition-row.world-cup-featured .competition-card-winner-logo{
+  width:100px;
+  height:100px;
+}
 
-/* Keep action buttons clear of the crest. */
+/* Keep action buttons clear of the champion crest. */
 .competition-row:has(.competition-card-winner) .competition-card-actions{
   padding-right:0 !important;
 }
@@ -5452,20 +5505,32 @@ body.world-cup-theme .app-nav .tab.active{
     position:relative;
     top:auto;
     right:auto;
-    width:68px;
-    height:68px;
-    grid-area:auto;
+    width:92px;
+    min-height:95px;
+    grid-template-rows:18px 68px auto;
     justify-self:end;
     margin-left:auto;
+  }
+  .competition-card-winner-stars .world-cup-star{
+    font-size:18px !important;
+  }
+  .competition-card-winner-logo{
+    width:68px;
+    height:68px;
   }
   .competition-row.world-cup-featured:has(.competition-card-winner){
     padding-right:24px !important;
   }
   .competition-row.world-cup-featured .competition-card-winner{
-    width:82px;
-    height:82px;
+    width:100px;
+    min-height:105px;
+    grid-template-rows:20px 76px auto;
     top:auto;
     right:auto;
+  }
+  .competition-row.world-cup-featured .competition-card-winner-logo{
+    width:76px;
+    height:76px;
   }
 }
 
@@ -9686,15 +9751,26 @@ body.world-cup-theme .app-nav .tab.active{
 
     function competitionCardWinnerLogo(team) {
       if (!team) return "";
-      if (team.logoData) {
-        return `<div class="competition-card-winner" title="${escapeHtml(team.name)} — Champion">
-          <img src="${team.logoData}" alt="${escapeHtml(team.name)} logo">
-        </div>`;
-      }
-      return `<div class="competition-card-winner competition-card-winner-fallback"
-        title="${escapeHtml(team.name)} — Champion"
-        style="--winner-color:${escapeHtml(team.color || "#31563e")}">
-        ${escapeHtml(team.shortName || initials(team.name))}
+
+      const wins = permanentWorldCupWinCount(team);
+      const stars = worldCupStars(team);
+      const controlled =
+        currentGameMode === "club-career" &&
+        team.id === currentCareerSave()?.controlledTeamId;
+
+      const logo = team.logoData
+        ? `<div class="competition-card-winner-logo"><img src="${team.logoData}" alt="${escapeHtml(team.name)} logo"></div>`
+        : `<div class="competition-card-winner-logo competition-card-winner-fallback"
+             style="--winner-color:${escapeHtml(team.color || "#31563e")}">
+             ${escapeHtml(team.shortName || initials(team.name))}
+           </div>`;
+
+      return `<div class="competition-card-winner" title="${escapeHtml(team.name)} — Champion">
+        <div class="competition-card-winner-stars" title="${wins} World Cup wins" aria-label="${wins} World Cup wins">
+          ${stars}
+        </div>
+        ${logo}
+        ${controlled ? `<span class="competition-card-your-club">YOUR CLUB</span>` : ""}
       </div>`;
     }
 
