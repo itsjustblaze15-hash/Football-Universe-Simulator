@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V52";
+  content:"V53";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V52" !important;
+  content:"V53" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -5289,6 +5289,7 @@ body.world-cup-theme .app-nav .tab.active{
 
 
 /* =========================================================
+   V53 — Champion logos on competition cards
    V52.3 — Four Crown World Record
    ========================================================= */
 .four-crown-header{
@@ -5384,156 +5385,39 @@ body.world-cup-theme .app-nav .tab.active{
 
 
 
-/* =========================================================
-   V52.5 — competition-card champion logos + World Cup stars
-   ========================================================= */
-
-/* Leave room on finished competition cards for the champion crest. */
-.competition-row{
-  position:relative !important;
-}
-.competition-row:has(.competition-card-winner){
-  padding-right:138px !important;
-}
-
-/* Winner identity block mirrors the rest of the game's club-logo language:
-   permanent World Cup stars above the crest, crest centered below. */
-.competition-card-winner{
-  position:absolute;
-  top:13px;
-  right:22px;
-  width:102px;
-  min-height:105px;
-  z-index:3;
-  display:grid;
-  grid-template-rows:20px 78px auto;
-  justify-items:center;
-  align-items:center;
-  overflow:visible;
-  filter:drop-shadow(0 10px 16px rgba(0,0,0,.28));
-}
-
-.competition-card-winner-stars{
-  min-height:20px;
-  width:max-content;
-  max-width:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:1px;
-  white-space:nowrap;
-  overflow:visible;
-  line-height:1;
-}
-
-.competition-card-winner-stars .world-cup-star{
-  font-size:22px !important;
-  line-height:1;
-  flex:0 0 auto;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.38)) !important;
-}
-
-.competition-card-winner-logo{
-  width:78px;
-  height:78px;
-  display:grid;
-  place-items:center;
-  overflow:hidden;
-  background:transparent;
-}
-
-.competition-card-winner-logo img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-}
-
-.competition-card-winner-fallback{
-  border-radius:50%;
-  color:#fff;
-  font-size:18px;
-  font-weight:950;
-  background:var(--winner-color,#31563e);
-  border:3px solid rgba(255,255,255,.30);
-}
-
-.competition-card-your-club{
-  margin-top:3px;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#f5c842;
-  color:#1b1203;
-  border:1px solid rgba(255,232,145,.75);
-  font-size:9px;
-  line-height:1;
-  font-weight:950;
-  letter-spacing:.11em;
-  white-space:nowrap;
-}
-
-/* Active World Cup hero: same champion treatment, slightly larger.
-   The latest World Cup champion remains displayed until replaced. */
-.competition-row.world-cup-featured:has(.competition-card-winner){
-  padding-right:178px !important;
-}
-.competition-row.world-cup-featured .competition-card-winner{
-  width:132px;
-  min-height:137px;
-  grid-template-rows:24px 100px auto;
-  top:20px;
-  right:28px;
-}
-.competition-row.world-cup-featured .competition-card-winner-stars .world-cup-star{
-  font-size:25px !important;
-}
-.competition-row.world-cup-featured .competition-card-winner-logo{
-  width:100px;
-  height:100px;
-}
-
-/* Keep action buttons clear of the champion crest. */
-.competition-row:has(.competition-card-winner) .competition-card-actions{
-  padding-right:0 !important;
-}
-
-@media(max-width:900px){
-  .competition-row:has(.competition-card-winner){
-    padding-right:18px !important;
-  }
-  .competition-card-winner{
-    position:relative;
-    top:auto;
-    right:auto;
-    width:92px;
-    min-height:95px;
-    grid-template-rows:18px 68px auto;
-    justify-self:end;
-    margin-left:auto;
-  }
-  .competition-card-winner-stars .world-cup-star{
-    font-size:18px !important;
-  }
-  .competition-card-winner-logo{
-    width:68px;
-    height:68px;
-  }
-  .competition-row.world-cup-featured:has(.competition-card-winner){
-    padding-right:24px !important;
-  }
-  .competition-row.world-cup-featured .competition-card-winner{
-    width:100px;
-    min-height:105px;
-    grid-template-rows:20px 76px auto;
-    top:auto;
-    right:auto;
-  }
-  .competition-row.world-cup-featured .competition-card-winner-logo{
-    width:76px;
-    height:76px;
-  }
-}
-
+    /* V53 — competition champion badges */
+    .competition-champion-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 6px 10px 6px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(246,196,83,.34);
+      background: rgba(246,196,83,.09);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      max-width: 100%;
+    }
+    .competition-champion-chip .logo {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      font-size: 9px;
+      border-width: 1px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.2);
+    }
+    .competition-champion-chip .logo-stack {
+      display: flex;
+      align-items: center;
+    }
+    .competition-champion-name {
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -5648,7 +5532,7 @@ body.world-cup-theme .app-nav .tab.active{
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V52</p>
+          <p id="saveStatus">V53</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -9722,56 +9606,35 @@ body.world-cup-theme .app-nav .tab.active{
     function openExportCompetitionsDialog(){const comps=editableExportCompetitions();$("exportCompetitionPicker").innerHTML=comps.map(comp=>`<label class="check"><input type="checkbox" class="export-competition-check" value="${comp.id}"><span><strong>${escapeHtml(comp.name)}</strong><small class="muted" style="display:block">${escapeHtml(competitionVisual(comp).label)}</small></span></label>`).join("")||`<div class="notice">No editable competitions can be exported.</div>`;$("exportCompetitionsDialog").showModal();}
     function exportSelectedCompetitions(){const ids=new Set([...document.querySelectorAll(".export-competition-check:checked")].map(box=>box.value));const competitions=editableExportCompetitions().filter(comp=>ids.has(comp.id)).map(competitionTemplateForExport);if(!competitions.length)return showToast("Select at least one competition to export.",true);downloadPortableJson({exportType:"football-universe-competitions",exportVersion:PORTABLE_EXPORT_VERSION,createdAt:new Date().toISOString(),competitions},"football-universe-competitions.json");$("exportCompetitionsDialog").close();showToast(`${competitions.length} competition template${competitions.length===1?"":"s"} exported`);}
 
-
-    function competitionCardWinnerId(comp, world) {
+    function competitionCardChampion(comp, world = currentWorld()) {
       if (!comp || !world) return null;
 
-      // Regular competitions only show the champion for the season that has
-      // actually finished. resetCompetitionForGlobalSeason clears championId,
-      // so the badge naturally disappears when the next season begins.
       if (!isWorldCupCompetition(comp)) {
-        return comp.finished && comp.championId ? comp.championId : null;
+        if (!comp.finished || !comp.championId) return null;
+        const team = teamById(comp.championId);
+        return team ? { team, name: team.name } : null;
       }
 
-      // The World Cup champion is different: keep the most recent champion
-      // visible through every intervening season until a new World Cup winner
-      // is crowned.
-      const latestWorldCupWinner = [...(world.history || [])]
-        .filter(entry =>
-          entry?.championId &&
-          (
-            isWorldCupCompetition(world.competitions.find(c => c.id === entry.competitionId)) ||
-            /^World Cup/i.test(entry.competitionName || "")
-          )
-        )
-        .sort((a,b) => Number(b.season || 0) - Number(a.season || 0))[0];
+      // The World Cup title holder persists between tournaments. A newly completed
+      // World Cup immediately replaces the previous holder; otherwise use history.
+      if (comp.finished && comp.championId) {
+        const team = teamById(comp.championId);
+        if (team) return { team, name: team.name };
+      }
 
-      return comp.championId || latestWorldCupWinner?.championId || null;
+      const latest = (world.history || [])
+        .filter(entry => entry.competitionId === comp.id || /^World Cup/i.test(entry.competitionName || ""))
+        .slice()
+        .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0) || Number(b.season || 0) - Number(a.season || 0))[0];
+      if (!latest?.championId) return null;
+      const team = teamById(latest.championId);
+      return team ? { team, name: latest.championName || team.name } : null;
     }
 
-    function competitionCardWinnerLogo(team) {
-      if (!team) return "";
-
-      const wins = permanentWorldCupWinCount(team);
-      const stars = worldCupStars(team);
-      const controlled =
-        currentGameMode === "club-career" &&
-        team.id === currentCareerSave()?.controlledTeamId;
-
-      const logo = team.logoData
-        ? `<div class="competition-card-winner-logo"><img src="${team.logoData}" alt="${escapeHtml(team.name)} logo"></div>`
-        : `<div class="competition-card-winner-logo competition-card-winner-fallback"
-             style="--winner-color:${escapeHtml(team.color || "#31563e")}">
-             ${escapeHtml(team.shortName || initials(team.name))}
-           </div>`;
-
-      return `<div class="competition-card-winner" title="${escapeHtml(team.name)} — Champion">
-        <div class="competition-card-winner-stars" title="${wins} World Cup wins" aria-label="${wins} World Cup wins">
-          ${stars}
-        </div>
-        ${logo}
-        ${controlled ? `<span class="competition-card-your-club">YOUR CLUB</span>` : ""}
-      </div>`;
+    function competitionChampionChipHtml(comp, world = currentWorld()) {
+      const holder = competitionCardChampion(comp, world);
+      if (!holder) return "";
+      return `<div class="competition-champion-chip" title="Champion: ${escapeHtml(holder.name)}">${teamLogo(holder.team)}<span>🏆 Champion</span><span class="competition-champion-name">${escapeHtml(holder.name)}</span></div>`;
     }
 
     function renderCompetitions() {
@@ -9824,8 +9687,6 @@ body.world-cup-theme .app-nav .tab.active{
             const isWorldCup = comp.isWorldCup || comp.category === "world-cup";
             const isActiveWorldCup = worldCupComp && comp.id === worldCupComp.id;
             const lockedByWorldCup = worldCupActive && !isActiveWorldCup;
-            const cardWinnerId = competitionCardWinnerId(comp, world);
-            const cardWinner = cardWinnerId ? world.teams.find(team => team.id === cardWinnerId) : null;
             const currentStage = comp.finished
               ? "Tournament Complete"
               : (comp.stages?.[comp.currentStageIndex] || "League");
@@ -9838,8 +9699,8 @@ body.world-cup-theme .app-nav .tab.active{
                     <div class="world-cup-featured-title">WORLD CUP</div>
                     <div class="world-cup-featured-stage">${escapeHtml(currentStage)}</div>
                     <div class="world-cup-featured-copy">The biggest tournament in your universe is active.</div>
+                    ${competitionChampionChipHtml(comp, world)}
                   </div>
-                  ${cardWinner ? competitionCardWinnerLogo(cardWinner) : ""}
                   <button class="btn open-competition" data-id="${comp.id}">Open World Cup</button>
                 </article>`;
             }
@@ -9855,8 +9716,8 @@ body.world-cup-theme .app-nav .tab.active{
                       ? `<span class="badge locked-world-cup-badge">Locked during World Cup</span>`
                       : `<span class="badge ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : `⏳ ${escapeHtml(competitionWaitingMessage(world,comp))}`}</span>`}
                   </div>
+                  ${competitionChampionChipHtml(comp, world)}
                 </div>
-                ${cardWinner ? competitionCardWinnerLogo(cardWinner) : ""}
                 <div class="actions competition-card-actions">
                   <button class="btn secondary open-competition" data-id="${comp.id}" ${lockedByWorldCup ? "disabled" : ""}>${lockedByWorldCup ? "Locked" : "Open"}</button>
                   ${!isWorldCup && comp.editable !== false ? `<button class="btn secondary edit-competition" data-id="${comp.id}" ${lockedByWorldCup ? "disabled" : ""}>Edit</button>` : ""}
