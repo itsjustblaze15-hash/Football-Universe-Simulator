@@ -5382,6 +5382,93 @@ body.world-cup-theme .app-nav .tab.active{
   }
 }
 
+
+
+/* =========================================================
+   V52.4 — competition-card champion logos
+   ========================================================= */
+
+/* Leave room in finished cards for the champion crest on the right. */
+.competition-row{
+  position:relative !important;
+}
+.competition-row:has(.competition-card-winner){
+  padding-right:126px !important;
+}
+
+/* Current-season winner badge. It disappears automatically on the next
+   regular season because regular competition championId is reset. */
+.competition-card-winner{
+  position:absolute;
+  top:20px;
+  right:22px;
+  width:86px;
+  height:86px;
+  z-index:3;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:18px;
+  background:transparent;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.32));
+}
+.competition-card-winner img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.competition-card-winner-fallback{
+  border-radius:50%;
+  color:#fff;
+  font-size:18px;
+  font-weight:950;
+  background:var(--winner-color,#31563e);
+  border:2px solid rgba(255,255,255,.25);
+}
+
+/* The World Cup hero keeps the latest World Cup champion visible until
+   somebody else wins the next World Cup. */
+.competition-row.world-cup-featured:has(.competition-card-winner){
+  padding-right:160px !important;
+}
+.competition-row.world-cup-featured .competition-card-winner{
+  width:110px;
+  height:110px;
+  top:26px;
+  right:28px;
+}
+
+/* Keep action buttons clear of the crest. */
+.competition-row:has(.competition-card-winner) .competition-card-actions{
+  padding-right:0 !important;
+}
+
+@media(max-width:900px){
+  .competition-row:has(.competition-card-winner){
+    padding-right:18px !important;
+  }
+  .competition-card-winner{
+    position:relative;
+    top:auto;
+    right:auto;
+    width:68px;
+    height:68px;
+    grid-area:auto;
+    justify-self:end;
+    margin-left:auto;
+  }
+  .competition-row.world-cup-featured:has(.competition-card-winner){
+    padding-right:24px !important;
+  }
+  .competition-row.world-cup-featured .competition-card-winner{
+    width:82px;
+    height:82px;
+    top:auto;
+    right:auto;
+  }
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -9570,6 +9657,47 @@ body.world-cup-theme .app-nav .tab.active{
     function openExportCompetitionsDialog(){const comps=editableExportCompetitions();$("exportCompetitionPicker").innerHTML=comps.map(comp=>`<label class="check"><input type="checkbox" class="export-competition-check" value="${comp.id}"><span><strong>${escapeHtml(comp.name)}</strong><small class="muted" style="display:block">${escapeHtml(competitionVisual(comp).label)}</small></span></label>`).join("")||`<div class="notice">No editable competitions can be exported.</div>`;$("exportCompetitionsDialog").showModal();}
     function exportSelectedCompetitions(){const ids=new Set([...document.querySelectorAll(".export-competition-check:checked")].map(box=>box.value));const competitions=editableExportCompetitions().filter(comp=>ids.has(comp.id)).map(competitionTemplateForExport);if(!competitions.length)return showToast("Select at least one competition to export.",true);downloadPortableJson({exportType:"football-universe-competitions",exportVersion:PORTABLE_EXPORT_VERSION,createdAt:new Date().toISOString(),competitions},"football-universe-competitions.json");$("exportCompetitionsDialog").close();showToast(`${competitions.length} competition template${competitions.length===1?"":"s"} exported`);}
 
+
+    function competitionCardWinnerId(comp, world) {
+      if (!comp || !world) return null;
+
+      // Regular competitions only show the champion for the season that has
+      // actually finished. resetCompetitionForGlobalSeason clears championId,
+      // so the badge naturally disappears when the next season begins.
+      if (!isWorldCupCompetition(comp)) {
+        return comp.finished && comp.championId ? comp.championId : null;
+      }
+
+      // The World Cup champion is different: keep the most recent champion
+      // visible through every intervening season until a new World Cup winner
+      // is crowned.
+      const latestWorldCupWinner = [...(world.history || [])]
+        .filter(entry =>
+          entry?.championId &&
+          (
+            isWorldCupCompetition(world.competitions.find(c => c.id === entry.competitionId)) ||
+            /^World Cup/i.test(entry.competitionName || "")
+          )
+        )
+        .sort((a,b) => Number(b.season || 0) - Number(a.season || 0))[0];
+
+      return comp.championId || latestWorldCupWinner?.championId || null;
+    }
+
+    function competitionCardWinnerLogo(team) {
+      if (!team) return "";
+      if (team.logoData) {
+        return `<div class="competition-card-winner" title="${escapeHtml(team.name)} — Champion">
+          <img src="${team.logoData}" alt="${escapeHtml(team.name)} logo">
+        </div>`;
+      }
+      return `<div class="competition-card-winner competition-card-winner-fallback"
+        title="${escapeHtml(team.name)} — Champion"
+        style="--winner-color:${escapeHtml(team.color || "#31563e")}">
+        ${escapeHtml(team.shortName || initials(team.name))}
+      </div>`;
+    }
+
     function renderCompetitions() {
       const world = currentWorld();
       restoreCompetitionCardsFromHistory(world);
@@ -9620,6 +9748,8 @@ body.world-cup-theme .app-nav .tab.active{
             const isWorldCup = comp.isWorldCup || comp.category === "world-cup";
             const isActiveWorldCup = worldCupComp && comp.id === worldCupComp.id;
             const lockedByWorldCup = worldCupActive && !isActiveWorldCup;
+            const cardWinnerId = competitionCardWinnerId(comp, world);
+            const cardWinner = cardWinnerId ? world.teams.find(team => team.id === cardWinnerId) : null;
             const currentStage = comp.finished
               ? "Tournament Complete"
               : (comp.stages?.[comp.currentStageIndex] || "League");
@@ -9633,6 +9763,7 @@ body.world-cup-theme .app-nav .tab.active{
                     <div class="world-cup-featured-stage">${escapeHtml(currentStage)}</div>
                     <div class="world-cup-featured-copy">The biggest tournament in your universe is active.</div>
                   </div>
+                  ${cardWinner ? competitionCardWinnerLogo(cardWinner) : ""}
                   <button class="btn open-competition" data-id="${comp.id}">Open World Cup</button>
                 </article>`;
             }
@@ -9649,6 +9780,7 @@ body.world-cup-theme .app-nav .tab.active{
                       : `<span class="badge ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : `⏳ ${escapeHtml(competitionWaitingMessage(world,comp))}`}</span>`}
                   </div>
                 </div>
+                ${cardWinner ? competitionCardWinnerLogo(cardWinner) : ""}
                 <div class="actions competition-card-actions">
                   <button class="btn secondary open-competition" data-id="${comp.id}" ${lockedByWorldCup ? "disabled" : ""}>${lockedByWorldCup ? "Locked" : "Open"}</button>
                   ${!isWorldCup && comp.editable !== false ? `<button class="btn secondary edit-competition" data-id="${comp.id}" ${lockedByWorldCup ? "disabled" : ""}>Edit</button>` : ""}
