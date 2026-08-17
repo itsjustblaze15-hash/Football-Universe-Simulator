@@ -5601,6 +5601,90 @@ body.world-cup-theme .app-nav .tab.active{
   font-size:14px !important;
   line-height:1 !important;
 }
+
+/* V53.5 — World Cup champion display matches normal competition cards, just larger */
+.competition-row.world-cup-featured .competition-champion-chip{
+  position:absolute !important;
+  right:34px !important;
+  top:50% !important;
+  transform:translateY(-50%) !important;
+  width:118px !important;
+  height:118px !important;
+  min-width:118px !important;
+  min-height:118px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border-radius:50% !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:visible !important;
+  background:rgba(246,196,83,.10) !important;
+  border:2px solid rgba(246,196,83,.48) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.28) !important;
+  z-index:6 !important;
+}
+
+/* Remove Champion text/name inside the World Cup marker.
+   The card should visually match the other competition winner markers. */
+.competition-row.world-cup-featured .competition-champion-chip > span{
+  display:none !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .logo-stack{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:visible !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .logo{
+  width:88px !important;
+  height:88px !important;
+  flex:0 0 88px !important;
+  border-width:3px !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.32) !important;
+}
+
+/* Stars stay centered above the World Cup champion crest. */
+.competition-row.world-cup-featured .competition-champion-chip .world-cup-star-row{
+  position:absolute !important;
+  left:50% !important;
+  top:-30px !important;
+  transform:translateX(-50%) !important;
+  width:max-content !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:3px !important;
+  margin:0 !important;
+  z-index:8 !important;
+  pointer-events:none !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .world-cup-star{
+  font-size:14px !important;
+  line-height:1 !important;
+}
+
+/* Make room for the larger right-side champion circle. */
+.competition-row.world-cup-featured:has(.competition-champion-chip){
+  padding-right:185px !important;
+}
+
+@media(max-width:900px){
+  .competition-row.world-cup-featured .competition-champion-chip{
+    position:relative !important;
+    right:auto !important;
+    top:auto !important;
+    transform:none !important;
+    margin-top:14px !important;
+  }
+
+  .competition-row.world-cup-featured:has(.competition-champion-chip){
+    padding-right:24px !important;
+  }
+}
 </style>
 </head>
 <body>
