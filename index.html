@@ -5444,6 +5444,99 @@ body.world-cup-theme .app-nav .tab.active{
   .career-mode [data-tab="news-history"]{display:none!important}
   .career-mode #tab-news-history{display:none!important}
   @media(max-width:760px){.app{padding:14px}.topbar{padding:16px}.starter-choice{grid-template-columns:1fr}.qualification-rule{grid-template-columns:1fr}.fus-header-logo{width:72px}.v51-main-actions .btn{width:100%}}
+
+
+/* V53.1 — cleaner completed-competition champion marker */
+.competition-row:not(.world-cup-featured){
+  position:relative;
+}
+
+/* Champion becomes a clean circular badge on the empty right side. */
+.competition-row:not(.world-cup-featured) .competition-champion-chip{
+  position:absolute;
+  right:18px;
+  top:50%;
+  transform:translateY(-50%);
+  width:76px;
+  height:76px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  overflow:visible;
+  background:rgba(246,196,83,.10);
+  border:2px solid rgba(246,196,83,.48);
+  box-shadow:0 10px 28px rgba(0,0,0,.26);
+  z-index:4;
+}
+
+/* Keep only the actual club crest inside the champion circle. */
+.competition-row:not(.world-cup-featured) .competition-champion-chip > span{
+  display:none !important;
+}
+
+.competition-row:not(.world-cup-featured) .competition-champion-chip .logo-stack{
+  position:relative;
+  display:grid;
+  place-items:center;
+  min-width:0 !important;
+  overflow:visible !important;
+}
+
+.competition-row:not(.world-cup-featured) .competition-champion-chip .logo{
+  width:58px !important;
+  height:58px !important;
+  flex:0 0 58px !important;
+  border-width:2px !important;
+  box-shadow:0 6px 16px rgba(0,0,0,.30) !important;
+}
+
+/* World Cup stars sit BESIDE the crest here, never on top of it. */
+.competition-row:not(.world-cup-featured) .competition-champion-chip .world-cup-star-row{
+  position:absolute !important;
+  left:64px;
+  top:50%;
+  transform:translateY(-50%);
+  width:max-content !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  display:flex !important;
+  flex-direction:column;
+  gap:1px;
+  z-index:6;
+}
+
+.competition-row:not(.world-cup-featured) .competition-champion-chip .world-cup-star{
+  font-size:11px !important;
+}
+
+/* Leave room so actions never collide with the champion circle. */
+.competition-row:not(.world-cup-featured):has(.competition-champion-chip){
+  padding-right:112px !important;
+}
+
+.competition-row:not(.world-cup-featured):has(.competition-champion-chip) .competition-card-actions{
+  margin-right:76px;
+}
+
+@media(max-width:900px){
+  .competition-row:not(.world-cup-featured) .competition-champion-chip{
+    position:relative;
+    right:auto;
+    top:auto;
+    transform:none;
+    margin-top:10px;
+  }
+  .competition-row:not(.world-cup-featured):has(.competition-champion-chip){
+    padding-right:13px !important;
+  }
+  .competition-row:not(.world-cup-featured):has(.competition-champion-chip) .competition-card-actions{
+    margin-right:0;
+  }
+}
+
 </style>
 </head>
 <body>
