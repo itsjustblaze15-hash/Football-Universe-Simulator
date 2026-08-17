@@ -5537,6 +5537,32 @@ body.world-cup-theme .app-nav .tab.active{
   }
 }
 
+
+/* V53.2 — World Cup stars centered above club crest */
+.competition-row:not(.world-cup-featured) .competition-champion-chip .world-cup-star-row{
+  position:absolute !important;
+  left:50% !important;
+  top:-18px !important;
+  transform:translateX(-50%) !important;
+  width:max-content !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:2px !important;
+  margin:0 !important;
+  z-index:8 !important;
+  pointer-events:none !important;
+}
+.competition-row:not(.world-cup-featured) .competition-champion-chip .world-cup-star{
+  font-size:11px !important;
+  line-height:1 !important;
+}
+
+/* V53.3 — raise World Cup stars slightly */
+.competition-row:not(.world-cup-featured) .competition-champion-chip .world-cup-star-row{
+  top:-25px !important;
+}
 </style>
 </head>
 <body>
