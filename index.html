@@ -5563,6 +5563,44 @@ body.world-cup-theme .app-nav .tab.active{
 .competition-row:not(.world-cup-featured) .competition-champion-chip .world-cup-star-row{
   top:-25px !important;
 }
+
+/* V53.4 — larger World Cup champion crest + stars above */
+.competition-row.world-cup-featured .competition-champion-chip{
+  min-width:112px !important;
+  min-height:112px !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .logo{
+  width:82px !important;
+  height:82px !important;
+  flex:0 0 82px !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .logo-stack{
+  position:relative !important;
+  overflow:visible !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .world-cup-star-row{
+  position:absolute !important;
+  left:50% !important;
+  top:-28px !important;
+  transform:translateX(-50%) !important;
+  width:max-content !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:3px !important;
+  margin:0 !important;
+  z-index:8 !important;
+  pointer-events:none !important;
+}
+
+.competition-row.world-cup-featured .competition-champion-chip .world-cup-star{
+  font-size:14px !important;
+  line-height:1 !important;
+}
 </style>
 </head>
 <body>
