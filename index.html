@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.8";
+  content:"V60.9";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.8" !important;
+  content:"V60.9" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -6835,7 +6835,7 @@ body.manager-mode{--manager-money:#86efac}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.8</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.9</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -6904,7 +6904,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.8</p>
+          <p id="saveStatus">V60.9</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -9116,7 +9116,7 @@ body.manager-mode{--manager-money:#86efac}
     // OVR, potential, value, wages, contracts and release clauses remain FUS gameplay values.
     const REAL_MANAGER_ROSTER_SNAPSHOT="2026-08-18";
 
-    const FC27_RATING_DATA_VERSION="2026-08-18-top27";
+    const FC27_RATING_DATA_VERSION="2026-08-18-top27-existing-save-fix-v2";
     const FC27_OFFICIAL_OVR={"Kylian Mbappé":91,"Erling Haaland":91,"Harry Kane":90,"Jude Bellingham":90,"Michael Olise":90,"Rodri":90,"Lamine Yamal":90,"Ousmane Dembélé":90,"Thibaut Courtois":90,"Pedri":90,"Vitinha":90,"Gabriel Magalhães":89,"Bruno Fernandes":89,"Gianluigi Donnarumma":89,"Khvicha Kvaratskhelia":89,"Nuno Mendes":89,"Willian Pacho":89,"Lionel Messi":89,"Vinícius Júnior":89,"Declan Rice":88,"William Saliba":88,"Virgil van Dijk":88,"Jan Oblak":88,"Achraf Hakimi":88,"João Neves":88,"Joshua Kimmich":88,"Luis Díaz":88};
     const FC26_REFERENCE_OVR={"Federico Valverde":89,"Raphinha":89,"Alisson":89,"Florian Wirtz":89,"Bukayo Saka":88,"Frenkie de Jong":87,"Cole Palmer":87,"Moisés Caicedo":87,"Nico Williams":86,"Unai Simón":85,"Sancet":84,"Vivian":84,"Iñaki Williams":83,"Álex Remiro":83,"Oyarzabal":82,"Takefusa Kubo":82,"Yangel Herrera":81,"Ayoze":83,"Thomas Partey":83,"Parejo":82,"Gerard Moreno":81,"Moleiro":79,"Tajon Buchanan":74};
 
@@ -9204,6 +9204,68 @@ body.manager-mode{--manager-money:#86efac}
       player.wage=managerExpectedWage(player);
       player.releaseClause=managerReleaseClause(player);
       return player;
+    }
+
+
+    function managerSyncKnownFcRatings(career,notify=true){
+      if(!isManagerMode(career))return {updated:0};
+
+      let updated=0;
+      const applyKnownRating=(player)=>{
+        if(!player?.realPlayer)return;
+
+        let target=null;
+        let source=null;
+
+        if(Number.isFinite(Number(FC27_OFFICIAL_OVR[player.name]))){
+          target=Number(FC27_OFFICIAL_OVR[player.name]);
+          source="FC27 Official";
+        }else if(Number.isFinite(Number(FC26_REFERENCE_OVR[player.name]))){
+          target=Number(FC26_REFERENCE_OVR[player.name]);
+          source="FC26 Official";
+        }
+
+        // Do not overwrite unrevealed players in an established save.
+        if(target===null)return;
+
+        const oldOverall=Number(player.overall||0);
+        if(oldOverall!==target || player.ratingSource!==source){
+          player.overall=target;
+          player.potential=clamp(
+            Math.max(target,Number(player.potential||target)),
+            target,
+            97
+          );
+          player.marketValue=managerPlayerValue(player);
+
+          // Preserve the user's existing contract, wage, release clause,
+          // morale, stats, club, transfer history and squad position.
+          player.ratingSource=source;
+          player.fcRatingDataVersion=FC27_RATING_DATA_VERSION;
+          updated++;
+        }
+      };
+
+      (career.teams||[]).forEach(team=>{
+        (team.managerSquad||[]).forEach(applyKnownRating);
+        managerRecalculateTeam(team);
+      });
+
+      (career.manager?.freeAgents||[]).forEach(applyKnownRating);
+
+      career.manager.ratingDataVersion=FC27_RATING_DATA_VERSION;
+      managerUpdateWageBills(career);
+
+      if(notify && updated>0){
+        managerNotify(
+          career,
+          'FC Ratings Synced',
+          `${updated} known EA player ratings were corrected in your EXISTING Manager save. Your transfers, money, contracts, season, trophies and squad setup were not reset.`,
+          'squad'
+        );
+      }
+
+      return {updated};
     }
 
     function managerBuildInitialSquad(team){
@@ -9629,24 +9691,15 @@ body.manager-mode{--manager-money:#86efac}
       career.manager.formation=career.manager.formation||'4-2-3-1';
       career.manager.formationAssignments=career.manager.formationAssignments||{};
       const shouldApplyFcRatings=
-        career.manager.ratingDataVersion!==FC27_RATING_DATA_VERSION &&
-        Number(career.worldSeason||1)===1;
+        career.manager.ratingDataVersion!==FC27_RATING_DATA_VERSION;
 
       if(shouldApplyFcRatings){
-        (career.teams||[]).forEach(team=>{
-          (team.managerSquad||[]).forEach((player,index)=>{
-            if(!player.realPlayer)return;
-            managerApplyRealPlayerRating(player,team,index);
-          });
-          managerRecalculateTeam(team);
-        });
-        career.manager.ratingDataVersion=FC27_RATING_DATA_VERSION;
-        managerNotify(
-          career,
-          'Player Ratings Updated',
-          'Officially revealed FC 27 ratings have been applied exactly. Other real players now use stable non-random FC-style ratings until EA publishes the rest of the FC 27 database.',
-          'squad'
-        );
+        const syncResult=managerSyncKnownFcRatings(career,true);
+
+        // Persist immediately so reopening the browser does not revert the fix.
+        if(syncResult.updated>0 || career.manager.ratingDataVersion===FC27_RATING_DATA_VERSION){
+          persistDataSilently();
+        }
       }
 
 
@@ -10480,6 +10533,7 @@ body.manager-mode{--manager-money:#86efac}
                 <select id="managerFormationSelect" class="manager-formation-select" aria-label="Formation">
                   ${Object.keys(managerFormationDefinitions()).map(name=>`<option value="${name}" ${name===formation?"selected":""}>${name}</option>`).join("")}
                 </select>
+                <button class="btn secondary small" id="managerSyncRatingsBtn">🔄 Sync FC Ratings</button>
                 <button class="btn secondary small" id="managerBestXiBtn">✨ Pick Best XI</button>
               </div>
             </div>
@@ -10605,6 +10659,17 @@ body.manager-mode{--manager-money:#86efac}
         managerEnsureFormationAssignments(career,team,event.target.value);
         saveData(`Formation changed to ${event.target.value}`);
         renderManagerSquad();
+      });
+
+      $('managerSyncRatingsBtn')?.addEventListener('click',()=>{
+        const result=managerSyncKnownFcRatings(career,true);
+        persistDataSilently();
+        renderManagerSquad();
+        renderCareerDashboard();
+        renderTeams();
+        showToast(result.updated
+          ? `${result.updated} player rating${result.updated===1?"":"s"} synced`
+          : "FC ratings are already synced");
       });
 
       $('managerBestXiBtn')?.addEventListener('click',managerPickBestXI);
