@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.5";
+  content:"V60.6";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.5" !important;
+  content:"V60.6" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -6638,6 +6638,144 @@ body.manager-mode{--manager-money:#86efac}
   }
 }
 
+
+
+/* =========================================================
+   V60.6 — Important Manager Popups
+   ========================================================= */
+.manager-urgent-dialog{
+  width:min(650px,calc(100% - 26px));
+  max-width:650px;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(96,165,250,.32);
+  background:#07111f;
+}
+.manager-urgent-dialog::backdrop{
+  background:rgba(0,0,0,.80);
+  backdrop-filter:blur(7px);
+}
+.manager-urgent-shell{
+  min-height:390px;
+  padding:28px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(59,130,246,.20),transparent 34%),
+    radial-gradient(circle at 90% 95%,rgba(245,158,11,.08),transparent 30%),
+    #07111f;
+}
+.manager-urgent-shell.offer{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(34,197,94,.17),transparent 34%),
+    #07111f;
+}
+.manager-urgent-shell.contract{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(245,158,11,.18),transparent 34%),
+    #07111f;
+}
+.manager-urgent-shell.player{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(239,68,68,.14),transparent 34%),
+    #07111f;
+}
+.manager-urgent-icon{
+  font-size:58px;
+  line-height:1;
+  margin-bottom:10px;
+}
+.manager-urgent-kicker{
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.16em;
+  color:#60a5fa;
+}
+.manager-urgent-shell.contract .manager-urgent-kicker{color:#fbbf24}
+.manager-urgent-shell.player .manager-urgent-kicker{color:#fca5a5}
+.manager-urgent-shell.offer .manager-urgent-kicker{color:#86efac}
+.manager-urgent-title{
+  margin:8px 0 7px;
+  font-size:clamp(30px,5vw,46px);
+  line-height:1.03;
+}
+.manager-urgent-message{
+  max-width:540px;
+  margin:0 auto;
+  color:var(--muted);
+  line-height:1.55;
+  font-size:16px;
+}
+.manager-urgent-detail{
+  width:min(520px,100%);
+  margin:18px auto 0;
+  padding:15px;
+  border-radius:15px;
+  text-align:left;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.035);
+}
+.manager-urgent-player{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+}
+.manager-urgent-player-badge{
+  width:48px;height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:#102d50;
+  color:#dbeafe;
+  font-weight:1000;
+}
+.manager-urgent-player-copy strong,
+.manager-urgent-player-copy small{display:block}
+.manager-urgent-player-copy small{
+  color:var(--muted);
+  margin-top:3px;
+}
+.manager-urgent-value{
+  text-align:right;
+  font-size:18px;
+  font-weight:1000;
+  color:#86efac;
+}
+.manager-urgent-actions{
+  width:min(540px,100%);
+  margin-top:20px;
+  display:flex;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+.manager-urgent-actions .btn{
+  min-width:125px;
+}
+.manager-contract-danger{
+  color:#fca5a5;
+  font-weight:1000;
+}
+.manager-contract-warning{
+  color:#fbbf24;
+  font-weight:1000;
+}
+.manager-popup-counter{
+  margin-top:12px;
+  font-size:11px;
+  color:var(--muted);
+}
+@media(max-width:520px){
+  .manager-urgent-shell{padding:22px 16px}
+  .manager-urgent-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .manager-urgent-actions .btn{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -6659,7 +6797,7 @@ body.manager-mode{--manager-money:#86efac}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.5</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.6</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -6728,7 +6866,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.5</p>
+          <p id="saveStatus">V60.6</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -6785,6 +6923,11 @@ body.manager-mode{--manager-money:#86efac}
 
 
 
+
+
+  <dialog id="managerUrgentDialog" class="manager-urgent-dialog">
+    <div id="managerUrgentDialogContent"></div>
+  </dialog>
 
   <dialog id="managerModeDialog" class="manager-mode-dialog">
     <div class="archive-header">
@@ -7618,6 +7761,9 @@ body.manager-mode{--manager-money:#86efac}
     let pendingManagerBaseWorld = null;
     let pendingManagerImportedWorld = null;
     let managerSelectedSquadPlayerId = null;
+    let managerImportantPopupQueue = [];
+    let managerImportantPopupOpen = false;
+
 
     let pendingWorldCupRevealCompetitionId = null;
     let pendingEditCompetitionId = null;
@@ -8617,6 +8763,7 @@ body.manager-mode{--manager-money:#86efac}
       career.competitions.filter(comp=>!comp.finished&&!comp.locked&&!(comp.fixtures||[]).length&&!(comp.results||[]).length&&comp.teamIds?.length>=2).forEach(comp=>setupCompetitionStage(comp));
       if(titleHolderRosterRepaired)saveData("");
       switchTab(controlledCareerTeam(career)?"dashboard":"teams"); renderAll();
+      if(isManagerMode(career)) setTimeout(()=>managerQueueCurrentUrgentState(career),80);
     }
 
     function careerRank(career) {
@@ -9001,8 +9148,306 @@ body.manager-mode{--manager-money:#86efac}
     function managerAddLedger(career,teamId,amount,text,type='general'){
       const fin=career?.manager?.clubFinances?.[teamId];if(!fin)return;fin.ledger=fin.ledger||[];fin.ledger.push({id:uid(),season:Number(career.worldSeason||1),timestamp:Date.now(),amount:Number(amount||0),text,type});if(fin.ledger.length>100)fin.ledger=fin.ledger.slice(-100)
     }
+    function managerImportantNoteKind(note){
+      if(!note)return null;
+      const title=String(note.title||"").toLowerCase();
+      const type=String(note.type||"").toLowerCase();
+
+      if(note.actions?.kind==="incoming-offer" || title.includes("transfer offer") || title.includes("release clause activated")) return "offer";
+      if(title.includes("contract expiring") || title.includes("contract expired") || title.includes("left on a free")) return "contract";
+      if(title.includes("player wants to leave")) return "player";
+      if(title.includes("player retired")) return "retirement";
+      if(title.includes("transfer window open")) return "window";
+      if(title.includes("world player of the year")) return "award";
+
+      return null;
+    }
+
+    function managerImportantIcon(kind,note){
+      if(kind==="offer")return note?.actions?.releaseClause?"🔓":"💰";
+      if(kind==="contract")return "⏳";
+      if(kind==="player")return "⚠️";
+      if(kind==="retirement")return "👋";
+      if(kind==="window")return "🔄";
+      if(kind==="award")return "🏆";
+      return "📣";
+    }
+
+    function managerQueueImportantPopup(career,note){
+      if(!career||!note||!managerImportantNoteKind(note))return;
+      if(note.popupShown || managerImportantPopupQueue.some(item=>item.noteId===note.id))return;
+
+      note.popupShown=true;
+      managerImportantPopupQueue.push({careerId:career.id,noteId:note.id});
+
+      setTimeout(()=>{
+        if(currentGameMode==="club-career" && currentCareerId===career.id){
+          managerShowNextImportantPopup();
+        }
+      },0);
+    }
+
+    function managerImportantNoteDetail(career,note,kind){
+      const a=note.actions||{};
+
+      if(kind==="offer"&&a.playerId){
+        const player=managerPlayerById(a.playerId,career);
+        const buyer=managerTeam(a.buyerId,career);
+        if(player){
+          return `
+            <div class="manager-urgent-player">
+              <div class="manager-urgent-player-badge">${escapeHtml(player.position||"P")}</div>
+              <div class="manager-urgent-player-copy">
+                <strong>${escapeHtml(player.name)}</strong>
+                <small>${buyer?escapeHtml(buyer.name):"Another club"} wants your player</small>
+              </div>
+              <div class="manager-urgent-value">${moneyFull(a.fee||0)}</div>
+            </div>`;
+        }
+      }
+
+      if(kind==="contract"&&a.playerId){
+        const player=managerPlayerById(a.playerId,career);
+        if(player){
+          const expired=Number(player.contractYears||0)<=0 || player.contractExpiredPending;
+          return `
+            <div class="manager-urgent-player">
+              <div class="manager-urgent-player-badge">${escapeHtml(player.position||"P")}</div>
+              <div class="manager-urgent-player-copy">
+                <strong>${escapeHtml(player.name)}</strong>
+                <small>${expired?"Contract has expired":"Only 1 season remains on his contract"}</small>
+              </div>
+              <div class="${expired?"manager-contract-danger":"manager-contract-warning"}">${expired?"DECISION":"1 YEAR"}</div>
+            </div>`;
+        }
+      }
+
+      if(kind==="player"&&a.playerId){
+        const player=managerPlayerById(a.playerId,career);
+        if(player){
+          return `
+            <div class="manager-urgent-player">
+              <div class="manager-urgent-player-badge">${escapeHtml(player.position||"P")}</div>
+              <div class="manager-urgent-player-copy">
+                <strong>${escapeHtml(player.name)}</strong>
+                <small>${player.overall} OVR · Morale ${Math.round(player.morale||70)}/100</small>
+              </div>
+              <div class="manager-contract-danger">WANTS OUT</div>
+            </div>`;
+        }
+      }
+
+      return "";
+    }
+
+    function managerCloseImportantPopup(){
+      const dialog=$("managerUrgentDialog");
+      if(dialog?.open)dialog.close();
+      managerImportantPopupOpen=false;
+      setTimeout(managerShowNextImportantPopup,0);
+    }
+
+    function managerReleaseExpiredPlayer(noteId){
+      const career=currentCareerSave();
+      const note=(career?.manager?.inbox||[]).find(n=>n.id===noteId);
+      const playerId=note?.actions?.playerId;
+      const team=controlledCareerTeam(career);
+      const player=managerPlayerById(playerId,career);
+      if(!career||!team||!player)return managerCloseImportantPopup();
+
+      team.managerSquad=(team.managerSquad||[]).filter(p=>p.id!==player.id);
+      player.clubId=null;
+      player.transferListed=true;
+      player.contractExpiredPending=false;
+      career.manager.freeAgents.push(player);
+      if(note.actions)note.actions.status="released";
+      note.message+=` You released ${player.name} as a free agent.`;
+
+      managerEnsureSquadDepth(career,team);
+      managerRecalculateTeam(team);
+      managerUpdateWageBills(career);
+      saveData("Expired contract resolved");
+      renderManagerSquad();
+      renderManagerInbox();
+      renderCareerDashboard();
+      managerCloseImportantPopup();
+    }
+
+    function managerRenewFromImportantPopup(noteId){
+      const career=currentCareerSave();
+      const note=(career?.manager?.inbox||[]).find(n=>n.id===noteId);
+      const playerId=note?.actions?.playerId;
+      if(!playerId)return;
+
+      managerCloseImportantPopup();
+      setTimeout(()=>{
+        managerRenewContract(playerId);
+        const refreshed=(career.manager.inbox||[]).find(n=>n.id===noteId);
+        const player=managerPlayerById(playerId,career);
+        if(refreshed?.actions && player && Number(player.contractYears||0)>0){
+          refreshed.actions.status="renewed";
+          player.contractExpiredPending=false;
+          saveData("Contract alert resolved");
+        }
+      },30);
+    }
+
+    function managerOpenSquadFromPopup(playerId=null){
+      managerCloseImportantPopup();
+      if(playerId)managerSelectedSquadPlayerId=playerId;
+      setTimeout(()=>switchTab("manager-squad"),30);
+    }
+
+    function managerShowNextImportantPopup(){
+      if(managerImportantPopupOpen)return;
+      if(currentGameMode!=="club-career")return;
+
+      const career=currentCareerSave();
+      if(!isManagerMode(career))return;
+
+      while(managerImportantPopupQueue.length){
+        const item=managerImportantPopupQueue.shift();
+        if(item.careerId!==career.id)continue;
+
+        const note=(career.manager.inbox||[]).find(n=>n.id===item.noteId);
+        if(!note)continue;
+
+        const kind=managerImportantNoteKind(note);
+        if(!kind)continue;
+
+        managerImportantPopupOpen=true;
+        note.unread=false;
+
+        const a=note.actions||{};
+        const playerId=a.playerId||null;
+        const detail=managerImportantNoteDetail(career,note,kind);
+        const pendingOffer=kind==="offer"&&a.kind==="incoming-offer"&&a.status==="pending"&&!a.releaseClause;
+        const pendingExpiry=kind==="contract"&&a.kind==="contract-expiry"&&a.status==="pending";
+        const expiringWarning=kind==="contract"&&a.kind==="contract-warning";
+
+        let buttons="";
+        if(pendingOffer){
+          buttons=`
+            <button class="btn success" data-urgent-offer="accept">Accept</button>
+            <button class="btn" data-urgent-offer="negotiate">Negotiate</button>
+            <button class="btn danger" data-urgent-offer="reject">Reject</button>
+            <button class="btn secondary" data-urgent-later>Decide Later</button>`;
+        }else if(pendingExpiry){
+          buttons=`
+            <button class="btn success" data-urgent-renew>Renew Now</button>
+            <button class="btn danger" data-urgent-release>Release Player</button>`;
+        }else if(expiringWarning){
+          buttons=`
+            <button class="btn success" data-urgent-renew>Renew Now</button>
+            <button class="btn secondary" data-urgent-squad>Open Squad</button>
+            <button class="btn secondary" data-urgent-later>Later</button>`;
+        }else if(kind==="player"){
+          buttons=`
+            <button class="btn" data-urgent-squad>Open Player</button>
+            <button class="btn secondary" data-urgent-later>Later</button>`;
+        }else{
+          buttons=`<button class="btn" data-urgent-later>Continue</button>`;
+        }
+
+        $("managerUrgentDialogContent").innerHTML=`
+          <div class="manager-urgent-shell ${kind}">
+            <div>
+              <div class="manager-urgent-icon">${managerImportantIcon(kind,note)}</div>
+              <div class="manager-urgent-kicker">IMPORTANT MANAGER UPDATE</div>
+              <h2 class="manager-urgent-title">${escapeHtml(note.title)}</h2>
+              <p class="manager-urgent-message">${escapeHtml(note.message)}</p>
+              ${detail?`<div class="manager-urgent-detail">${detail}</div>`:""}
+              <div class="manager-urgent-actions">${buttons}</div>
+              ${managerImportantPopupQueue.length?`<div class="manager-popup-counter">${managerImportantPopupQueue.length} more important update${managerImportantPopupQueue.length===1?"":"s"} waiting</div>`:""}
+            </div>
+          </div>`;
+
+        const dialog=$("managerUrgentDialog");
+        dialog.showModal();
+
+        dialog.querySelector("[data-urgent-later]")?.addEventListener("click",managerCloseImportantPopup);
+        dialog.querySelector("[data-urgent-squad]")?.addEventListener("click",()=>managerOpenSquadFromPopup(playerId));
+        dialog.querySelector("[data-urgent-renew]")?.addEventListener("click",()=>managerRenewFromImportantPopup(note.id));
+        dialog.querySelector("[data-urgent-release]")?.addEventListener("click",()=>managerReleaseExpiredPlayer(note.id));
+
+        dialog.querySelectorAll("[data-urgent-offer]").forEach(button=>{
+          button.addEventListener("click",()=>{
+            const choice=button.dataset.urgentOffer;
+            managerResolveIncomingOffer(note.id,choice);
+            managerCloseImportantPopup();
+          });
+        });
+
+        return;
+      }
+    }
+
+    function managerGenerateContractWarnings(career=currentCareerSave()){
+      if(!isManagerMode(career))return;
+      const team=controlledCareerTeam(career);
+      if(!team)return;
+
+      const season=Number(career.worldSeason||1);
+      (team.managerSquad||[]).forEach(player=>{
+        if(Number(player.contractYears||0)!==1)return;
+
+        const exists=(career.manager.inbox||[]).some(note=>
+          note.actions?.kind==="contract-warning" &&
+          note.actions?.playerId===player.id &&
+          Number(note.season||0)===season
+        );
+        if(exists)return;
+
+        managerNotify(
+          career,
+          "Contract Expiring",
+          `${player.name} has only 1 season left on his contract. Renew him before the season ends or he can leave for free.`,
+          "contract",
+          {kind:"contract-warning",playerId:player.id,status:"warning"}
+        );
+      });
+    }
+
+    function managerQueueCurrentUrgentState(career=currentCareerSave()){
+      if(!isManagerMode(career))return;
+
+      managerGenerateContractWarnings(career);
+
+      (career.manager.inbox||[]).forEach(note=>{
+        const a=note.actions;
+        if(note.popupShown)return;
+
+        const unresolvedOffer=a?.kind==="incoming-offer"&&a.status==="pending";
+        const unresolvedExpiry=a?.kind==="contract-expiry"&&a.status==="pending";
+        const wantsOut=a?.kind==="player-request"&&a.status==="pending";
+        if(unresolvedOffer||unresolvedExpiry||wantsOut){
+          managerQueueImportantPopup(career,note);
+        }
+      });
+
+      setTimeout(managerShowNextImportantPopup,0);
+    }
+
     function managerNotify(career,title,message,type='general',actions=null){
-      if(!career?.manager)return null;career.manager.inbox=career.manager.inbox||[];const note={id:uid(),season:Number(career.worldSeason||1),timestamp:Date.now(),title,message,type,unread:true,actions};career.manager.inbox.unshift(note);career.manager.inbox=career.manager.inbox.slice(0,140);return note
+      if(!career?.manager)return null;
+      career.manager.inbox=career.manager.inbox||[];
+      const note={
+        id:uid(),
+        season:Number(career.worldSeason||1),
+        timestamp:Date.now(),
+        title,
+        message,
+        type,
+        unread:true,
+        actions
+      };
+      career.manager.inbox.unshift(note);
+      career.manager.inbox=career.manager.inbox.slice(0,140);
+
+      if(managerImportantNoteKind(note)){
+        managerQueueImportantPopup(career,note);
+      }
+      return note
     }
     function managerInitializeWorld(career){
       career.managerMode=true;
@@ -9054,6 +9499,7 @@ body.manager-mode{--manager-money:#86efac}
         `The built-in real clubs began with 2026/27 player rosters from the ${REAL_MANAGER_ROSTER_SNAPSHOT} snapshot. Ratings, values, wages, contracts and clauses are generated by FUS.`,
         'squad'
       );
+      managerGenerateContractWarnings(career);
       managerRunAiTransferMarket(career,'summer',true);
       managerGenerateIncomingOffers(career,2);
       return career
@@ -9904,7 +10350,54 @@ body.manager-mode{--manager-money:#86efac}
 
     function managerToggleLineup(playerId){const career=currentCareerSave(),team=controlledCareerTeam(career),p=(team.managerSquad||[]).find(x=>x.id===playerId);if(!p)return;if(p.isStarter){if(team.managerSquad.filter(x=>x.isStarter).length<=11)return showToast('You need 11 starters.',true);p.isStarter=false}else{const starters=team.managerSquad.filter(x=>x.isStarter);if(starters.length>=11){const bench=starters.sort((a,b)=>a.overall-b.overall)[0];if(bench)bench.isStarter=false}p.isStarter=true}managerRecalculateTeam(team);saveData('Lineup updated');renderManagerSquad();renderCareerDashboard();renderTeams()}
     function managerToggleTransferList(playerId){const career=currentCareerSave(),p=managerPlayerById(playerId,career);if(!p)return;p.transferListed=!p.transferListed;if(p.transferListed)managerNotify(career,'Player Listed',`${p.name} is now available for transfer. Other clubs may send offers.`,'transfer');saveData(p.transferListed?'Player listed':'Player removed from transfer list');renderManagerSquad();renderManagerTransfers();renderManagerInbox()}
-    function managerRenewContract(playerId){const career=currentCareerSave(),p=managerPlayerById(playerId,career);if(!p)return;const expected=managerExpectedWage(p),wage=Number(prompt(`Offer weekly wage for ${p.name}.\nExpected around ${money(expected)}.`,String(Math.max(expected,p.wage)))),years=Number(prompt('Contract length in years (1-5):','4'));if(!Number.isFinite(wage)||!Number.isFinite(years))return;const clause=Number(prompt('Release clause ($). Enter 0 for no clause:',String(Math.round(Math.max(p.releaseClause,managerPlayerValue(p)*1.4)))));if(wage<expected*.88){managerNotify(career,'Contract Rejected',`${p.name} rejected your ${money(wage)}/week offer.`,'contract');showToast('Contract offer rejected',true)}else{p.wage=Math.round(wage/5000)*5000;p.contractYears=clamp(Math.round(years),1,5);p.releaseClause=Math.max(0,Math.round(Number(clause||0)/1_000_000)*1_000_000);p.morale=Math.min(100,Number(p.morale||70)+8);p.wantsOut=false;managerNotify(career,'Contract Renewed',`${p.name} signed a ${p.contractYears}-year deal worth ${money(p.wage)}/week.`,'contract');showToast('Contract renewed')}managerUpdateWageBills(career);saveData('Contract decision saved');renderManagerSquad();renderManagerInbox();renderManagerFinances()}
+    function managerRenewContract(playerId){
+      const career=currentCareerSave(),p=managerPlayerById(playerId,career);
+      if(!p)return;
+
+      const expected=managerExpectedWage(p),
+        wage=managerParseMoneyInput(prompt(`Offer weekly wage for ${p.name}.\nExpected around ${moneyFull(expected)}.`,managerMoneyInputValue(Math.max(expected,p.wage)))),
+        years=Number(prompt('Contract length in years (1-5):','4'));
+
+      if(!Number.isFinite(wage)||!Number.isFinite(years))return;
+
+      const clause=managerParseMoneyInput(
+        prompt(
+          'Release clause ($). Enter 0 for no clause:',
+          managerMoneyInputValue(Math.round(Math.max(p.releaseClause,managerPlayerValue(p)*1.4)))
+        )
+      );
+
+      if(wage<expected*.88){
+        managerNotify(career,'Contract Rejected',`${p.name} rejected your ${moneyFull(wage)}/week offer.`,'contract');
+        showToast('Contract offer rejected',true);
+      }else{
+        p.wage=Math.round(wage/5000)*5000;
+        p.contractYears=clamp(Math.round(years),1,5);
+        p.releaseClause=Math.max(0,Math.round(Number(clause||0)/1_000_000)*1_000_000);
+        p.morale=Math.min(100,Number(p.morale||70)+8);
+        p.wantsOut=false;
+        p.contractExpiredPending=false;
+
+        (career.manager.inbox||[]).forEach(note=>{
+          if(
+            ['contract-warning','contract-expiry'].includes(note.actions?.kind) &&
+            note.actions?.playerId===p.id &&
+            note.actions?.status!=='released'
+          ){
+            note.actions.status='renewed';
+          }
+        });
+
+        managerNotify(career,'Contract Renewed',`${p.name} signed a ${p.contractYears}-year deal worth ${moneyFull(p.wage)}/week.`,'contract');
+        showToast('Contract renewed');
+      }
+
+      managerUpdateWageBills(career);
+      saveData('Contract decision saved');
+      renderManagerSquad();
+      renderManagerInbox();
+      renderManagerFinances();
+    }
 
     function managerMarketPlayers(career=currentCareerSave()){const own=career.controlledTeamId;const contracted=(career.teams||[]).flatMap(team=>(team.managerSquad||[]).map(p=>({...p,clubName:team.name,clubStrength:team.strength}))).filter(p=>p.clubId!==own);const free=(career.manager?.freeAgents||[]).map(p=>({...p,clubName:'Free Agent',clubStrength:0,clubId:null,marketValue:0,releaseClause:0,transferListed:true}));return [...contracted,...free]}
     function renderManagerTransfers(){const career=currentCareerSave(),panel=$('tab-manager-transfers');if(!panel)return;if(!isManagerMode(career)){panel.innerHTML='';return}const fin=managerControlledFinance(career),search=String(career.manager.transferMarketSearch||'').toLowerCase(),pos=career.manager.transferMarketPosition||'all';let players=managerMarketPlayers(career).filter(p=>(!search||p.name.toLowerCase().includes(search)||p.clubName.toLowerCase().includes(search))&&(pos==='all'||p.position===pos));players.sort((a,b)=>b.overall-a.overall||b.marketValue-a.marketValue);players=players.slice(0,100);panel.innerHTML=`<div class="card"><div class="manager-transfer-toolbar"><div><div class="startup-kicker">🔄 TRANSFER MARKET</div><h1 style="margin:4px 0">Global Player Market</h1></div><div><span class="muted">Budget</span><div class="manager-money" style="font-size:28px">${money(fin.budget)}</div></div></div>${managerTransferWindowBanner(career)}<div class="toolbar" style="margin-top:14px"><input id="managerTransferSearch" placeholder="Search player or club" value="${escapeHtml(career.manager.transferMarketSearch||'')}" style="min-width:260px"><select id="managerTransferPosition"><option value="all">All positions</option>${['GK','RB','CB','LB','CM','CAM','RW','LW','ST'].map(x=>`<option value="${x}" ${x===pos?'selected':''}>${x}</option>`).join('')}</select><button class="btn secondary" id="managerRefreshMarketBtn">Refresh</button></div></div><div class="manager-market-list" style="margin-top:14px">${players.map(p=>`<div class="manager-market-card"><div class="manager-market-player"><div class="manager-player-position">${p.position}</div><div><strong>${escapeHtml(p.name)}</strong><small class="muted" style="display:block">${escapeHtml(p.clubName)} · Age ${p.age} · ${escapeHtml(p.nationality)}</small></div></div><div><strong style="font-size:22px">${p.overall}</strong><small class="muted" style="display:block">OVR</small></div><div><strong>${money(p.marketValue)}</strong><small class="muted" style="display:block">Value</small></div><div><strong>${money(p.releaseClause)}</strong><small class="muted" style="display:block">Release clause</small></div><div><strong>${p.contractYears} yr</strong><small class="muted" style="display:block">${p.transferListed?'🟢 Listed':'Contract'}</small></div><button class="btn small" data-manager-buy="${p.id}" ${career.manager.transferWindow.open?'':'disabled'}>Make Offer</button></div>`).join('')||'<div class="card"><p class="muted">No players match your search.</p></div>'}</div>`;$('managerTransferSearch')?.addEventListener('change',e=>{career.manager.transferMarketSearch=e.target.value;renderManagerTransfers()});$('managerTransferPosition')?.addEventListener('change',e=>{career.manager.transferMarketPosition=e.target.value;renderManagerTransfers()});$('managerRefreshMarketBtn')?.addEventListener('click',renderManagerTransfers);panel.querySelectorAll('[data-manager-buy]').forEach(b=>b.onclick=()=>openManagerTransferDialog(b.dataset.managerBuy))}
@@ -10160,10 +10653,58 @@ body.manager-mode{--manager-money:#86efac}
     function managerShouldStopSeasonSim(career,comp,beforePhase){if(!isManagerMode(career)||comp.category!=='league')return false;const after=career.manager.transferWindow;return beforePhase!=='january-open'&&after.phase==='january'&&after.open}
 
     function managerEndSeason(career){if(!isManagerMode(career))return;const season=Number(career.worldSeason||1),team=controlledCareerTeam(career),fin=managerControlledFinance(career);const leaguePos=careerLeaguePosition(career)||career.teams.length;const bonus=Math.round((25_000_000+Math.max(0,career.teams.length-leaguePos)*2_500_000)/5_000_000)*5_000_000;fin.budget+=bonus;managerAddLedger(career,team.id,bonus,'Board & commercial season payment','income');managerNotify(career,'Season Revenue',`${money(bonus)} in board and commercial revenue has been added to your budget.`,'finance');let awardCandidates=[];(career.teams||[]).forEach(club=>{(club.managerSquad||[]).forEach(p=>{awardCandidates.push({p,club,score:Number(p.goalsSeason||0)*5+Number(p.overall||0)*1.2+(club.trophies||0)*5});p.age=Number(p.age||25)+1;if(p.age<=23&&p.overall<p.potential&&Math.random()<.72)p.overall+=Math.random()<.22?2:1;else if(p.age<=28&&p.overall<p.potential&&Math.random()<.36)p.overall+=1;else if(p.age>=32&&Math.random()<.55)p.overall=Math.max(55,p.overall-1-(p.age>=35&&Math.random()<.35?1:0));p.contractYears=Math.max(0,Number(p.contractYears||0)-1);p.marketValue=managerPlayerValue(p);p.wage=Math.max(20000,Number(p.wage||managerExpectedWage(p)));p.morale=clamp(Number(p.morale||70)+(Math.random()*12-6),20,100)})});awardCandidates.sort((a,b)=>b.score-a.score);const winner=awardCandidates[0];if(winner){career.manager.awards.unshift({season,playerId:winner.p.id,playerName:winner.p.name,clubId:winner.club.id,clubName:winner.club.name,goals:winner.p.goalsSeason,overall:winner.p.overall});managerNotify(career,'World Player of the Year',`${winner.p.name} (${winner.club.name}) wins Player of the Year after ${winner.p.goalsSeason||0} goals at ${winner.p.overall} OVR.`,'award')}
-      (career.teams||[]).forEach(club=>{const leaving=[];(club.managerSquad||[]).forEach(p=>{if(p.contractYears===0)leaving.push({p,reason:'contract'});else if(p.age>=36&&Math.random()<.48||p.age>=39)leaving.push({p,reason:'retirement'});else if((p.morale<45||p.wantsOut)&&Math.random()<.38)p.wantsOut=true});leaving.forEach(({p,reason})=>{club.managerSquad=club.managerSquad.filter(x=>x.id!==p.id);if(reason==='contract'){p.clubId=null;p.transferListed=true;career.manager.freeAgents.push(p);if(club.id===career.controlledTeamId)managerNotify(career,'Player Left on a Free',`${p.name}'s contract expired. He is now a free agent.`,'contract')}else{career.manager.playerRetirements.unshift({season,playerId:p.id,playerName:p.name,clubId:club.id});if(club.id===career.controlledTeamId)managerNotify(career,'Player Retired',`${p.name} retired at age ${p.age}.`,'retirement')}});managerEnsureSquadDepth(career,club);managerRecalculateTeam(club)});
+      (career.teams||[]).forEach(club=>{const leaving=[];(club.managerSquad||[]).forEach(p=>{if(p.contractYears===0){
+          if(club.id===career.controlledTeamId){
+            p.contractExpiredPending=true;
+            const exists=(career.manager.inbox||[]).some(note=>note.actions?.kind==='contract-expiry'&&note.actions?.playerId===p.id&&note.actions?.status==='pending');
+            if(!exists)managerNotify(
+              career,
+              'Contract Expired — Decision Required',
+              `${p.name}'s contract has expired. He will NOT disappear automatically. Renew him now or release him as a free agent.`,
+              'contract',
+              {kind:'contract-expiry',playerId:p.id,status:'pending'}
+            );
+          }else{
+            leaving.push({p,reason:'contract'});
+          }
+        }else if(p.age>=36&&Math.random()<.48||p.age>=39)leaving.push({p,reason:'retirement'});else if((p.morale<45||p.wantsOut)&&Math.random()<.38)p.wantsOut=true});leaving.forEach(({p,reason})=>{club.managerSquad=club.managerSquad.filter(x=>x.id!==p.id);if(reason==='contract'){p.clubId=null;p.transferListed=true;career.manager.freeAgents.push(p);if(club.id===career.controlledTeamId)managerNotify(career,'Player Left on a Free',`${p.name}'s contract expired. He is now a free agent.`,'contract')}else{career.manager.playerRetirements.unshift({season,playerId:p.id,playerName:p.name,clubId:club.id});if(club.id===career.controlledTeamId)managerNotify(career,'Player Retired',`${p.name} retired at age ${p.age}.`,'retirement',{kind:'retirement',playerId:p.id,status:'completed'})}});managerEnsureSquadDepth(career,club);managerRecalculateTeam(club)});
       (career.teams||[]).forEach(club=>(club.managerSquad||[]).forEach(p=>{p.goalsSeason=0;p.appearancesSeason=0;p.marketValue=managerPlayerValue(p)}));managerUpdateWageBills(career);managerGeneratePlayerRequests(career)}
-    function managerBeginNewSeason(career){if(!isManagerMode(career))return;career.manager.transferWindow={phase:'summer',open:true,season:Number(career.worldSeason||1)};career.manager.lastAiWindowKey='';managerNotify(career,'Summer Transfer Window Open',`The new season transfer window is open. Current budget: ${money(managerControlledFinance(career)?.budget)}.`,'window');managerRunAiTransferMarket(career,'summer',true);managerGenerateIncomingOffers(career,2);managerUpdateWageBills(career)}
-    function managerGeneratePlayerRequests(career){const team=controlledCareerTeam(career);(team.managerSquad||[]).forEach(p=>{const bench=!p.isStarter;if((bench&&p.overall>=team.strength-1&&Math.random()<.18)||(p.morale<45&&Math.random()<.4)){p.wantsOut=true;managerNotify(career,'Player Wants to Leave',`${p.name} is unhappy and has asked to leave the club. You can list him, renew his contract or keep him and risk lower morale.`,'player')}})}
+    function managerBeginNewSeason(career){
+      if(!isManagerMode(career))return;
+      career.manager.transferWindow={phase:'summer',open:true,season:Number(career.worldSeason||1)};
+      career.manager.lastAiWindowKey='';
+      managerNotify(
+        career,
+        'Summer Transfer Window Open',
+        `The new season transfer window is open. Current budget: ${money(managerControlledFinance(career)?.budget)}.`,
+        'window',
+        {kind:'window',status:'open'}
+      );
+      managerGenerateContractWarnings(career);
+      managerRunAiTransferMarket(career,'summer',true);
+      managerGenerateIncomingOffers(career,2);
+      managerUpdateWageBills(career);
+    }
+    function managerGeneratePlayerRequests(career){
+      const team=controlledCareerTeam(career);
+      (team.managerSquad||[]).forEach(p=>{
+        const bench=!p.isStarter;
+        const shouldRequest=
+          !p.wantsOut &&
+          ((bench&&p.overall>=team.strength-1&&Math.random()<.18) || (p.morale<45&&Math.random()<.4));
+
+        if(shouldRequest){
+          p.wantsOut=true;
+          managerNotify(
+            career,
+            'Player Wants to Leave',
+            `${p.name} is unhappy and has asked to leave the club. You can list him, renew his contract or keep him and risk lower morale.`,
+            'player',
+            {kind:'player-request',playerId:p.id,status:'pending'}
+          );
+        }
+      });
+    }
 
     function managerDashboardHtml(career){if(!isManagerMode(career))return '';const team=controlledCareerTeam(career),fin=managerControlledFinance(career),unread=(career.manager.inbox||[]).filter(n=>n.unread).length,form=managerFormStatus(team.id);return `<article class="card" style="margin:12px 0"><div class="manager-transfer-toolbar"><div><div class="startup-kicker">💼 MANAGER MODE</div><h2 style="margin:4px 0">${escapeHtml(managerWindowLabel(career))}</h2><p class="muted" style="margin:0">${form.label} form · Squad strength ${team.strength} · ${unread} unread message${unread===1?'':'s'}</p></div><div style="text-align:right"><div class="muted">Transfer Budget</div><div class="manager-money" style="font-size:30px">${money(fin.budget)}</div></div></div><div class="toolbar"><button class="btn" data-manager-dashboard-tab="manager-squad">👥 Squad</button><button class="btn secondary" data-manager-dashboard-tab="manager-transfers">🔄 Transfers</button><button class="btn secondary" data-manager-dashboard-tab="manager-inbox">📩 Inbox ${unread?`(${unread})`:''}</button><button class="btn secondary" data-manager-dashboard-tab="manager-finances">💵 Finances</button></div></article>`}
 
@@ -16587,6 +17128,18 @@ function renderWorldCupQualification() {
       const worlds=data.worlds.filter(w=>w.teams?.length);$("careerImportWorldSelect").innerHTML=worlds.length?worlds.map(w=>`<option value="${w.id}">${escapeHtml(w.name)} · Season ${w.worldSeason||1} · ${w.teams.length} Teams</option>`).join(""):`<option value="">No Universe worlds available</option>`;
       renderCareerImportClubs(worlds[0]?.id);$("careerImportDialog").showModal();
     }
+
+    $("managerUrgentDialog").addEventListener("cancel",event=>{
+      const career=currentCareerSave();
+      const current=career?.manager?.inbox?.find(note=>
+        note.actions?.kind==="contract-expiry" && note.actions?.status==="pending" && note.popupShown
+      );
+      if(current){
+        event.preventDefault();
+      }else{
+        managerImportantPopupOpen=false;
+      }
+    });
 
     $("liveMatchContinueBtn").addEventListener("click",continueAfterLiveMatch);
     document.querySelectorAll("[data-live-decision]").forEach(button=>button.addEventListener("click",()=>applyLiveMatchDecision(button.dataset.liveDecision)));
