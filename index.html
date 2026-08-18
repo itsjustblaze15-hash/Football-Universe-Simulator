@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.3";
+  content:"V60.5";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.3" !important;
+  content:"V60.5" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -6229,6 +6229,415 @@ body.manager-mode{--manager-money:#86efac}
   .manager-response-details{grid-template-columns:1fr}
 }
 
+
+
+/* =========================================================
+   V60.4 — Formation-based Manager Squad
+   ========================================================= */
+.manager-squad-stage{
+  display:grid;
+  grid-template-columns:minmax(0,1.75fr) minmax(300px,.72fr);
+  gap:16px;
+  align-items:stretch;
+}
+.manager-formation-card,
+.manager-player-info-card{
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(16,36,63,.98),rgba(8,20,38,.98));
+  box-shadow:0 18px 45px rgba(0,0,0,.18);
+  overflow:hidden;
+}
+.manager-formation-header,
+.manager-player-info-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 17px;
+  border-bottom:1px solid var(--border);
+}
+.manager-formation-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.manager-formation-title h2{margin:0}
+.manager-formation-tag{
+  padding:6px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:1000;
+  color:#bfdbfe;
+  background:rgba(59,130,246,.10);
+  border:1px solid rgba(96,165,250,.20);
+}
+.manager-pitch-wrap{
+  padding:14px;
+}
+.manager-pitch{
+  position:relative;
+  width:100%;
+  aspect-ratio:1.36/1;
+  min-height:520px;
+  overflow:hidden;
+  border-radius:14px;
+  border:2px solid rgba(214,255,228,.28);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.018) 0,
+      rgba(255,255,255,.018) 12.5%,
+      rgba(0,0,0,.018) 12.5%,
+      rgba(0,0,0,.018) 25%
+    ),
+    radial-gradient(circle at 50% 42%,rgba(34,197,94,.10),transparent 45%),
+    linear-gradient(180deg,#123d31,#0a2a25);
+  box-shadow:
+    inset 0 0 60px rgba(0,0,0,.23),
+    0 12px 32px rgba(0,0,0,.18);
+}
+.manager-pitch::before{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:50%;
+  border-top:2px solid rgba(225,255,236,.30);
+  pointer-events:none;
+}
+.manager-pitch::after{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:118px;height:118px;
+  transform:translate(-50%,-50%);
+  border:2px solid rgba(225,255,236,.30);
+  border-radius:50%;
+  pointer-events:none;
+}
+.manager-pitch-lines .top-box,
+.manager-pitch-lines .bottom-box{
+  position:absolute;
+  left:50%;
+  width:43%;
+  height:17%;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,255,236,.30);
+  pointer-events:none;
+}
+.manager-pitch-lines .top-box{top:-2px;border-top:0}
+.manager-pitch-lines .bottom-box{bottom:-2px;border-bottom:0}
+.manager-pitch-lines .top-six,
+.manager-pitch-lines .bottom-six{
+  position:absolute;
+  left:50%;
+  width:21%;
+  height:7%;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,255,236,.30);
+  pointer-events:none;
+}
+.manager-pitch-lines .top-six{top:-2px;border-top:0}
+.manager-pitch-lines .bottom-six{bottom:-2px;border-bottom:0}
+.manager-pitch-lines .center-dot{
+  position:absolute;
+  width:6px;height:6px;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:rgba(225,255,236,.55);
+}
+.manager-pitch-player{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  width:116px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:white;
+  z-index:5;
+  cursor:pointer;
+  text-align:center;
+}
+.manager-pitch-player:hover{
+  transform:translate(-50%,-50%) scale(1.04);
+}
+.manager-pitch-player.selected .manager-player-disc{
+  border-color:#60a5fa;
+  box-shadow:
+    0 0 0 4px rgba(59,130,246,.18),
+    0 10px 25px rgba(0,0,0,.32);
+}
+.manager-pitch-player.out-of-position .manager-player-disc{
+  border-color:rgba(245,158,11,.70);
+}
+.manager-player-disc{
+  position:relative;
+  width:58px;height:58px;
+  margin:0 auto 4px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#183b68,#0d2340);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 8px 20px rgba(0,0,0,.30);
+}
+.manager-player-disc .initials{
+  font-size:15px;
+  font-weight:1000;
+  letter-spacing:.02em;
+}
+.manager-player-disc .pitch-ovr{
+  position:absolute;
+  right:-11px;
+  top:-7px;
+  min-width:30px;
+  height:23px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:1000;
+  color:#d1fae5;
+  background:#065f46;
+  border:1px solid rgba(110,231,183,.35);
+}
+.manager-player-disc .pitch-pos{
+  position:absolute;
+  left:-12px;
+  top:-7px;
+  min-width:29px;
+  height:23px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  font-size:10px;
+  font-weight:1000;
+  color:#dbeafe;
+  background:#1e3a5f;
+  border:1px solid rgba(147,197,253,.28);
+}
+.manager-pitch-name{
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-weight:1000;
+  font-size:12px;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+.manager-pitch-subline{
+  display:flex;
+  justify-content:center;
+  gap:5px;
+  margin-top:2px;
+  font-size:10px;
+  color:#bbf7d0;
+  font-weight:900;
+}
+.manager-player-info-card{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+}
+.manager-player-info-body{
+  padding:18px;
+  flex:1;
+}
+.manager-info-player{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.manager-info-avatar{
+  width:82px;height:82px;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 35% 25%,rgba(96,165,250,.22),transparent 35%),
+    linear-gradient(145deg,#183b68,#0b1d36);
+  border:1px solid rgba(96,165,250,.23);
+  font-size:24px;
+  font-weight:1000;
+}
+.manager-info-name h2{
+  margin:0 0 4px;
+  font-size:25px;
+}
+.manager-info-name .manager-info-ovr{
+  color:#86efac;
+  font-size:20px;
+  font-weight:1000;
+}
+.manager-info-section-title{
+  margin:17px 0 8px;
+  font-size:11px;
+  letter-spacing:.12em;
+  font-weight:1000;
+  color:#60a5fa;
+}
+.manager-info-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.manager-info-stat{
+  padding:10px;
+  border-radius:11px;
+  background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.045);
+}
+.manager-info-stat small,
+.manager-info-stat strong{display:block}
+.manager-info-stat small{
+  color:var(--muted);
+  font-size:10px;
+  margin-bottom:3px;
+}
+.manager-info-stat strong{font-size:14px}
+.manager-player-info-actions{
+  display:grid;
+  gap:8px;
+  margin-top:16px;
+}
+.manager-player-info-actions .btn{width:100%}
+.manager-bench-section{
+  margin-top:15px;
+  border:1px solid var(--border);
+  border-radius:17px;
+  padding:15px;
+  background:linear-gradient(180deg,rgba(16,36,63,.98),rgba(8,20,38,.98));
+}
+.manager-bench-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:11px;
+}
+.manager-bench-header h2{margin:0}
+.manager-bench-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+}
+.manager-bench-player{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+  min-width:0;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.025);
+  color:var(--text);
+  text-align:left;
+}
+.manager-bench-player:hover{
+  border-color:rgba(96,165,250,.35);
+  background:rgba(59,130,246,.07);
+}
+.manager-bench-player.selected{
+  border-color:#60a5fa;
+  box-shadow:inset 0 0 0 1px rgba(96,165,250,.13);
+}
+.manager-bench-mini{
+  width:38px;height:38px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:#102d50;
+  font-size:10px;
+  font-weight:1000;
+}
+.manager-bench-copy{min-width:0}
+.manager-bench-copy strong,
+.manager-bench-copy small{
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.manager-bench-copy small{color:var(--muted);font-size:10px;margin-top:2px}
+.manager-bench-ovr{
+  font-size:18px;
+  font-weight:1000;
+  color:#d1fae5;
+}
+.manager-squad-hint{
+  padding:10px 13px;
+  border-radius:12px;
+  margin:0 14px 14px;
+  color:#bfdbfe;
+  background:rgba(59,130,246,.06);
+  border:1px solid rgba(96,165,250,.14);
+  font-size:12px;
+}
+@media(max-width:1050px){
+  .manager-squad-stage{grid-template-columns:1fr}
+  .manager-player-info-card{min-height:auto}
+  .manager-pitch{min-height:500px}
+}
+@media(max-width:760px){
+  .manager-pitch{min-height:430px;aspect-ratio:1/1.08}
+  .manager-pitch-player{width:86px}
+  .manager-player-disc{width:48px;height:48px}
+  .manager-player-disc .initials{font-size:12px}
+  .manager-pitch-name{font-size:10px}
+  .manager-bench-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:470px){
+  .manager-pitch{min-height:390px}
+  .manager-pitch-player{width:70px}
+  .manager-player-disc{width:42px;height:42px}
+  .manager-player-disc .pitch-ovr,
+  .manager-player-disc .pitch-pos{transform:scale(.88)}
+  .manager-bench-grid{grid-template-columns:1fr}
+}
+
+
+
+/* V60.5 — Formation selector */
+.manager-formation-controls{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.manager-formation-select{
+  min-width:132px;
+  height:38px;
+  padding:0 34px 0 11px;
+  border-radius:10px;
+  font-weight:900;
+  color:var(--text);
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(96,165,250,.22);
+}
+.manager-formation-select:focus{
+  outline:none;
+  border-color:#60a5fa;
+  box-shadow:0 0 0 3px rgba(59,130,246,.12);
+}
+@media(max-width:620px){
+  .manager-formation-header{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .manager-formation-controls{
+    width:100%;
+  }
+  .manager-formation-select{
+    flex:1;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -6250,7 +6659,7 @@ body.manager-mode{--manager-money:#86efac}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.3</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.5</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -6319,7 +6728,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.3</p>
+          <p id="saveStatus">V60.5</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -7208,6 +7617,7 @@ body.manager-mode{--manager-money:#86efac}
     let pendingManagerSourceType = "builtin";
     let pendingManagerBaseWorld = null;
     let pendingManagerImportedWorld = null;
+    let managerSelectedSquadPlayerId = null;
 
     let pendingWorldCupRevealCompetitionId = null;
     let pendingEditCompetitionId = null;
@@ -8611,7 +9021,8 @@ body.manager-mode{--manager-money:#86efac}
         playerRetirements:[],
         lastAiWindowKey:'',
         transferMarketSearch:'',
-        transferMarketPosition:'all'
+        transferMarketPosition:'all',
+        formation:'4-2-3-1'
       };
 
       (career.teams||[]).forEach(team=>{
@@ -8669,6 +9080,7 @@ body.manager-mode{--manager-money:#86efac}
       career.manager.transferHistory=Array.isArray(career.manager.transferHistory)?career.manager.transferHistory:[];
       career.manager.awards=Array.isArray(career.manager.awards)?career.manager.awards:[];
       career.manager.playerRetirements=Array.isArray(career.manager.playerRetirements)?career.manager.playerRetirements:[];
+      career.manager.formation=career.manager.formation||'4-2-3-1';
 
       const safeToUpgradeOldStartingSave=
         career.manager.realRosterVersion!==REAL_MANAGER_ROSTER_SNAPSHOT &&
@@ -9075,9 +9487,421 @@ body.manager-mode{--manager-money:#86efac}
     function managerFormChip(teamId){const f=managerFormStatus(teamId);return `<span class="form-chip ${f.class}">${f.label}</span>`}
 
     function managerTransferWindowBanner(career){const w=career.manager.transferWindow;return `<div class="manager-window-banner ${w.open?'':'closed'}"><div><div class="startup-kicker">${w.open?'🟢 WINDOW OPEN':'🔒 WINDOW CLOSED'}</div><strong>${escapeHtml(managerWindowLabel(career))}</strong></div><div class="muted">${w.open?'Deals can be completed now.':'You can scout and list players, but deals wait for the next window.'}</div></div>`}
-    function managerLineupOverall(team){const starters=(team.managerSquad||[]).filter(p=>p.isStarter);return starters.length?Math.round(starters.reduce((s,p)=>s+p.overall,0)/starters.length):team.strength}
-    function renderManagerSquad(){const career=currentCareerSave(),panel=$('tab-manager-squad');if(!panel)return;if(!isManagerMode(career)){panel.innerHTML='';return}const team=controlledCareerTeam(career),fin=managerControlledFinance(career),squad=[...(team.managerSquad||[])].sort((a,b)=>Number(b.isStarter)-Number(a.isStarter)||b.overall-a.overall);panel.innerHTML=`<section class="career-hero">${teamLogo(team)}<div><div class="startup-kicker">👥 MANAGER SQUAD</div><h1>${escapeHtml(team.name)}</h1><p class="muted">Starting XI determines your actual team overall. Seven substitutes are available.</p></div><div><div class="muted">TEAM OVR</div><div class="career-overall">${team.strength}</div></div></section>${managerTransferWindowBanner(career)}<div class="manager-summary-grid"><div class="manager-summary-card"><small>Transfer Budget</small><strong class="manager-money">${money(fin.budget)}</strong></div><div class="manager-summary-card"><small>Weekly Wages</small><strong>${money(fin.wageBill)}</strong></div><div class="manager-summary-card"><small>Starting XI</small><strong>${squad.filter(p=>p.isStarter).length}/11</strong></div><div class="manager-summary-card"><small>Squad Size</small><strong>${squad.length}</strong></div></div><div class="manager-squad-toolbar"><div><h2 style="margin:0">First Team</h2><span class="muted">Players marked XI start matches.</span></div><button class="btn secondary" id="managerBestXiBtn">✨ Pick Best XI</button></div><div class="manager-squad-list">${squad.map(p=>`<div class="manager-player-row ${p.isStarter?'starter':''} ${p.transferListed?'transfer-listed':''}"><div class="manager-player-position">${p.position}</div><div class="manager-player-name"><strong>${escapeHtml(p.name)}</strong><small>${escapeHtml(p.nationality)} · Age ${p.age} · Morale ${Math.round(p.morale||70)}${p.wantsOut?' · ⚠️ Wants out':''}</small></div><div class="manager-player-ovr">${p.overall}</div><div><strong>${p.goalsSeason||0}</strong><small class="muted" style="display:block">Goals</small></div><div><strong>${money(p.marketValue)}</strong><small class="muted" style="display:block">Value</small></div><div><strong>${money(p.wage)}</strong><small class="muted" style="display:block">/ week</small></div><div><strong>${p.contractYears} yr</strong><small class="muted" style="display:block">${money(p.releaseClause)} clause</small></div><div class="manager-player-actions"><button class="btn secondary small" data-manager-lineup="${p.id}">${p.isStarter?'Bench':'Start'}</button><button class="btn secondary small" data-manager-list="${p.id}">${p.transferListed?'Unlist':'List'}</button><button class="btn small" data-manager-renew="${p.id}">Renew</button></div></div>`).join('')}</div>`;panel.querySelectorAll('[data-manager-lineup]').forEach(b=>b.onclick=()=>managerToggleLineup(b.dataset.managerLineup));panel.querySelectorAll('[data-manager-list]').forEach(b=>b.onclick=()=>managerToggleTransferList(b.dataset.managerList));panel.querySelectorAll('[data-manager-renew]').forEach(b=>b.onclick=()=>managerRenewContract(b.dataset.managerRenew));$('managerBestXiBtn')?.addEventListener('click',managerPickBestXI)}
-    function managerPickBestXI(){const career=currentCareerSave(),team=controlledCareerTeam(career);if(!isManagerMode(career)||!team)return;[...team.managerSquad].sort((a,b)=>b.overall-a.overall).forEach((p,i)=>p.isStarter=i<11);managerRecalculateTeam(team);managerUpdateWageBills(career);saveData('Best XI selected');renderManagerSquad();renderCareerDashboard();renderTeams()}
+    function managerLineupOverall(team){
+      const starters=(team.managerSquad||[]).filter(p=>p.isStarter);
+      return starters.length?Math.round(starters.reduce((s,p)=>s+p.overall,0)/starters.length):team.strength
+    }
+
+    function managerPlayerInitials(name){
+      const parts=String(name||"").trim().split(/\s+/).filter(Boolean);
+      if(!parts.length)return "P";
+      if(parts.length===1)return parts[0].slice(0,2).toUpperCase();
+      return `${parts[0][0]||""}${parts[parts.length-1][0]||""}`.toUpperCase();
+    }
+
+    function managerFormationDefinitions(){
+      return {
+        "4-2-3-1":{
+          label:"4-2-3-1",
+          slots:[
+            {key:"ST",label:"ST",x:50,y:10,preferred:["ST"]},
+            {key:"LW",label:"LW",x:20,y:26,preferred:["LW","ST","CAM"]},
+            {key:"CAM",label:"CAM",x:50,y:31,preferred:["CAM","CM","ST"]},
+            {key:"RW",label:"RW",x:80,y:26,preferred:["RW","ST","CAM"]},
+            {key:"LCM",label:"CM",x:36,y:49,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:64,y:49,preferred:["CM","CAM"]},
+            {key:"LB",label:"LB",x:15,y:69,preferred:["LB","CB","RB"]},
+            {key:"LCB",label:"CB",x:38,y:72,preferred:["CB","LB","RB"]},
+            {key:"RCB",label:"CB",x:62,y:72,preferred:["CB","RB","LB"]},
+            {key:"RB",label:"RB",x:85,y:69,preferred:["RB","CB","LB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        },
+        "4-3-3":{
+          label:"4-3-3",
+          slots:[
+            {key:"LW",label:"LW",x:20,y:17,preferred:["LW","ST","CAM"]},
+            {key:"ST",label:"ST",x:50,y:10,preferred:["ST"]},
+            {key:"RW",label:"RW",x:80,y:17,preferred:["RW","ST","CAM"]},
+            {key:"LCM",label:"CM",x:30,y:43,preferred:["CM","CAM"]},
+            {key:"CM",label:"CM",x:50,y:51,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:70,y:43,preferred:["CM","CAM"]},
+            {key:"LB",label:"LB",x:15,y:69,preferred:["LB","CB","RB"]},
+            {key:"LCB",label:"CB",x:38,y:72,preferred:["CB","LB","RB"]},
+            {key:"RCB",label:"CB",x:62,y:72,preferred:["CB","RB","LB"]},
+            {key:"RB",label:"RB",x:85,y:69,preferred:["RB","CB","LB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        },
+        "4-4-2":{
+          label:"4-4-2",
+          slots:[
+            {key:"LST",label:"ST",x:38,y:12,preferred:["ST","LW","CAM"]},
+            {key:"RST",label:"ST",x:62,y:12,preferred:["ST","RW","CAM"]},
+            {key:"LM",label:"LM",x:16,y:43,preferred:["LW","CAM","CM"]},
+            {key:"LCM",label:"CM",x:39,y:48,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:61,y:48,preferred:["CM","CAM"]},
+            {key:"RM",label:"RM",x:84,y:43,preferred:["RW","CAM","CM"]},
+            {key:"LB",label:"LB",x:15,y:69,preferred:["LB","CB","RB"]},
+            {key:"LCB",label:"CB",x:38,y:72,preferred:["CB","LB","RB"]},
+            {key:"RCB",label:"CB",x:62,y:72,preferred:["CB","RB","LB"]},
+            {key:"RB",label:"RB",x:85,y:69,preferred:["RB","CB","LB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        },
+        "4-3-1-2":{
+          label:"4-3-1-2",
+          slots:[
+            {key:"LST",label:"ST",x:38,y:10,preferred:["ST","LW","CAM"]},
+            {key:"RST",label:"ST",x:62,y:10,preferred:["ST","RW","CAM"]},
+            {key:"CAM",label:"CAM",x:50,y:31,preferred:["CAM","CM","ST"]},
+            {key:"LCM",label:"CM",x:28,y:49,preferred:["CM","CAM"]},
+            {key:"CM",label:"CM",x:50,y:54,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:72,y:49,preferred:["CM","CAM"]},
+            {key:"LB",label:"LB",x:15,y:70,preferred:["LB","CB","RB"]},
+            {key:"LCB",label:"CB",x:38,y:73,preferred:["CB","LB","RB"]},
+            {key:"RCB",label:"CB",x:62,y:73,preferred:["CB","RB","LB"]},
+            {key:"RB",label:"RB",x:85,y:70,preferred:["RB","CB","LB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        },
+        "3-5-2":{
+          label:"3-5-2",
+          slots:[
+            {key:"LST",label:"ST",x:38,y:10,preferred:["ST","LW","CAM"]},
+            {key:"RST",label:"ST",x:62,y:10,preferred:["ST","RW","CAM"]},
+            {key:"CAM",label:"CAM",x:50,y:31,preferred:["CAM","CM","ST"]},
+            {key:"LM",label:"LM",x:14,y:43,preferred:["LW","LB","CM"]},
+            {key:"LCM",label:"CM",x:36,y:50,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:64,y:50,preferred:["CM","CAM"]},
+            {key:"RM",label:"RM",x:86,y:43,preferred:["RW","RB","CM"]},
+            {key:"LCB",label:"CB",x:28,y:73,preferred:["CB","LB"]},
+            {key:"CB",label:"CB",x:50,y:76,preferred:["CB"]},
+            {key:"RCB",label:"CB",x:72,y:73,preferred:["CB","RB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        },
+        "5-3-2":{
+          label:"5-3-2",
+          slots:[
+            {key:"LST",label:"ST",x:38,y:10,preferred:["ST","LW","CAM"]},
+            {key:"RST",label:"ST",x:62,y:10,preferred:["ST","RW","CAM"]},
+            {key:"LCM",label:"CM",x:30,y:45,preferred:["CM","CAM"]},
+            {key:"CM",label:"CM",x:50,y:51,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:70,y:45,preferred:["CM","CAM"]},
+            {key:"LWB",label:"LWB",x:10,y:66,preferred:["LB","LW","CB"]},
+            {key:"LCB",label:"CB",x:31,y:72,preferred:["CB","LB"]},
+            {key:"CB",label:"CB",x:50,y:76,preferred:["CB"]},
+            {key:"RCB",label:"CB",x:69,y:72,preferred:["CB","RB"]},
+            {key:"RWB",label:"RWB",x:90,y:66,preferred:["RB","RW","CB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        },
+        "4-2-2-2":{
+          label:"4-2-2-2",
+          slots:[
+            {key:"LST",label:"ST",x:38,y:10,preferred:["ST","LW","CAM"]},
+            {key:"RST",label:"ST",x:62,y:10,preferred:["ST","RW","CAM"]},
+            {key:"LAM",label:"AM",x:26,y:34,preferred:["CAM","LW","CM"]},
+            {key:"RAM",label:"AM",x:74,y:34,preferred:["CAM","RW","CM"]},
+            {key:"LCM",label:"CM",x:39,y:53,preferred:["CM","CAM"]},
+            {key:"RCM",label:"CM",x:61,y:53,preferred:["CM","CAM"]},
+            {key:"LB",label:"LB",x:15,y:70,preferred:["LB","CB","RB"]},
+            {key:"LCB",label:"CB",x:38,y:73,preferred:["CB","LB","RB"]},
+            {key:"RCB",label:"CB",x:62,y:73,preferred:["CB","RB","LB"]},
+            {key:"RB",label:"RB",x:85,y:70,preferred:["RB","CB","LB"]},
+            {key:"GK",label:"GK",x:50,y:91,preferred:["GK"]}
+          ]
+        }
+      };
+    }
+
+    function managerCurrentFormation(career=currentCareerSave()){
+      const defs=managerFormationDefinitions();
+      const saved=career?.manager?.formation||"4-2-3-1";
+      return defs[saved]?saved:"4-2-3-1";
+    }
+
+    function managerFormationSlots(formation=managerCurrentFormation()){
+      return managerFormationDefinitions()[formation]?.slots || managerFormationDefinitions()["4-2-3-1"].slots;
+    }
+
+    function managerFormationFitScore(player,slot){
+      let score=0;
+      const prefIndex=slot.preferred.indexOf(player.position);
+      if(prefIndex>=0){
+        score=100-prefIndex*12;
+      }else{
+        const attack=["ST","LW","RW","CAM"];
+        const midfield=["CAM","CM"];
+        const defense=["LB","RB","CB"];
+        if(player.position==="GK"||slot.label==="GK")score=-120;
+        else if(slot.preferred.some(pos=>attack.includes(pos))&&attack.includes(player.position))score=55;
+        else if(slot.preferred.some(pos=>midfield.includes(pos))&&midfield.includes(player.position))score=55;
+        else if(slot.preferred.some(pos=>defense.includes(pos))&&defense.includes(player.position))score=55;
+        else score=8;
+      }
+      return score+Number(player.overall||0)*.55;
+    }
+
+    function managerPlaceStartingXI(team,formation=managerCurrentFormation()){
+      const starters=(team.managerSquad||[]).filter(p=>p.isStarter);
+      const remaining=[...starters];
+      const placed=[];
+
+      managerFormationSlots(formation).forEach(slot=>{
+        let bestIndex=-1;
+        let bestScore=-9999;
+        remaining.forEach((player,index)=>{
+          const score=managerFormationFitScore(player,slot);
+          if(score>bestScore){bestScore=score;bestIndex=index}
+        });
+
+        if(bestIndex>=0){
+          const player=remaining.splice(bestIndex,1)[0];
+          placed.push({
+            player,
+            slot,
+            outOfPosition:!slot.preferred.includes(player.position)
+          });
+        }
+      });
+
+      return placed;
+    }
+
+    function managerSelectedSquadPlayer(team){
+      let player=(team.managerSquad||[]).find(p=>p.id===managerSelectedSquadPlayerId);
+      if(!player){
+        player=(team.managerSquad||[]).find(p=>p.isStarter)||(team.managerSquad||[])[0]||null;
+        managerSelectedSquadPlayerId=player?.id||null;
+      }
+      return player;
+    }
+
+    function managerPlayerInfoHtml(player,team){
+      if(!player)return `<div class="manager-player-info-body"><p class="muted">Select a player.</p></div>`;
+      const starters=(team.managerSquad||[]).filter(p=>p.isStarter).length;
+      const benchDisabled=player.isStarter&&starters<=11;
+      return `
+        <div class="manager-player-info-body">
+          <div class="manager-info-player">
+            <div class="manager-info-avatar">${managerPlayerInitials(player.name)}</div>
+            <div class="manager-info-name">
+              <div class="manager-info-ovr">${player.overall} OVR</div>
+              <h2>${escapeHtml(player.name)}</h2>
+              <div class="muted">${escapeHtml(player.position)} · ${escapeHtml(player.nationality)}</div>
+            </div>
+          </div>
+
+          <div class="manager-info-section-title">PLAYER INFO</div>
+          <div class="manager-info-grid">
+            <div class="manager-info-stat"><small>Age</small><strong>${player.age}</strong></div>
+            <div class="manager-info-stat"><small>Potential</small><strong>${player.potential}</strong></div>
+            <div class="manager-info-stat"><small>Morale</small><strong>${Math.round(player.morale||70)} / 100</strong></div>
+            <div class="manager-info-stat"><small>Status</small><strong>${player.isStarter?"Starting XI":"Substitute"}${player.wantsOut?" ⚠️":""}</strong></div>
+            <div class="manager-info-stat"><small>Season Goals</small><strong>${player.goalsSeason||0}</strong></div>
+            <div class="manager-info-stat"><small>Appearances</small><strong>${player.appearancesSeason||0}</strong></div>
+          </div>
+
+          <div class="manager-info-section-title">CONTRACT & VALUE</div>
+          <div class="manager-info-grid">
+            <div class="manager-info-stat"><small>Market Value</small><strong>${money(player.marketValue)}</strong></div>
+            <div class="manager-info-stat"><small>Weekly Wage</small><strong>${money(player.wage)}</strong></div>
+            <div class="manager-info-stat"><small>Contract</small><strong>${player.contractYears} yr</strong></div>
+            <div class="manager-info-stat"><small>Release Clause</small><strong>${money(player.releaseClause)}</strong></div>
+          </div>
+
+          <div class="manager-player-info-actions">
+            <button class="btn ${player.isStarter?"secondary":""}" data-manager-info-lineup="${player.id}" ${benchDisabled?"disabled":""}>
+              ${player.isStarter?"⬇ Bench Player":"⬆ Put in Starting XI"}
+            </button>
+            <button class="btn secondary" data-manager-info-list="${player.id}">
+              ${player.transferListed?"Remove From Transfer List":"List For Transfer"}
+            </button>
+            <button class="btn secondary" data-manager-info-renew="${player.id}">Renew Contract</button>
+          </div>
+          ${benchDisabled?`<p class="muted" style="font-size:11px;margin-top:8px">Start one of your substitutes to replace a player in the XI.</p>`:""}
+        </div>`;
+    }
+
+    function renderManagerSquad(){
+      const career=currentCareerSave(),panel=$('tab-manager-squad');
+      if(!panel)return;
+      if(!isManagerMode(career)){panel.innerHTML='';return}
+
+      const team=controlledCareerTeam(career),
+        fin=managerControlledFinance(career),
+        formation=managerCurrentFormation(career),
+        placed=managerPlaceStartingXI(team,formation),
+        bench=(team.managerSquad||[]).filter(p=>!p.isStarter).sort((a,b)=>b.overall-a.overall),
+        selected=managerSelectedSquadPlayer(team);
+
+      panel.innerHTML=`
+        <section class="career-hero">
+          ${teamLogo(team)}
+          <div>
+            <div class="startup-kicker">👥 TEAM MANAGEMENT</div>
+            <h1>${escapeHtml(team.name)}</h1>
+            <p class="muted">Your Starting XI directly determines your club overall.</p>
+          </div>
+          <div>
+            <div class="muted">TEAM OVR</div>
+            <div class="career-overall">${team.strength}</div>
+          </div>
+        </section>
+
+        ${managerTransferWindowBanner(career)}
+
+        <div class="manager-summary-grid">
+          <div class="manager-summary-card"><small>Transfer Budget</small><strong class="manager-money">${money(fin.budget)}</strong></div>
+          <div class="manager-summary-card"><small>Weekly Wages</small><strong>${money(fin.wageBill)}</strong></div>
+          <div class="manager-summary-card"><small>Starting XI</small><strong>${placed.length}/11</strong></div>
+          <div class="manager-summary-card"><small>Squad Size</small><strong>${team.managerSquad.length}</strong></div>
+        </div>
+
+        <div class="manager-squad-stage">
+          <section class="manager-formation-card">
+            <div class="manager-formation-header">
+              <div class="manager-formation-title">
+                <h2>Starting XI</h2>
+                <span class="manager-formation-tag">${formation}</span>
+              </div>
+              <div class="manager-formation-controls">
+                <select id="managerFormationSelect" class="manager-formation-select" aria-label="Formation">
+                  ${Object.keys(managerFormationDefinitions()).map(name=>`<option value="${name}" ${name===formation?"selected":""}>${name}</option>`).join("")}
+                </select>
+                <button class="btn secondary small" id="managerBestXiBtn">✨ Pick Best XI</button>
+              </div>
+            </div>
+
+            <div class="manager-pitch-wrap">
+              <div class="manager-pitch">
+                <div class="manager-pitch-lines">
+                  <span class="top-box"></span>
+                  <span class="bottom-box"></span>
+                  <span class="top-six"></span>
+                  <span class="bottom-six"></span>
+                  <span class="center-dot"></span>
+                </div>
+
+                ${placed.map(({player,slot,outOfPosition})=>`
+                  <button
+                    type="button"
+                    class="manager-pitch-player ${player.id===selected?.id?"selected":""} ${outOfPosition?"out-of-position":""}"
+                    data-manager-select-player="${player.id}"
+                    style="left:${slot.x}%;top:${slot.y}%"
+                    title="${escapeHtml(player.name)} · ${player.position} · ${player.overall} OVR"
+                  >
+                    <span class="manager-player-disc">
+                      <span class="pitch-pos">${escapeHtml(player.position)}</span>
+                      <span class="initials">${managerPlayerInitials(player.name)}</span>
+                      <span class="pitch-ovr">${player.overall}</span>
+                    </span>
+                    <span class="manager-pitch-name">${escapeHtml(player.name)}</span>
+                    <span class="manager-pitch-subline">
+                      <span>${Math.round(player.morale||70)>=75?"😊":Math.round(player.morale||70)<50?"😕":"●"}</span>
+                      ${outOfPosition?`<span style="color:#fbbf24">Out of pos.</span>`:`<span>${slot.label}</span>`}
+                    </span>
+                  </button>`).join("")}
+              </div>
+            </div>
+
+            <div class="manager-squad-hint">Click any player on the pitch or bench to open his information and squad actions.</div>
+          </section>
+
+          <aside class="manager-player-info-card">
+            <div class="manager-player-info-header">
+              <div>
+                <div class="startup-kicker">PLAYER INFO</div>
+                <strong>${selected?escapeHtml(selected.name):"Select Player"}</strong>
+              </div>
+              ${selected?`<span class="badge">${selected.position}</span>`:""}
+            </div>
+            ${managerPlayerInfoHtml(selected,team)}
+          </aside>
+        </div>
+
+        <section class="manager-bench-section">
+          <div class="manager-bench-header">
+            <div>
+              <h2>Substitutes</h2>
+              <span class="muted">${bench.length} player${bench.length===1?"":"s"} available</span>
+            </div>
+          </div>
+
+          <div class="manager-bench-grid">
+            ${bench.length?bench.map(player=>`
+              <button type="button" class="manager-bench-player ${player.id===selected?.id?"selected":""}" data-manager-select-player="${player.id}">
+                <span class="manager-bench-mini">${escapeHtml(player.position)}</span>
+                <span class="manager-bench-copy">
+                  <strong>${escapeHtml(player.name)}</strong>
+                  <small>Age ${player.age} · ${player.goalsSeason||0} goals${player.wantsOut?" · ⚠️ Wants out":""}</small>
+                </span>
+                <span class="manager-bench-ovr">${player.overall}</span>
+              </button>`).join(""):`<p class="muted">No substitutes available.</p>`}
+          </div>
+        </section>`;
+
+      panel.querySelectorAll('[data-manager-select-player]').forEach(button=>{
+        button.onclick=()=>{
+          managerSelectedSquadPlayerId=button.dataset.managerSelectPlayer;
+          renderManagerSquad();
+        };
+      });
+
+      panel.querySelectorAll('[data-manager-info-lineup]').forEach(button=>{
+        button.onclick=()=>managerToggleLineup(button.dataset.managerInfoLineup);
+      });
+
+      panel.querySelectorAll('[data-manager-info-list]').forEach(button=>{
+        button.onclick=()=>managerToggleTransferList(button.dataset.managerInfoList);
+      });
+
+      panel.querySelectorAll('[data-manager-info-renew]').forEach(button=>{
+        button.onclick=()=>managerRenewContract(button.dataset.managerInfoRenew);
+      });
+
+      $('managerFormationSelect')?.addEventListener('change',event=>{
+        career.manager.formation=event.target.value;
+        saveData(`Formation changed to ${event.target.value}`);
+        renderManagerSquad();
+      });
+
+      $('managerBestXiBtn')?.addEventListener('click',managerPickBestXI);
+    }
+
+    function managerPickBestXI(){
+      const career=currentCareerSave(),team=controlledCareerTeam(career);
+      if(!isManagerMode(career)||!team)return;
+
+      const formation=managerCurrentFormation(career);
+      const available=[...(team.managerSquad||[])];
+      const selected=[];
+
+      managerFormationSlots(formation).forEach(slot=>{
+        let bestIndex=-1;
+        let bestScore=-9999;
+        available.forEach((player,index)=>{
+          const score=managerFormationFitScore(player,slot);
+          if(score>bestScore){bestScore=score;bestIndex=index}
+        });
+        if(bestIndex>=0)selected.push(available.splice(bestIndex,1)[0]);
+      });
+
+      const selectedIds=new Set(selected.map(player=>player.id));
+      (team.managerSquad||[]).forEach(player=>player.isStarter=selectedIds.has(player.id));
+
+      managerRecalculateTeam(team);
+      managerUpdateWageBills(career);
+      managerSelectedSquadPlayerId=selected[0]?.id||managerSelectedSquadPlayerId;
+      saveData(`Best XI selected for ${formation}`);
+      renderManagerSquad();
+      renderCareerDashboard();
+      renderTeams();
+      showToast(`Best XI selected for ${formation}`);
+    }
+
     function managerToggleLineup(playerId){const career=currentCareerSave(),team=controlledCareerTeam(career),p=(team.managerSquad||[]).find(x=>x.id===playerId);if(!p)return;if(p.isStarter){if(team.managerSquad.filter(x=>x.isStarter).length<=11)return showToast('You need 11 starters.',true);p.isStarter=false}else{const starters=team.managerSquad.filter(x=>x.isStarter);if(starters.length>=11){const bench=starters.sort((a,b)=>a.overall-b.overall)[0];if(bench)bench.isStarter=false}p.isStarter=true}managerRecalculateTeam(team);saveData('Lineup updated');renderManagerSquad();renderCareerDashboard();renderTeams()}
     function managerToggleTransferList(playerId){const career=currentCareerSave(),p=managerPlayerById(playerId,career);if(!p)return;p.transferListed=!p.transferListed;if(p.transferListed)managerNotify(career,'Player Listed',`${p.name} is now available for transfer. Other clubs may send offers.`,'transfer');saveData(p.transferListed?'Player listed':'Player removed from transfer list');renderManagerSquad();renderManagerTransfers();renderManagerInbox()}
     function managerRenewContract(playerId){const career=currentCareerSave(),p=managerPlayerById(playerId,career);if(!p)return;const expected=managerExpectedWage(p),wage=Number(prompt(`Offer weekly wage for ${p.name}.\nExpected around ${money(expected)}.`,String(Math.max(expected,p.wage)))),years=Number(prompt('Contract length in years (1-5):','4'));if(!Number.isFinite(wage)||!Number.isFinite(years))return;const clause=Number(prompt('Release clause ($). Enter 0 for no clause:',String(Math.round(Math.max(p.releaseClause,managerPlayerValue(p)*1.4)))));if(wage<expected*.88){managerNotify(career,'Contract Rejected',`${p.name} rejected your ${money(wage)}/week offer.`,'contract');showToast('Contract offer rejected',true)}else{p.wage=Math.round(wage/5000)*5000;p.contractYears=clamp(Math.round(years),1,5);p.releaseClause=Math.max(0,Math.round(Number(clause||0)/1_000_000)*1_000_000);p.morale=Math.min(100,Number(p.morale||70)+8);p.wantsOut=false;managerNotify(career,'Contract Renewed',`${p.name} signed a ${p.contractYears}-year deal worth ${money(p.wage)}/week.`,'contract');showToast('Contract renewed')}managerUpdateWageBills(career);saveData('Contract decision saved');renderManagerSquad();renderManagerInbox();renderManagerFinances()}
