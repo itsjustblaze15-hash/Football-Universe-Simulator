@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.6";
+  content:"V60.7";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.6" !important;
+  content:"V60.7" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -6776,6 +6776,44 @@ body.manager-mode{--manager-money:#86efac}
   .manager-urgent-actions .btn{width:100%}
 }
 
+
+
+/* =========================================================
+   V60.7 — Manual Squad Swaps / Replacements
+   ========================================================= */
+.manager-pitch-player.swap-source .manager-player-disc,
+.manager-bench-player.swap-source{
+  border-color:#fbbf24 !important;
+  box-shadow:
+    0 0 0 4px rgba(245,158,11,.16),
+    0 10px 25px rgba(0,0,0,.32) !important;
+}
+.manager-pitch-player.swap-target .manager-player-disc,
+.manager-bench-player.swap-target{
+  border-color:#60a5fa !important;
+  box-shadow:
+    0 0 0 3px rgba(59,130,246,.12),
+    0 10px 25px rgba(0,0,0,.28) !important;
+}
+.manager-swap-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 14px 14px;
+  padding:11px 13px;
+  border-radius:12px;
+  color:#fde68a;
+  background:rgba(245,158,11,.08);
+  border:1px solid rgba(245,158,11,.22);
+}
+.manager-swap-banner strong{color:#fef3c7}
+.manager-swap-banner .btn{flex:0 0 auto}
+.manager-info-swap-btn{
+  background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(14,165,233,.10)) !important;
+  border-color:rgba(96,165,250,.28) !important;
+}
+
 </style>
 </head>
 <body>
@@ -6797,7 +6835,7 @@ body.manager-mode{--manager-money:#86efac}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.6</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.7</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -6866,7 +6904,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.6</p>
+          <p id="saveStatus">V60.7</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -7761,6 +7799,7 @@ body.manager-mode{--manager-money:#86efac}
     let pendingManagerBaseWorld = null;
     let pendingManagerImportedWorld = null;
     let managerSelectedSquadPlayerId = null;
+    let managerSwapSourcePlayerId = null;
     let managerImportantPopupQueue = [];
     let managerImportantPopupOpen = false;
 
@@ -9467,7 +9506,8 @@ body.manager-mode{--manager-money:#86efac}
         lastAiWindowKey:'',
         transferMarketSearch:'',
         transferMarketPosition:'all',
-        formation:'4-2-3-1'
+        formation:'4-2-3-1',
+        formationAssignments:{}
       };
 
       (career.teams||[]).forEach(team=>{
@@ -9527,6 +9567,7 @@ body.manager-mode{--manager-money:#86efac}
       career.manager.awards=Array.isArray(career.manager.awards)?career.manager.awards:[];
       career.manager.playerRetirements=Array.isArray(career.manager.playerRetirements)?career.manager.playerRetirements:[];
       career.manager.formation=career.manager.formation||'4-2-3-1';
+      career.manager.formationAssignments=career.manager.formationAssignments||{};
 
       const safeToUpgradeOldStartingSave=
         career.manager.realRosterVersion!==REAL_MANAGER_ROSTER_SNAPSHOT &&
@@ -10090,10 +10131,10 @@ body.manager-mode{--manager-money:#86efac}
       return score+Number(player.overall||0)*.55;
     }
 
-    function managerPlaceStartingXI(team,formation=managerCurrentFormation()){
+    function managerAutoFormationAssignments(team,formation=managerCurrentFormation()){
       const starters=(team.managerSquad||[]).filter(p=>p.isStarter);
       const remaining=[...starters];
-      const placed=[];
+      const assignments={};
 
       managerFormationSlots(formation).forEach(slot=>{
         let bestIndex=-1;
@@ -10102,18 +10143,155 @@ body.manager-mode{--manager-money:#86efac}
           const score=managerFormationFitScore(player,slot);
           if(score>bestScore){bestScore=score;bestIndex=index}
         });
-
         if(bestIndex>=0){
           const player=remaining.splice(bestIndex,1)[0];
-          placed.push({
-            player,
-            slot,
-            outOfPosition:!slot.preferred.includes(player.position)
-          });
+          assignments[slot.key]=player.id;
         }
       });
 
+      return assignments;
+    }
+
+    function managerEnsureFormationAssignments(career,team,formation=managerCurrentFormation(career)){
+      career.manager.formationAssignments=career.manager.formationAssignments||{};
+      const squadIds=new Set((team.managerSquad||[]).map(p=>p.id));
+      const slots=managerFormationSlots(formation);
+      const existing={...(career.manager.formationAssignments[formation]||{})};
+
+      // Remove stale / duplicate player references.
+      const used=new Set();
+      slots.forEach(slot=>{
+        const playerId=existing[slot.key];
+        if(!playerId||!squadIds.has(playerId)||used.has(playerId)){
+          delete existing[slot.key];
+        }else{
+          used.add(playerId);
+        }
+      });
+
+      // Prefer current starters for any empty slots.
+      const starters=(team.managerSquad||[])
+        .filter(p=>p.isStarter&&!used.has(p.id))
+        .sort((a,b)=>b.overall-a.overall);
+
+      slots.forEach(slot=>{
+        if(existing[slot.key])return;
+        if(!starters.length)return;
+
+        let bestIndex=0;
+        let bestScore=-9999;
+        starters.forEach((player,index)=>{
+          const score=managerFormationFitScore(player,slot);
+          if(score>bestScore){bestScore=score;bestIndex=index}
+        });
+        const chosen=starters.splice(bestIndex,1)[0];
+        existing[slot.key]=chosen.id;
+        used.add(chosen.id);
+      });
+
+      // If a save has fewer than 11 starters, use the best remaining squad players.
+      const remaining=(team.managerSquad||[])
+        .filter(p=>!used.has(p.id))
+        .sort((a,b)=>b.overall-a.overall);
+
+      slots.forEach(slot=>{
+        if(existing[slot.key])return;
+        if(!remaining.length)return;
+
+        let bestIndex=0;
+        let bestScore=-9999;
+        remaining.forEach((player,index)=>{
+          const score=managerFormationFitScore(player,slot);
+          if(score>bestScore){bestScore=score;bestIndex=index}
+        });
+        const chosen=remaining.splice(bestIndex,1)[0];
+        existing[slot.key]=chosen.id;
+        used.add(chosen.id);
+      });
+
+      // Lineup starter flags always match the 11 assigned slots.
+      const assignedIds=new Set(Object.values(existing));
+      (team.managerSquad||[]).forEach(player=>{
+        player.isStarter=assignedIds.has(player.id);
+      });
+
+      career.manager.formationAssignments[formation]=existing;
+      return existing;
+    }
+
+    function managerFormationSlotForPlayer(career,team,playerId,formation=managerCurrentFormation(career)){
+      const assignments=managerEnsureFormationAssignments(career,team,formation);
+      return Object.keys(assignments).find(key=>assignments[key]===playerId)||null;
+    }
+
+    function managerPlaceStartingXI(team,formation=managerCurrentFormation()){
+      const career=currentCareerSave();
+      const assignments=managerEnsureFormationAssignments(career,team,formation);
+      const byId=new Map((team.managerSquad||[]).map(player=>[player.id,player]));
+      const placed=[];
+
+      managerFormationSlots(formation).forEach(slot=>{
+        const player=byId.get(assignments[slot.key]);
+        if(!player)return;
+        placed.push({
+          player,
+          slot,
+          outOfPosition:!slot.preferred.includes(player.position)
+        });
+      });
+
       return placed;
+    }
+
+    function managerSwapPlayers(sourceId,targetId){
+      const career=currentCareerSave(),team=controlledCareerTeam(career);
+      if(!isManagerMode(career)||!team||!sourceId||!targetId||sourceId===targetId)return false;
+
+      const source=(team.managerSquad||[]).find(p=>p.id===sourceId);
+      const target=(team.managerSquad||[]).find(p=>p.id===targetId);
+      if(!source||!target)return false;
+
+      const formation=managerCurrentFormation(career);
+      const assignments=managerEnsureFormationAssignments(career,team,formation);
+      const sourceSlot=Object.keys(assignments).find(key=>assignments[key]===source.id)||null;
+      const targetSlot=Object.keys(assignments).find(key=>assignments[key]===target.id)||null;
+
+      // Starter <-> starter: exchange pitch positions.
+      if(sourceSlot&&targetSlot){
+        assignments[sourceSlot]=target.id;
+        assignments[targetSlot]=source.id;
+      }
+      // Starter <-> bench: substitute directly into that exact slot.
+      else if(sourceSlot&&!targetSlot){
+        assignments[sourceSlot]=target.id;
+        source.isStarter=false;
+        target.isStarter=true;
+      }
+      else if(!sourceSlot&&targetSlot){
+        assignments[targetSlot]=source.id;
+        source.isStarter=true;
+        target.isStarter=false;
+      }
+      // Bench <-> bench has no visible formation effect.
+      else{
+        showToast("Pick a Starting XI player to replace or swap.",true);
+        return false;
+      }
+
+      career.manager.formationAssignments[formation]=assignments;
+      const assignedIds=new Set(Object.values(assignments));
+      (team.managerSquad||[]).forEach(player=>player.isStarter=assignedIds.has(player.id));
+
+      managerRecalculateTeam(team);
+      managerUpdateWageBills(career);
+      managerSelectedSquadPlayerId=target.id;
+      managerSwapSourcePlayerId=null;
+      saveData("Squad swap saved");
+      renderManagerSquad();
+      renderCareerDashboard();
+      renderTeams();
+      showToast("Squad updated");
+      return true;
     }
 
     function managerSelectedSquadPlayer(team){
@@ -10159,6 +10337,9 @@ body.manager-mode{--manager-money:#86efac}
           </div>
 
           <div class="manager-player-info-actions">
+            <button class="btn manager-info-swap-btn" data-manager-info-swap="${player.id}">
+              🔁 Swap / Replace Player
+            </button>
             <button class="btn ${player.isStarter?"secondary":""}" data-manager-info-lineup="${player.id}" ${benchDisabled?"disabled":""}>
               ${player.isStarter?"⬇ Bench Player":"⬆ Put in Starting XI"}
             </button>
@@ -10234,7 +10415,7 @@ body.manager-mode{--manager-money:#86efac}
                 ${placed.map(({player,slot,outOfPosition})=>`
                   <button
                     type="button"
-                    class="manager-pitch-player ${player.id===selected?.id?"selected":""} ${outOfPosition?"out-of-position":""}"
+                    class="manager-pitch-player ${player.id===selected?.id?"selected":""} ${outOfPosition?"out-of-position":""} ${player.id===managerSwapSourcePlayerId?"swap-source":managerSwapSourcePlayerId?"swap-target":""}"
                     data-manager-select-player="${player.id}"
                     style="left:${slot.x}%;top:${slot.y}%"
                     title="${escapeHtml(player.name)} · ${player.position} · ${player.overall} OVR"
@@ -10253,7 +10434,12 @@ body.manager-mode{--manager-money:#86efac}
               </div>
             </div>
 
-            <div class="manager-squad-hint">Click any player on the pitch or bench to open his information and squad actions.</div>
+            ${managerSwapSourcePlayerId?`
+              <div class="manager-swap-banner">
+                <span><strong>Swap mode:</strong> Now click the player you want to swap with or replace.</span>
+                <button class="btn secondary small" id="managerCancelSwapBtn">Cancel</button>
+              </div>`
+              :`<div class="manager-squad-hint">Click any player on the pitch or bench to open his information and squad actions.</div>`}
           </section>
 
           <aside class="manager-player-info-card">
@@ -10278,7 +10464,7 @@ body.manager-mode{--manager-money:#86efac}
 
           <div class="manager-bench-grid">
             ${bench.length?bench.map(player=>`
-              <button type="button" class="manager-bench-player ${player.id===selected?.id?"selected":""}" data-manager-select-player="${player.id}">
+              <button type="button" class="manager-bench-player ${player.id===selected?.id?"selected":""} ${player.id===managerSwapSourcePlayerId?"swap-source":managerSwapSourcePlayerId?"swap-target":""}" data-manager-select-player="${player.id}">
                 <span class="manager-bench-mini">${escapeHtml(player.position)}</span>
                 <span class="manager-bench-copy">
                   <strong>${escapeHtml(player.name)}</strong>
@@ -10291,9 +10477,32 @@ body.manager-mode{--manager-money:#86efac}
 
       panel.querySelectorAll('[data-manager-select-player]').forEach(button=>{
         button.onclick=()=>{
-          managerSelectedSquadPlayerId=button.dataset.managerSelectPlayer;
+          const playerId=button.dataset.managerSelectPlayer;
+          if(managerSwapSourcePlayerId){
+            if(playerId===managerSwapSourcePlayerId){
+              managerSwapSourcePlayerId=null;
+              renderManagerSquad();
+              return;
+            }
+            managerSwapPlayers(managerSwapSourcePlayerId,playerId);
+            return;
+          }
+          managerSelectedSquadPlayerId=playerId;
           renderManagerSquad();
         };
+      });
+
+      panel.querySelectorAll('[data-manager-info-swap]').forEach(button=>{
+        button.onclick=()=>{
+          managerSwapSourcePlayerId=button.dataset.managerInfoSwap;
+          managerSelectedSquadPlayerId=button.dataset.managerInfoSwap;
+          renderManagerSquad();
+        };
+      });
+
+      $('managerCancelSwapBtn')?.addEventListener('click',()=>{
+        managerSwapSourcePlayerId=null;
+        renderManagerSquad();
       });
 
       panel.querySelectorAll('[data-manager-info-lineup]').forEach(button=>{
@@ -10310,6 +10519,8 @@ body.manager-mode{--manager-money:#86efac}
 
       $('managerFormationSelect')?.addEventListener('change',event=>{
         career.manager.formation=event.target.value;
+        managerSwapSourcePlayerId=null;
+        managerEnsureFormationAssignments(career,team,event.target.value);
         saveData(`Formation changed to ${event.target.value}`);
         renderManagerSquad();
       });
@@ -10323,7 +10534,7 @@ body.manager-mode{--manager-money:#86efac}
 
       const formation=managerCurrentFormation(career);
       const available=[...(team.managerSquad||[])];
-      const selected=[];
+      const assignments={};
 
       managerFormationSlots(formation).forEach(slot=>{
         let bestIndex=-1;
@@ -10332,15 +10543,22 @@ body.manager-mode{--manager-money:#86efac}
           const score=managerFormationFitScore(player,slot);
           if(score>bestScore){bestScore=score;bestIndex=index}
         });
-        if(bestIndex>=0)selected.push(available.splice(bestIndex,1)[0]);
+        if(bestIndex>=0){
+          const chosen=available.splice(bestIndex,1)[0];
+          assignments[slot.key]=chosen.id;
+        }
       });
 
-      const selectedIds=new Set(selected.map(player=>player.id));
+      career.manager.formationAssignments=career.manager.formationAssignments||{};
+      career.manager.formationAssignments[formation]=assignments;
+
+      const selectedIds=new Set(Object.values(assignments));
       (team.managerSquad||[]).forEach(player=>player.isStarter=selectedIds.has(player.id));
 
       managerRecalculateTeam(team);
       managerUpdateWageBills(career);
-      managerSelectedSquadPlayerId=selected[0]?.id||managerSelectedSquadPlayerId;
+      managerSelectedSquadPlayerId=Object.values(assignments)[0]||managerSelectedSquadPlayerId;
+      managerSwapSourcePlayerId=null;
       saveData(`Best XI selected for ${formation}`);
       renderManagerSquad();
       renderCareerDashboard();
@@ -10348,7 +10566,28 @@ body.manager-mode{--manager-money:#86efac}
       showToast(`Best XI selected for ${formation}`);
     }
 
-    function managerToggleLineup(playerId){const career=currentCareerSave(),team=controlledCareerTeam(career),p=(team.managerSquad||[]).find(x=>x.id===playerId);if(!p)return;if(p.isStarter){if(team.managerSquad.filter(x=>x.isStarter).length<=11)return showToast('You need 11 starters.',true);p.isStarter=false}else{const starters=team.managerSquad.filter(x=>x.isStarter);if(starters.length>=11){const bench=starters.sort((a,b)=>a.overall-b.overall)[0];if(bench)bench.isStarter=false}p.isStarter=true}managerRecalculateTeam(team);saveData('Lineup updated');renderManagerSquad();renderCareerDashboard();renderTeams()}
+    function managerToggleLineup(playerId){
+      const career=currentCareerSave(),team=controlledCareerTeam(career),p=managerPlayerById(playerId,career);
+      if(!p||!team)return;
+
+      const formation=managerCurrentFormation(career);
+      const assignments=managerEnsureFormationAssignments(career,team,formation);
+      const playerSlot=Object.keys(assignments).find(key=>assignments[key]===playerId)||null;
+
+      if(playerSlot){
+        showToast("Use Swap / Replace to choose who takes this player's spot.",true);
+        managerSelectedSquadPlayerId=playerId;
+        managerSwapSourcePlayerId=playerId;
+        renderManagerSquad();
+        return;
+      }
+
+      managerSelectedSquadPlayerId=playerId;
+      managerSwapSourcePlayerId=playerId;
+      renderManagerSquad();
+      showToast("Now click a Starting XI player to replace.");
+    }
+
     function managerToggleTransferList(playerId){const career=currentCareerSave(),p=managerPlayerById(playerId,career);if(!p)return;p.transferListed=!p.transferListed;if(p.transferListed)managerNotify(career,'Player Listed',`${p.name} is now available for transfer. Other clubs may send offers.`,'transfer');saveData(p.transferListed?'Player listed':'Player removed from transfer list');renderManagerSquad();renderManagerTransfers();renderManagerInbox()}
     function managerRenewContract(playerId){
       const career=currentCareerSave(),p=managerPlayerById(playerId,career);
