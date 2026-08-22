@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.17";
+  content:"V60.19";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.17" !important;
+  content:"V60.19" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7491,6 +7491,158 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
   .competition-row.competition-reorderable{padding-right:48px}
 }
 
+
+
+/* V60.18 — compact competition qualification/waiting status */
+.competition-row .competition-status-pill{
+  display:inline-flex !important;
+  align-items:flex-start;
+  gap:4px;
+  max-width:100% !important;
+  width:fit-content;
+  padding:5px 8px !important;
+  font-size:clamp(9px,.72vw,11px) !important;
+  line-height:1.18 !important;
+  font-weight:850 !important;
+  letter-spacing:0 !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  vertical-align:top;
+}
+.competition-row > div:nth-child(2){
+  min-width:0 !important;
+  max-width:100%;
+}
+.competition-row > div:nth-child(2) > div[style*="margin-top:6px"]{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+}
+@media(max-width:900px){
+  .competition-row .competition-status-pill{
+    font-size:9px !important;
+    padding:4px 7px !important;
+  }
+}
+
+
+
+/* =========================================================
+   V60.19 — live competition top scorers / assists
+   ========================================================= */
+.competition-player-leaders-card{
+  overflow:hidden;
+}
+.competition-player-leaders-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+.competition-player-leaders-head h2{
+  margin:3px 0 0;
+  font-size:18px;
+}
+.competition-player-leaders-head .badge{
+  font-size:9px;
+  padding:5px 7px;
+  white-space:nowrap;
+}
+.competition-leader-section h3{
+  margin:0 0 8px;
+  font-size:14px;
+}
+.competition-leader-list{
+  display:grid;
+  gap:6px;
+}
+.competition-leader-row{
+  display:grid;
+  grid-template-columns:22px 38px minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  min-width:0;
+  padding:7px 8px;
+  border-radius:11px;
+  border:1px solid rgba(164,214,181,.12);
+  background:rgba(255,255,255,.025);
+}
+.competition-leader-rank{
+  text-align:center;
+  font-weight:950;
+  color:var(--muted);
+  font-size:12px;
+}
+.competition-leader-row:first-child .competition-leader-rank{
+  color:var(--gold);
+}
+.competition-leader-face{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  background:#0b1b33;
+  border:1px solid rgba(255,255,255,.16);
+}
+.competition-leader-face .manager-player-photo{
+  width:40px!important;
+  height:40px!important;
+  display:block!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  margin:auto!important;
+}
+.competition-leader-fallback{
+  font-size:10px;
+  font-weight:950;
+  color:#dbeafe;
+}
+.competition-leader-copy{
+  min-width:0;
+}
+.competition-leader-copy strong,
+.competition-leader-copy small{
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.competition-leader-copy strong{
+  font-size:12px;
+}
+.competition-leader-copy small{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:10px;
+}
+.competition-leader-stat{
+  min-width:31px;
+  text-align:center;
+  font-size:17px;
+  font-weight:950;
+  color:#f4fff7;
+}
+.competition-leader-stat small{
+  display:block;
+  margin-top:-2px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:800;
+}
+.competition-leader-divider{
+  height:1px;
+  margin:12px 0;
+  background:var(--border);
+}
+.competition-leader-empty{
+  margin:0;
+  font-size:11px;
+}
+
 </style>
 </head>
 <body>
@@ -7512,7 +7664,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.17</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.19</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7581,7 +7733,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.17</p>
+          <p id="saveStatus">V60.19</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -10488,6 +10640,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         freeAgents:[],
         clubFinances:{},
         teamSeasonStats:{},
+        competitionPlayerStats:{},
         clubPlayerTotals:{},
         clubRecords:{},
         transferHistory:[],
@@ -10565,6 +10718,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       career.manager.freeAgents=Array.isArray(career.manager.freeAgents)?career.manager.freeAgents:[];
       career.manager.clubFinances=career.manager.clubFinances||{};
       career.manager.teamSeasonStats=career.manager.teamSeasonStats||{};
+      career.manager.competitionPlayerStats=career.manager.competitionPlayerStats||{};
       career.manager.clubPlayerTotals=career.manager.clubPlayerTotals||{};
       career.manager.clubRecords=career.manager.clubRecords||{};
       career.manager.transferHistory=Array.isArray(career.manager.transferHistory)?career.manager.transferHistory:[];
@@ -13022,9 +13176,138 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       return pool[pool.length-1];
     }
     function managerScorerIds(teamId,goals,career=currentCareerSave()){return Array.from({length:Number(goals||0)},()=>managerPickScorer(teamId,career)?.id||null)}
+
+    function managerCompetitionStatBook(career,comp){
+      if(!isManagerMode(career)||!comp)return null;
+      career.manager.competitionPlayerStats=career.manager.competitionPlayerStats||{};
+      career.manager.competitionPlayerStats[comp.id]=career.manager.competitionPlayerStats[comp.id]||{};
+
+      const seasonKey=String(Number(comp.season||career.worldSeason||1));
+      const book=career.manager.competitionPlayerStats[comp.id][seasonKey]||{
+        competitionId:comp.id,
+        competitionName:comp.name,
+        season:Number(comp.season||career.worldSeason||1),
+        playerGoals:{},
+        playerAssists:{},
+        playerAppearances:{},
+        playerNames:{},
+        playerTeamIds:{}
+      };
+
+      book.competitionName=comp.name;
+      book.playerGoals=book.playerGoals||{};
+      book.playerAssists=book.playerAssists||{};
+      book.playerAppearances=book.playerAppearances||{};
+      book.playerNames=book.playerNames||{};
+      book.playerTeamIds=book.playerTeamIds||{};
+
+      career.manager.competitionPlayerStats[comp.id][seasonKey]=book;
+      return book;
+    }
+
+    function managerCompetitionLeaders(comp,career=currentCareerSave(),field="goals",limit=5){
+      if(!isManagerMode(career)||!comp)return [];
+      const seasonKey=String(Number(comp.season||career.worldSeason||1));
+      const book=career.manager.competitionPlayerStats?.[comp.id]?.[seasonKey];
+      if(!book)return [];
+
+      const source=field==="assists"?book.playerAssists:book.playerGoals;
+      const secondary=field==="assists"?book.playerGoals:book.playerAssists;
+      const ids=new Set([
+        ...Object.keys(book.playerGoals||{}),
+        ...Object.keys(book.playerAssists||{}),
+        ...Object.keys(book.playerAppearances||{})
+      ]);
+
+      return [...ids].map(playerId=>{
+        const active=managerPlayerById(playerId,career);
+        const teamId=book.playerTeamIds?.[playerId]||managerPlayerClub(playerId,career)?.id||null;
+        return {
+          playerId,
+          name:book.playerNames?.[playerId]||active?.name||"Unknown Player",
+          teamId,
+          teamName:teamId?teamName(teamId):"Free Agent",
+          goals:Number(book.playerGoals?.[playerId]||0),
+          assists:Number(book.playerAssists?.[playerId]||0),
+          appearances:Number(book.playerAppearances?.[playerId]||0),
+          value:Number(source?.[playerId]||0),
+          secondary:Number(secondary?.[playerId]||0),
+          overall:Number(active?.overall||0)
+        };
+      })
+      .filter(row=>row.value>0)
+      .sort((a,b)=>
+        b.value-a.value ||
+        b.secondary-a.secondary ||
+        b.appearances-a.appearances ||
+        b.overall-a.overall ||
+        a.name.localeCompare(b.name)
+      )
+      .slice(0,limit);
+    }
+
+    function managerCompetitionLeaderFace(row){
+      const career=currentCareerSave();
+      const player=managerPlayerById(row.playerId,career)||{
+        name:row.name,
+        position:"",
+        overall:row.overall||0
+      };
+      return managerPlayerPhoto(row.name)
+        ?managerPlayerFaceHtml(player,"bench")
+        :`<span class="competition-leader-fallback">${escapeHtml(managerPlayerInitials(row.name))}</span>`;
+    }
+
+    function managerCompetitionLeadersHtml(comp,career=currentCareerSave()){
+      if(!isManagerMode(career))return "";
+
+      const scorers=managerCompetitionLeaders(comp,career,"goals",5);
+      const assisters=managerCompetitionLeaders(comp,career,"assists",5);
+
+      const rows=(list,type)=>list.length
+        ?list.map((row,index)=>`
+          <div class="competition-leader-row">
+            <div class="competition-leader-rank">${index+1}</div>
+            <div class="competition-leader-face">${managerCompetitionLeaderFace(row)}</div>
+            <div class="competition-leader-copy">
+              <strong>${escapeHtml(row.name)}</strong>
+              <small>${escapeHtml(row.teamName)}</small>
+            </div>
+            <div class="competition-leader-stat">
+              ${type==="goals"?row.goals:row.assists}
+              <small>${type==="goals"?"G":"A"}</small>
+            </div>
+          </div>`).join("")
+        :`<p class="muted competition-leader-empty">No ${type==="goals"?"goals":"assists"} recorded yet.</p>`;
+
+      return `
+        <div class="card competition-player-leaders-card">
+          <div class="competition-player-leaders-head">
+            <div>
+              <div class="muted">📈 Live Player Stats</div>
+              <h2>Competition Leaders</h2>
+            </div>
+            <span class="badge">Updates every match</span>
+          </div>
+
+          <div class="competition-leader-section">
+            <h3>⚽ Top Scorers</h3>
+            <div class="competition-leader-list">${rows(scorers,"goals")}</div>
+          </div>
+
+          <div class="competition-leader-divider"></div>
+
+          <div class="competition-leader-section">
+            <h3>🎯 Top Assists</h3>
+            <div class="competition-leader-list">${rows(assisters,"assists")}</div>
+          </div>
+        </div>`;
+    }
+
     function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null){
       const career=currentCareerSave();
       if(!isManagerMode(career))return;
+      const compBook=managerCompetitionStatBook(career,comp);
 
       [[game.homeId,hg,game.awayId],[game.awayId,ag,game.homeId]].forEach(([teamId,goals,oppId],sideIndex)=>{
         const team=managerTeam(teamId,career);
@@ -13047,6 +13330,11 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           p.appearancesCareer=(p.appearancesCareer||0)+1;
           stats.playerAppearances[p.id]=(stats.playerAppearances[p.id]||0)+1;
           stats.playerNames[p.id]=p.name;
+          if(compBook){
+            compBook.playerAppearances[p.id]=(compBook.playerAppearances[p.id]||0)+1;
+            compBook.playerNames[p.id]=p.name;
+            compBook.playerTeamIds[p.id]=teamId;
+          }
           totals[p.id]=totals[p.id]||{playerId:p.id,name:p.name,goals:0,assists:0,appearances:0,honours:[]};
           totals[p.id].name=p.name;
           totals[p.id].assists=Number(totals[p.id].assists||0);
@@ -13066,6 +13354,11 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           scorer.goalsCareer=(scorer.goalsCareer||0)+1;
           stats.playerGoals[id]=(stats.playerGoals[id]||0)+1;
           stats.playerNames[id]=scorer.name;
+          if(compBook){
+            compBook.playerGoals[id]=(compBook.playerGoals[id]||0)+1;
+            compBook.playerNames[id]=scorer.name;
+            compBook.playerTeamIds[id]=teamId;
+          }
 
           totals[id]=totals[id]||{playerId:id,name:scorer.name,goals:0,assists:0,appearances:0,honours:[]};
           totals[id].name=scorer.name;
@@ -13083,6 +13376,11 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
               assister.assistsCareer=(assister.assistsCareer||0)+1;
               stats.playerAssists[assister.id]=(stats.playerAssists[assister.id]||0)+1;
               stats.playerNames[assister.id]=assister.name;
+              if(compBook){
+                compBook.playerAssists[assister.id]=(compBook.playerAssists[assister.id]||0)+1;
+                compBook.playerNames[assister.id]=assister.name;
+                compBook.playerTeamIds[assister.id]=teamId;
+              }
 
               totals[assister.id]=totals[assister.id]||{playerId:assister.id,name:assister.name,goals:0,assists:0,appearances:0,honours:[]};
               totals[assister.id].name=assister.name;
@@ -16591,7 +16889,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
                   <div style="margin-top:6px">
                     ${lockedByWorldCup
                       ? `<span class="badge locked-world-cup-badge">Locked during World Cup</span>`
-                      : `<span class="badge ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : `⏳ ${escapeHtml(competitionWaitingMessage(world,comp))}`}</span>`}
+                      : `<span class="badge competition-status-pill ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : `⏳ ${escapeHtml(competitionWaitingMessage(world,comp))}`}</span>`}
                   </div>
                   ${competitionChampionChipHtml(comp, world)}
                 </div>
@@ -17299,6 +17597,8 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
                 <p class="muted">No matches played yet.</p>
               </div>
             `}
+
+            ${managerCompetitionLeadersHtml(comp,world)}
 
             ${currentWorld().history.some(h => h.competitionId === comp.id) ? `
               <div class="card"><div class="grid" style="gap:9px">
