@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.20";
+  content:"V60.21";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.20" !important;
+  content:"V60.21" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7703,7 +7703,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.20</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.21</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7772,7 +7772,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.20</p>
+          <p id="saveStatus">V60.21</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -16925,11 +16925,11 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
                 <div>
                   <strong>${escapeHtml(comp.name)}</strong>
                   <div class="muted">${escapeHtml(visual.label)} · Season ${comp.season}</div>
-                  <div style="margin-top:6px">
-                    ${lockedByWorldCup
-                      ? `<span class="badge locked-world-cup-badge">Locked during World Cup</span>`
-                      : `<span class="badge competition-status-pill ${comp.finished ? "status-finished" : ""}">${comp.finished ? "🏆 Season Complete" : `⏳ ${escapeHtml(competitionWaitingMessage(world,comp))}`}</span>`}
-                  </div>
+                  ${lockedByWorldCup
+                    ? `<div style="margin-top:6px"><span class="badge locked-world-cup-badge">Locked during World Cup</span></div>`
+                    : comp.finished
+                      ? `<div style="margin-top:6px"><span class="badge status-finished">🏆 Season Complete</span></div>`
+                      : ""}
                   ${competitionChampionChipHtml(comp, world)}
                 </div>
                 <div class="actions competition-card-actions">
