@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.15";
+  content:"V60.16";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.15" !important;
+  content:"V60.16" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7339,6 +7339,58 @@ body.manager-mode{--manager-money:#86efac}
   margin-bottom:10px;
 }
 
+
+
+/* V60.16 — center Player Records ranks + player portraits */
+.player-record-world-row{
+  grid-template-columns:64px 64px minmax(0,1fr) auto !important;
+  align-items:center !important;
+}
+.player-record-world-row > :first-child{
+  width:64px;
+  min-width:64px;
+  display:grid !important;
+  place-items:center !important;
+  text-align:center !important;
+  line-height:1 !important;
+  justify-self:center;
+  align-self:center;
+}
+.player-record-avatar{
+  width:56px;
+  height:56px;
+  justify-self:center;
+  align-self:center;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+.player-record-avatar .mgr-player-face,
+.player-record-avatar .manager-player-face,
+.player-record-avatar .mgr-player-face-bench,
+.player-record-avatar .manager-player-photo{
+  width:56px !important;
+  height:56px !important;
+  display:grid !important;
+  place-items:center !important;
+  margin:0 !important;
+}
+.player-record-avatar img,
+.player-record-avatar .manager-player-photo img,
+.player-record-avatar .mgr-player-face img,
+.player-record-avatar .manager-player-face img,
+.player-record-avatar .manager-player-photo{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center center !important;
+  display:block !important;
+  margin:auto !important;
+}
+.player-record-name{
+  align-self:center;
+}
+
 </style>
 </head>
 <body>
@@ -7360,7 +7412,7 @@ body.manager-mode{--manager-money:#86efac}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.15</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.16</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7429,7 +7481,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.15</p>
+          <p id="saveStatus">V60.16</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
