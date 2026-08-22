@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.29";
+  content:"V60.30";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.29" !important;
+  content:"V60.30" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7811,6 +7811,73 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
   }
 }
 
+
+
+/* =========================================================
+   V60.30 — Latest Transfers tab + logo routes + finance signs
+   ========================================================= */
+.manager-transfer-club-mark{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  overflow:hidden;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 7px 16px rgba(0,0,0,.18);
+}
+.manager-transfer-club-mark img{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  object-position:center;
+  display:block;
+}
+.manager-transfer-club-initials{
+  background:var(--club-mark-color,#214a78);
+  color:#fff;
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:.03em;
+}
+.manager-transfer-free-agent{
+  min-width:74px;
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 8px;
+  border-radius:10px;
+  border:1px dashed rgba(148,163,184,.35);
+  background:rgba(148,163,184,.07);
+  color:#cbd5e1;
+  font-size:10px;
+  font-weight:900;
+  text-align:center;
+}
+.manager-global-transfer-route{
+  grid-template-columns:auto 26px auto !important;
+  justify-content:center;
+  gap:9px !important;
+}
+.manager-global-transfer-route b{
+  font-size:20px;
+  line-height:1;
+}
+.manager-ledger-expense{
+  color:#ff6b6b !important;
+  font-weight:1000;
+}
+.manager-ledger-income{
+  color:#76f0a6 !important;
+  font-weight:1000;
+}
+.manager-ledger-neutral{
+  color:#f8fafc;
+  font-weight:1000;
+}
+
 </style>
 </head>
 <body>
@@ -7832,7 +7899,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.29</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.30</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7901,7 +7968,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.29</p>
+          <p id="saveStatus">V60.30</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -13355,6 +13422,31 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       return career.teams?.find(team=>team.id===teamId)?.name||'Unknown Club';
     }
 
+    function managerTransferClubMark(career,teamId){
+      if(teamId==null){
+        return `<span class="manager-transfer-free-agent">Free Agent</span>`;
+      }
+
+      const team=(career.teams||[]).find(item=>item.id===teamId);
+      if(!team){
+        return `<span class="manager-transfer-free-agent">Unknown</span>`;
+      }
+
+      const title=escapeHtml(team.name);
+      if(team.logoData){
+        return `<span class="manager-transfer-club-mark" title="${title}" aria-label="${title}">
+          <img src="${team.logoData}" alt="${title} logo">
+        </span>`;
+      }
+
+      return `<span
+        class="manager-transfer-club-mark manager-transfer-club-initials"
+        title="${title}"
+        aria-label="${title}"
+        style="--club-mark-color:${escapeHtml(team.color||'#214a78')}"
+      >${escapeHtml(initials(team.name))}</span>`;
+    }
+
     function managerLatestTransfersHtml(career,limit=30){
       const rows=[...(career.manager.transferHistory||[])]
         .sort((a,b)=>Number(b.timestamp||0)-Number(a.timestamp||0))
@@ -13373,30 +13465,38 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <div>
             <div class="startup-kicker">🌍 ALL CLUBS</div>
             <h2>Latest Transfers</h2>
-            <p class="muted">Completed deals across the entire Manager world — not just your club.</p>
+            <p class="muted">Completed deals across the entire Manager world.</p>
           </div>
           <span class="badge">${rows.length} latest</span>
         </div>
 
         <div class="manager-global-transfer-list">
           ${rows.map(deal=>{
-            const player=managerPlayerById(deal.playerId,career)||{name:deal.playerName||'Unknown',position:'',overall:0};
-            const fromName=managerTransferTeamLabel(career,deal.fromId);
-            const toName=managerTransferTeamLabel(career,deal.toId);
+            const player=managerPlayerById(deal.playerId,career)||{
+              name:deal.playerName||'Unknown',
+              position:'',
+              overall:0
+            };
             const fee=Number(deal.fee||0);
+
             return `<div class="manager-global-transfer-row">
               <div class="manager-global-transfer-face">
-                ${managerPlayerPhoto(player.name)?managerPlayerFaceHtml(player,'bench'):`<span>${escapeHtml(managerPlayerInitials(player.name))}</span>`}
+                ${managerPlayerPhoto(player.name)
+                  ?managerPlayerFaceHtml(player,'bench')
+                  :`<span>${escapeHtml(managerPlayerInitials(player.name))}</span>`}
               </div>
+
               <div class="manager-global-transfer-player">
                 <strong>${escapeHtml(deal.playerName||player.name)}</strong>
                 <small>${escapeHtml(seasonDisplay(deal.season||career.worldSeason||1))} · ${escapeHtml(deal.reason||'Transfer')}</small>
               </div>
-              <div class="manager-global-transfer-route">
-                <span>${escapeHtml(fromName)}</span>
+
+              <div class="manager-global-transfer-route" aria-label="${escapeHtml(managerTransferTeamLabel(career,deal.fromId))} to ${escapeHtml(managerTransferTeamLabel(career,deal.toId))}">
+                ${managerTransferClubMark(career,deal.fromId)}
                 <b>→</b>
-                <span>${escapeHtml(toName)}</span>
+                ${managerTransferClubMark(career,deal.toId)}
               </div>
+
               <div class="manager-global-transfer-fee ${fee===0?'free':''}">
                 ${fee>0?money(fee):'FREE'}
               </div>
@@ -13405,7 +13505,6 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         </div>
       </section>`;
     }
-
     function managerTransferSearchHasCriteria(career){
       return Boolean(
         String(career.manager.transferMarketPlayerSearch||'').trim() ||
@@ -13502,6 +13601,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <div class="manager-transfer-hub-tabs">
             <button class="btn ${view==='search'?'':'secondary'} small" id="managerMarketSearchTab">🔍 Player Search</button>
             <button class="btn ${view==='shortlist'?'':'secondary'} small" id="managerMarketShortlistTab">⭐ Shortlist (${(career.manager.shortlist||[]).length})</button>
+            <button class="btn ${view==='latest'?'':'secondary'} small" id="managerMarketLatestTab">🌍 Latest Transfers</button>
           </div>
           ${view==='search'?`
             <div class="manager-transfer-search-grid">
@@ -13536,8 +13636,9 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
               <button class="btn secondary" id="managerClearPlayerSearch">Clear</button>
             </div>`:''}
         </div>
-        ${managerLatestTransfersHtml(career,30)}
-        <div class="manager-market-list" style="margin-top:14px">${listHtml}</div>`;
+        ${view==='latest'
+          ?managerLatestTransfersHtml(career,40)
+          :`<div class="manager-market-list" style="margin-top:14px">${listHtml}</div>`}`;
 
       const syncSearchState=()=>{
         career.manager.transferMarketPlayerSearch=$('managerTransferPlayerSearch')?.value||'';
@@ -13546,8 +13647,21 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         career.manager.transferMarketNationality=$('managerTransferNationality')?.value||'all';
       };
 
-      $('managerMarketSearchTab')?.addEventListener('click',()=>{career.manager.transferMarketView='search';persistDataSilently();renderManagerTransfers()});
-      $('managerMarketShortlistTab')?.addEventListener('click',()=>{career.manager.transferMarketView='shortlist';persistDataSilently();renderManagerTransfers()});
+      $('managerMarketSearchTab')?.addEventListener('click',()=>{
+        career.manager.transferMarketView='search';
+        persistDataSilently();
+        renderManagerTransfers();
+      });
+      $('managerMarketShortlistTab')?.addEventListener('click',()=>{
+        career.manager.transferMarketView='shortlist';
+        persistDataSilently();
+        renderManagerTransfers();
+      });
+      $('managerMarketLatestTab')?.addEventListener('click',()=>{
+        career.manager.transferMarketView='latest';
+        persistDataSilently();
+        renderManagerTransfers();
+      });
       $('managerRunPlayerSearch')?.addEventListener('click',()=>{syncSearchState();persistDataSilently();renderManagerTransfers()});
       $('managerTransferPlayerSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){syncSearchState();persistDataSilently();renderManagerTransfers()}});
       $('managerClearPlayerSearch')?.addEventListener('click',()=>{
@@ -14195,26 +14309,62 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
     function managerInboxActionsHtml(note){const a=note.actions;if(!a||a.kind!=='incoming-offer'||a.status!=='pending'||a.releaseClause)return '';return `<div class="manager-inbox-actions"><button class="btn success small" data-offer-accept="${note.id}">Accept</button><button class="btn secondary small" data-offer-negotiate="${note.id}">Negotiate</button><button class="btn danger small" data-offer-reject="${note.id}">Reject</button></div>`}
     function managerResolveIncomingOffer(noteId,choice){const career=currentCareerSave(),note=career.manager.inbox.find(n=>n.id===noteId),a=note?.actions;if(!a||a.status!=='pending')return;const p=managerPlayerById(a.playerId,career),buyer=managerTeam(a.buyerId,career);if(!p||!buyer)return;if(choice==='reject'){a.status='rejected';note.message+=` You rejected ${buyer.name}'s offer.`;p.morale=Math.max(25,Number(p.morale||70)-(p.wantsOut?12:4))}else{let fee=Number(a.fee);if(choice==='negotiate'){const counter=Number(prompt(`Counter offer to ${buyer.name}:`,String(Math.round(fee*1.12/1_000_000)*1_000_000)));if(!Number.isFinite(counter))return;if(counter>fee*1.22){a.status='walked';note.message+=` ${buyer.name} walked away from your ${money(counter)} counteroffer.`;saveData('Offer negotiation ended');renderManagerInbox();return}fee=counter}const buyerFin=career.manager.clubFinances[buyer.id];if(!buyerFin||buyerFin.budget<fee){a.status='walked';note.message+=` ${buyer.name} could not fund the deal.`}else{managerCompleteTransfer(career,p.id,career.controlledTeamId,buyer.id,fee,{reason:'Accepted offer'});a.status='completed';note.message+=` Deal completed for ${money(fee)}.`}}saveData('Transfer offer resolved');renderManagerInbox();renderManagerSquad();renderManagerTransfers();renderManagerFinances();renderCareerDashboard();renderTeams()}
 
-    function renderManagerFinances(){const career=currentCareerSave(),panel=$('tab-manager-finances');if(!panel)return;if(!isManagerMode(career)){panel.innerHTML='';return}const fin=managerControlledFinance(career),team=controlledCareerTeam(career),ledger=[...(fin.ledger||[])].reverse();panel.innerHTML=`<section class="career-hero">${teamLogo(team)}<div><div class="startup-kicker">💵 CLUB FINANCES</div><h1>${escapeHtml(team.name)}</h1><p class="muted">Transfer budget, wages, prize money and completed deals.</p></div><div><div class="muted">AVAILABLE</div><div class="career-overall" style="font-size:36px">${money(fin.budget)}</div></div></section><div class="manager-summary-grid"><div class="manager-summary-card"><small>Transfer Budget</small><strong class="manager-money">${money(fin.budget)}</strong></div><div class="manager-summary-card"><small>Weekly Wage Bill</small><strong>${money(fin.wageBill)}</strong></div><div class="manager-summary-card"><small>Total Transfer Spend</small><strong>${money(fin.totalSpent)}</strong></div><div class="manager-summary-card"><small>Total Sales</small><strong>${money(fin.totalReceived)}</strong></div><div class="manager-summary-card"><small>Prize Money</small><strong>${money(fin.prizeMoney)}</strong></div><div class="manager-summary-card"><small>Squad Value</small><strong>${money((team.managerSquad||[]).reduce((s,p)=>s+p.marketValue,0))}</strong></div></div><article class="card"><h2>Finance Ledger</h2><div class="manager-ledger">${ledger.length?ledger.map(x=>`<div class="manager-ledger-row"><span class="muted">${escapeHtml(seasonDisplay(x.season||1))}</span><span>${escapeHtml(x.text)}</span><strong class="${x.amount>=0?'manager-money':''}">${x.amount>=0?'+':''}${money(Math.abs(x.amount))}</strong></div>`).join(''):'<p class="muted">No financial activity yet.</p>'}</div></article>`}
+    function renderManagerFinances(){
+      const career=currentCareerSave(),panel=$('tab-manager-finances');
+      if(!panel)return;
+      if(!isManagerMode(career)){panel.innerHTML='';return}
 
-    function managerPrizeForCompetition(comp,place,size){const cat=comp.isWorldCup?'world-cup':comp.category;if(cat==='champions-league')return place===1?200_000_000:place===2?125_000_000:place<=4?80_000_000:place<=8?45_000_000:20_000_000;if(cat==='europa-league')return place===1?115_000_000:place===2?75_000_000:place<=4?45_000_000:22_000_000;if(cat==='super-league')return place===1?85_000_000:55_000_000;if(cat==='world-cup')return place===1?150_000_000:place===2?95_000_000:place<=4?55_000_000:25_000_000;if(cat==='league'){const ratio=1-(place-1)/Math.max(1,size-1),tierWeight=leagueTierMultiplier(comp);return Math.round(((25_000_000+ratio*125_000_000)*tierWeight)/5_000_000)*5_000_000}return place===1?65_000_000:place===2?38_000_000:place<=4?20_000_000:8_000_000}
-    function managerAwardCompetitionPrize(comp,ranking){
-      const career=currentCareerSave();
-      if(!isManagerMode(career)||!Array.isArray(ranking))return;
-      career.manager.clubFinances=career.manager.clubFinances||{};
-      ranking.forEach((teamId,index)=>{
-        const fin=career.manager.clubFinances[teamId];
-        if(!fin)return;
-        fin.budget=Number(fin.budget||0);
-        fin.prizeMoney=Number(fin.prizeMoney||0);
-        const amount=managerPrizeForCompetition(comp,index+1,ranking.length);
-        fin.budget+=amount;
-        fin.prizeMoney+=amount;
-        managerAddLedger(career,teamId,amount,`${comp.name} prize money · #${index+1}`,'prize');
-        if(teamId===career.controlledTeamId){
-          managerNotify(career,'Prize Money Received',`${comp.name}: ${money(amount)} added to your transfer budget for finishing #${index+1}.`,'finance');
+      const team=controlledCareerTeam(career),
+        fin=managerControlledFinance(career),
+        ledger=[...(fin.ledger||[])].reverse();
+
+      const ledgerAmountHtml=(entry)=>{
+        const amount=Number(entry.amount||0);
+        if(amount>0){
+          return `<strong class="manager-money manager-ledger-income">+${money(amount)}</strong>`;
         }
-      });
+        if(amount<0){
+          return `<strong class="manager-ledger-expense">-${money(Math.abs(amount))}</strong>`;
+        }
+        return `<strong class="manager-ledger-neutral">${money(0)}</strong>`;
+      };
+
+      panel.innerHTML=`
+        <section class="career-hero">
+          ${teamLogo(team)}
+          <div>
+            <div class="startup-kicker">💵 CLUB FINANCES</div>
+            <h1>${escapeHtml(team.name)}</h1>
+            <p class="muted">Transfer budget, wages, prize money and completed deals.</p>
+          </div>
+          <div>
+            <div class="muted">AVAILABLE</div>
+            <div class="career-overall" style="font-size:36px">${money(fin.budget)}</div>
+          </div>
+        </section>
+
+        <div class="manager-summary-grid">
+          <div class="manager-summary-card"><small>Transfer Budget</small><strong class="manager-money">${money(fin.budget)}</strong></div>
+          <div class="manager-summary-card"><small>Weekly Wage Bill</small><strong>${money(fin.wageBill)}</strong></div>
+          <div class="manager-summary-card"><small>Total Transfer Spend</small><strong>${money(fin.totalSpent)}</strong></div>
+          <div class="manager-summary-card"><small>Total Sales</small><strong>${money(fin.totalReceived)}</strong></div>
+          <div class="manager-summary-card"><small>Prize Money</small><strong>${money(fin.prizeMoney)}</strong></div>
+          <div class="manager-summary-card"><small>Squad Value</small><strong>${money((team.managerSquad||[]).reduce((s,p)=>s+p.marketValue,0))}</strong></div>
+        </div>
+
+        <article class="card">
+          <h2>Finance Ledger</h2>
+          <div class="manager-ledger">
+            ${ledger.length
+              ?ledger.map(entry=>`
+                <div class="manager-ledger-row">
+                  <span class="muted">${escapeHtml(seasonDisplay(entry.season||1))}</span>
+                  <span>${escapeHtml(entry.text)}</span>
+                  ${ledgerAmountHtml(entry)}
+                </div>`).join('')
+              :'<p class="muted">No financial activity yet.</p>'}
+          </div>
+        </article>`;
     }
 
     function managerCurrentSeasonStats(career,teamId){
