@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.27";
+  content:"V60.28";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.27" !important;
+  content:"V60.28" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7732,7 +7732,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.27</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.28</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7801,7 +7801,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.27</p>
+          <p id="saveStatus">V60.28</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -10404,7 +10404,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       if(note.actions?.kind==="incoming-offer" || title.includes("transfer offer") || title.includes("release clause activated")) return "offer";
       if(title.includes("contract expiring") || title.includes("contract expired") || title.includes("left on a free")) return "contract";
       if(title.includes("player wants to leave")) return "player";
-      if(title.includes("player retired")) return "retirement";
+      if(title.includes("player retired")||title.includes("retirement plan")) return "retirement";
       if(title.includes("transfer window open")) return "window";
       if(title.includes("world player of the year")||title.includes("ballon d\'or")) return "award";
 
@@ -10514,7 +10514,6 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       if(note.actions)note.actions.status="released";
       note.message+=` You released ${player.name} as a free agent.`;
 
-      managerEnsureSquadDepth(career,team);
       managerRecalculateTeam(team);
       managerUpdateWageBills(career);
       saveData("Expired contract resolved");
@@ -10719,6 +10718,8 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         ballonDorHistory:[],
         ballonDorNominees:{},
         playerRetirements:[],
+        playerPopulationTarget:Math.max(0,(career.teams||[]).length*18),
+        populationRepairVersion:"v60.28",
         lastAiWindowKey:'',
         transferMarketSearch:'',
         transferMarketPlayerSearch:'',
@@ -10769,6 +10770,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         'squad'
       );
       managerGenerateContractWarnings(career);
+      managerGenerateRetirementWarnings(career);
       managerRunAiTransferMarket(career,'summer',true);
       return career
     }
@@ -10797,6 +10799,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       career.manager.ballonDorHistory=Array.isArray(career.manager.ballonDorHistory)?career.manager.ballonDorHistory:[];
       career.manager.ballonDorNominees=career.manager.ballonDorNominees||{};
       career.manager.playerRetirements=Array.isArray(career.manager.playerRetirements)?career.manager.playerRetirements:[];
+      career.manager.playerPopulationTarget=Number(career.manager.playerPopulationTarget||Math.max(0,(career.teams||[]).length*18));
       career.manager.formation=career.manager.formation||'4-2-3-1';
       career.manager.formationAssignments=career.manager.formationAssignments||{};
       career.manager.transferMarketPlayerSearch=career.manager.transferMarketPlayerSearch??career.manager.transferMarketSearch??'';
@@ -10889,6 +10892,23 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         career.manager.freeAgentAiRepairVersion="v60.25";
       }
 
+      if(career.manager.populationRepairVersion!=="v60.28"){
+        const repair=managerNormalizePlayerPopulation(career);
+        career.manager.populationRepairVersion="v60.28";
+
+        if(repair.removed>0){
+          managerNotify(
+            career,
+            'Player Database Rebalanced',
+            `Removed ${repair.removed} accidental generated/duplicate players from older saves. Living player population: ${repair.count} / target ${repair.target}. From now on, new players are created only when someone retires.`,
+            'squad'
+          );
+        }
+      }
+
+      (career.teams||[]).forEach(club=>(club.managerSquad||[]).forEach(managerAssignRetirementPlan));
+      (career.manager.freeAgents||[]).forEach(managerAssignRetirementPlan);
+      managerGenerateRetirementWarnings(career);
       managerCleanShortlist(career);
       managerUpdateWageBills(career)
     }
@@ -12191,6 +12211,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
             <div class="manager-info-stat"><small>Status</small><strong>${player.isStarter?"Starting XI":"Substitute"}${player.wantsOut?" ⚠️":""}</strong></div>
             <div class="manager-info-stat"><small>Season Goals</small><strong>${player.goalsSeason||0}</strong></div>
             <div class="manager-info-stat"><small>Appearances</small><strong>${player.appearancesSeason||0}</strong></div>
+            <div class="manager-info-stat"><small>Retirement</small><strong>${managerRetirementYearsLeft(player)<=2?`⚠️ ${managerRetirementYearsLeft(player)} yr${managerRetirementYearsLeft(player)===1?"":"s"}`:`Age ${managerAssignRetirementPlan(player)}`}</strong></div>
           </div>
 
           <div class="manager-info-section-title">CONTRACT & VALUE</div>
@@ -12645,6 +12666,247 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
     }
 
 
+
+    function managerPopulationTarget(career=currentCareerSave()){
+      if(!isManagerMode(career))return 0;
+      const fallback=Math.max(0,(career.teams||[]).length*18);
+      const stored=Number(career.manager.playerPopulationTarget);
+      if(!Number.isFinite(stored)||stored<=0){
+        career.manager.playerPopulationTarget=fallback;
+      }
+      return Number(career.manager.playerPopulationTarget||fallback);
+    }
+
+    function managerLivingPlayerCount(career=currentCareerSave()){
+      if(!isManagerMode(career))return 0;
+      const ids=new Set();
+      (career.teams||[]).forEach(team=>(team.managerSquad||[]).forEach(player=>{
+        if(player?.id)ids.add(player.id);
+      }));
+      (career.manager.freeAgents||[]).forEach(player=>{
+        if(player?.id)ids.add(player.id);
+      });
+      return ids.size;
+    }
+
+    function managerAssignRetirementPlan(player){
+      if(!player)return null;
+
+      const age=Number(player.age||25);
+      let planned=Number(player.plannedRetirementAge);
+
+      if(!Number.isFinite(planned)||planned<age){
+        let base=36+Math.floor(Math.random()*4); // 36–39
+        if(player.position==="GK")base+=1;
+        if(Number(player.overall||0)>=88)base+=1;
+        base=Math.min(40,base);
+
+        // Existing older saves still get a genuine two-year warning window.
+        planned=Math.max(base,Math.min(40,age+2));
+        player.plannedRetirementAge=planned;
+      }
+
+      return Number(player.plannedRetirementAge);
+    }
+
+    function managerRetirementYearsLeft(player){
+      const planned=managerAssignRetirementPlan(player);
+      if(planned==null)return null;
+      return Math.max(0,Number(planned)-Number(player.age||0));
+    }
+
+    function managerCreateRetirementReplacement(career,club,retiredPlayer=null,asFreeAgent=false){
+      if(!isManagerMode(career))return null;
+
+      const teamStrength=Number(club?.strength||70);
+      const position=retiredPlayer?.position||MANAGER_POSITIONS[Math.floor(Math.random()*MANAGER_POSITIONS.length)]||"CM";
+      const teamId=asFreeAgent?null:club?.id;
+
+      const player=managerGeneratePlayer(
+        Math.max(58,teamStrength-5),
+        position,
+        Math.max(11,(club?.managerSquad||[]).length),
+        teamId
+      );
+
+      player.age=17+Math.floor(Math.random()*3);
+      player.overall=clamp(
+        Math.round(Math.max(55,teamStrength-8)+(Math.random()*5-2)),
+        55,
+        82
+      );
+      player.potential=clamp(
+        player.overall+5+Math.floor(Math.random()*8),
+        player.overall,
+        96
+      );
+      player.realPlayer=false;
+      player.generatedReplacement=true;
+      player.replacementForPlayerId=retiredPlayer?.id||null;
+      player.createdSeason=Number(career.worldSeason||1);
+      player.clubId=teamId;
+      player.contractYears=3+Math.floor(Math.random()*3);
+      player.marketValue=managerPlayerValue(player);
+      player.wage=managerExpectedWage(player);
+      player.releaseClause=managerReleaseClause(player);
+      managerAssignRetirementPlan(player);
+
+      if(asFreeAgent){
+        player.transferListed=true;
+        player.freeAgentSinceSeason=Number(career.worldSeason||1);
+        career.manager.freeAgents=career.manager.freeAgents||[];
+        career.manager.freeAgents.push(player);
+      }else if(club){
+        club.managerSquad=club.managerSquad||[];
+        club.managerSquad.push(player);
+      }
+
+      return player;
+    }
+
+    function managerPlayerHasMeaningfulHistory(career,player){
+      if(!player)return false;
+      if(Number(player.goalsCareer||0)>0||Number(player.assistsCareer||0)>0||Number(player.appearancesCareer||0)>0)return true;
+      if(Number(player.ballonDorsCareer||0)>0||Number(player.trophiesCareer||0)>0)return true;
+
+      return Object.values(career.manager.clubPlayerTotals||{}).some(players=>{
+        const row=players?.[player.id];
+        return row&&(
+          Number(row.goals||0)>0||
+          Number(row.assists||0)>0||
+          Number(row.appearances||0)>0||
+          Number(row.ballonDors||0)>0||
+          (row.honours||[]).length>0
+        );
+      });
+    }
+
+    function managerNormalizePlayerPopulation(career=currentCareerSave()){
+      if(!isManagerMode(career))return {removed:0,count:0,target:0};
+
+      const target=managerPopulationTarget(career);
+      let removed=0;
+
+      // First remove accidental duplicate references. A player can only exist once.
+      const seen=new Set();
+      (career.teams||[]).forEach(team=>{
+        team.managerSquad=(team.managerSquad||[]).filter(player=>{
+          if(!player?.id||seen.has(player.id)){
+            removed++;
+            return false;
+          }
+          seen.add(player.id);
+          return true;
+        });
+      });
+
+      career.manager.freeAgents=(career.manager.freeAgents||[]).filter(player=>{
+        if(!player?.id||seen.has(player.id)){
+          removed++;
+          return false;
+        }
+        seen.add(player.id);
+        return true;
+      });
+
+      let count=managerLivingPlayerCount(career);
+      if(count<=target)return {removed,count,target};
+
+      const needToRemove=()=>Math.max(0,managerLivingPlayerCount(career)-target);
+
+      const pruneFreeAgents=(historySafeOnly)=>{
+        if(needToRemove()<=0)return;
+        const removable=(career.manager.freeAgents||[])
+          .filter(player=>
+            !player.realPlayer &&
+            (!historySafeOnly||!managerPlayerHasMeaningfulHistory(career,player))
+          )
+          .sort((a,b)=>
+            Number(managerPlayerHasMeaningfulHistory(career,a))-Number(managerPlayerHasMeaningfulHistory(career,b)) ||
+            Number(a.overall||0)-Number(b.overall||0) ||
+            Number(a.age||0)-Number(b.age||0)
+          );
+
+        const removeIds=new Set(removable.slice(0,needToRemove()).map(player=>player.id));
+        if(removeIds.size){
+          career.manager.freeAgents=career.manager.freeAgents.filter(player=>!removeIds.has(player.id));
+          removeIds.forEach(id=>managerRemovePlayerFromRecruitmentState(career,id));
+          removed+=removeIds.size;
+        }
+      };
+
+      const pruneClubExtras=(minimumSquad,historySafeOnly)=>{
+        if(needToRemove()<=0)return;
+
+        const clubs=(career.teams||[])
+          .filter(team=>team.id!==career.controlledTeamId)
+          .sort((a,b)=>(b.managerSquad||[]).length-(a.managerSquad||[]).length);
+
+        for(const club of clubs){
+          if(needToRemove()<=0)break;
+
+          const room=Math.max(0,(club.managerSquad||[]).length-minimumSquad);
+          if(!room)continue;
+
+          const candidates=(club.managerSquad||[])
+            .filter(player=>
+              !player.realPlayer &&
+              (!historySafeOnly||!managerPlayerHasMeaningfulHistory(career,player))
+            )
+            .sort((a,b)=>
+              Number(managerPlayerHasMeaningfulHistory(career,a))-Number(managerPlayerHasMeaningfulHistory(career,b)) ||
+              Number(a.overall||0)-Number(b.overall||0) ||
+              Number(a.age||0)-Number(b.age||0)
+            );
+
+          const take=Math.min(room,needToRemove(),candidates.length);
+          if(!take)continue;
+
+          const ids=new Set(candidates.slice(0,take).map(player=>player.id));
+          club.managerSquad=club.managerSquad.filter(player=>!ids.has(player.id));
+          ids.forEach(id=>managerRemovePlayerFromRecruitmentState(career,id));
+          removed+=ids.size;
+          managerRecalculateTeam(club);
+        }
+      };
+
+      // Old inflation came from generated filler players. Remove those first,
+      // while preserving real players, Ballon d'Or winners and meaningful history.
+      pruneFreeAgents(true);
+      pruneClubExtras(18,true);
+      pruneFreeAgents(false);
+      pruneClubExtras(18,false);
+      pruneClubExtras(11,true);
+      pruneClubExtras(11,false);
+
+      count=managerLivingPlayerCount(career);
+      managerCleanShortlist(career);
+      managerUpdateWageBills(career);
+
+      return {removed,count,target};
+    }
+
+    function managerGenerateRetirementWarnings(career=currentCareerSave()){
+      if(!isManagerMode(career))return;
+
+      const controlled=controlledCareerTeam(career);
+      if(!controlled)return;
+
+      (controlled.managerSquad||[]).forEach(player=>{
+        const years=managerRetirementYearsLeft(player);
+        if(years!==2||player.retirementTwoYearNoticeSent)return;
+
+        player.retirementTwoYearNoticeSent=true;
+        managerNotify(
+          career,
+          'Retirement Plan',
+          `${player.name} plans to retire in two years, at age ${player.plannedRetirementAge}.`,
+          'retirement',
+          {kind:'retirement-plan',playerId:player.id,status:'planned'}
+        );
+      });
+    }
+
     function managerCleanShortlist(career=currentCareerSave()){
       if(!isManagerMode(career))return 0;
 
@@ -12684,6 +12946,9 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
 
           const overall=Number(player.overall||60);
           const age=Number(player.age||25);
+          const retirementAge=managerAssignRetirementPlan(player);
+          const yearsToRetirement=Math.max(0,Number(retirementAge||99)-age);
+          if(yearsToRetirement<=1)return;
           const ballonWins=Number(player.ballonDorsCareer||0);
           const isBallonWinner=
             ballonWins>0 ||
@@ -12713,7 +12978,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
             important ? (age>=32?2:3+Math.floor(Math.random()*2)) :
             (age>=32?1+Math.floor(Math.random()*2):2+Math.floor(Math.random()*3));
 
-          player.contractYears=clamp(years,1,5);
+          player.contractYears=clamp(Math.min(years,Math.max(1,yearsToRetirement)),1,5);
           player.wage=Math.max(
             Number(player.wage||0),
             Math.round(managerExpectedWage(player)*(elite?1.12:1.03)/5000)*5000
@@ -12837,36 +13102,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         }
       }
 
-      // Old low-level free agents should not pile up forever.
-      const retired=[];
-      career.manager.freeAgents=career.manager.freeAgents.filter(player=>{
-        if(player.freeAgentSinceSeason==null){
-          player.freeAgentSinceSeason=Math.max(1,currentSeason-1);
-        }
-
-        const seasonsFree=Math.max(0,currentSeason-Number(player.freeAgentSinceSeason||currentSeason));
-        const age=Number(player.age||25);
-        const overall=Number(player.overall||60);
-
-        const shouldRetire=
-          age>=39 ||
-          (age>=36&&seasonsFree>=1&&overall<82) ||
-          (seasonsFree>=3&&overall<72);
-
-        if(shouldRetire){
-          retired.push(player);
-          managerRemovePlayerFromRecruitmentState(career,player.id);
-          career.manager.playerRetirements.unshift({
-            season:currentSeason,
-            playerId:player.id,
-            playerName:player.name,
-            clubId:null,
-            reason:'Retired while a free agent'
-          });
-          return false;
-        }
-        return true;
-      });
+      // Free agents remain part of the fixed player pool until their planned retirement.
 
       managerCleanShortlist(career);
       return signed;
@@ -13439,9 +13675,12 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       renderCareerDashboard();
       managerShowSigningComplete(career,p,seller,buyer,fee,wage,years,beforeOverall,wasScouted);
     }
-    function managerCompleteTransfer(career,playerId,fromId,toId,fee,contract={}){const from=managerTeam(fromId,career),to=managerTeam(toId,career),fromFin=career.manager.clubFinances[fromId],toFin=career.manager.clubFinances[toId],index=(from?.managerSquad||[]).findIndex(p=>p.id===playerId);if(!from||!to||index<0||!fromFin||!toFin)return false;const [p]=from.managerSquad.splice(index,1);to.managerSquad.push(p);p.clubId=toId;p.transferListed=false;p.wantsOut=false;p.morale=82;if(contract.wage)p.wage=Math.round(Number(contract.wage)/5000)*5000;if(contract.years)p.contractYears=clamp(Math.round(Number(contract.years)),1,5);if(contract.clause!=null)p.releaseClause=Math.max(0,Math.round(Number(contract.clause)/1_000_000)*1_000_000);fromFin.budget+=fee;toFin.budget-=fee;fromFin.totalReceived+=fee;toFin.totalSpent+=fee;managerAddLedger(career,fromId,fee,`${p.name} sold to ${to.name}`,'sale');managerAddLedger(career,toId,-fee,`${p.name} signed from ${from.name}`,'purchase');career.manager.transferHistory.unshift({id:uid(),season:Number(career.worldSeason||1),playerId:p.id,playerName:p.name,fromId,toId,fee,timestamp:Date.now(),reason:contract.reason||'Transfer'});managerEnsureSquadDepth(career,from);managerEnsureSquadDepth(career,to);managerRecalculateTeam(from);managerRecalculateTeam(to);managerUpdateWageBills(career);if(fromId===career.controlledTeamId)managerNotify(career,'Player Sold',`${p.name} joined ${to.name} for ${money(fee)} (${moneyFull(fee)}). Your budget increased immediately.`,'transfer');if(toId===career.controlledTeamId){career.manager.shortlist=(career.manager.shortlist||[]).filter(id=>id!==p.id);if(career.manager.pendingTransferAgreements)delete career.manager.pendingTransferAgreements[p.id];if(career.manager.transferCooldowns)delete career.manager.transferCooldowns[p.id]}if(toId===career.controlledTeamId)managerNotify(career,'New Signing',`${p.name} joined ${to.name} from ${from.name} for ${money(fee)} (${moneyFull(fee)}).`,'transfer');return true}
-    function managerEnsureSquadDepth(career,team){while((team.managerSquad||[]).length<18){const p=managerGeneratePlayer(Math.max(58,Number(team.strength||70)-5),MANAGER_POSITIONS[team.managerSquad.length%MANAGER_POSITIONS.length],team.managerSquad.length,team.id);p.age=18+Math.floor(Math.random()*4);p.overall=Math.max(55,p.overall-3);p.potential=clamp(p.overall+5+Math.floor(Math.random()*6),p.overall,96);p.marketValue=managerPlayerValue(p);p.wage=managerExpectedWage(p);p.releaseClause=managerReleaseClause(p);team.managerSquad.push(p)}}
-
+    function managerCompleteTransfer(career,playerId,fromId,toId,fee,contract={}){const from=managerTeam(fromId,career),to=managerTeam(toId,career),fromFin=career.manager.clubFinances[fromId],toFin=career.manager.clubFinances[toId],index=(from?.managerSquad||[]).findIndex(p=>p.id===playerId);if(!from||!to||index<0||!fromFin||!toFin)return false;if((from.managerSquad||[]).length<=11)return false;const [p]=from.managerSquad.splice(index,1);to.managerSquad.push(p);p.clubId=toId;p.transferListed=false;p.wantsOut=false;p.morale=82;if(contract.wage)p.wage=Math.round(Number(contract.wage)/5000)*5000;if(contract.years)p.contractYears=clamp(Math.round(Number(contract.years)),1,5);if(contract.clause!=null)p.releaseClause=Math.max(0,Math.round(Number(contract.clause)/1_000_000)*1_000_000);fromFin.budget+=fee;toFin.budget-=fee;fromFin.totalReceived+=fee;toFin.totalSpent+=fee;managerAddLedger(career,fromId,fee,`${p.name} sold to ${to.name}`,'sale');managerAddLedger(career,toId,-fee,`${p.name} signed from ${from.name}`,'purchase');career.manager.transferHistory.unshift({id:uid(),season:Number(career.worldSeason||1),playerId:p.id,playerName:p.name,fromId,toId,fee,timestamp:Date.now(),reason:contract.reason||'Transfer'});managerRecalculateTeam(from);managerRecalculateTeam(to);managerUpdateWageBills(career);if(fromId===career.controlledTeamId)managerNotify(career,'Player Sold',`${p.name} joined ${to.name} for ${money(fee)} (${moneyFull(fee)}). Your budget increased immediately.`,'transfer');if(toId===career.controlledTeamId){career.manager.shortlist=(career.manager.shortlist||[]).filter(id=>id!==p.id);if(career.manager.pendingTransferAgreements)delete career.manager.pendingTransferAgreements[p.id];if(career.manager.transferCooldowns)delete career.manager.transferCooldowns[p.id]}if(toId===career.controlledTeamId)managerNotify(career,'New Signing',`${p.name} joined ${to.name} from ${from.name} for ${money(fee)} (${moneyFull(fee)}).`,'transfer');return true}
+    function managerEnsureSquadDepth(career,team){
+      // V60.28: player creation is retirement-only.
+      // Transfers, sales and contract expiries move existing players; they never spawn replacements.
+      return 0;
+    }
     function managerGenerateIncomingOffers(career=currentCareerSave(),count=1){if(!isManagerMode(career)||!managerWindowOpen(career))return;const own=controlledCareerTeam(career),candidates=(own.managerSquad||[]).filter(p=>p.transferListed||p.wantsOut||p.overall>=own.strength+1).sort((a,b)=>b.overall-a.overall);for(let i=0;i<Math.min(count,candidates.length);i++){const p=candidates[i],buyers=career.teams.filter(t=>t.id!==own.id&&career.manager.clubFinances[t.id]?.budget>p.marketValue*.8).sort((a,b)=>b.strength-a.strength);if(!buyers.length)continue;const buyer=buyers[Math.floor(Math.random()*Math.min(8,buyers.length))],release=(Number(career.worldSeason||1)>1||p.wantsOut)&&Math.random()<.12&&p.releaseClause>0&&career.manager.clubFinances[buyer.id].budget>=p.releaseClause,fee=release?p.releaseClause:Math.round(p.marketValue*(.9+Math.random()*.25)/1_000_000)*1_000_000;const note=managerNotify(career,release?'Release Clause Activated':'Transfer Offer',release?`${buyer.name} activated ${p.name}'s ${money(fee)} release clause. The player will decide whether to leave.`:`${buyer.name} offered ${money(fee)} (${moneyFull(fee)}) for ${p.name}.`,'offer',{kind:'incoming-offer',playerId:p.id,buyerId:buyer.id,fee,releaseClause:release,status:'pending'});if(release){const accepts=p.wantsOut||p.morale<65||buyer.strength>own.strength+3;if(accepts){managerCompleteTransfer(career,p.id,own.id,buyer.id,fee,{reason:'Release clause'});note.actions.status='completed';note.message+=` ${p.name} accepted the move.`}else{note.actions.status='rejected-player';note.message+=` ${p.name} rejected the move and stays.`}}}}
     function managerRunAiTransferMarket(career=currentCareerSave(),phase='summer',quiet=false){
       if(!isManagerMode(career))return;
@@ -14761,7 +15000,6 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         team=controlledCareerTeam(career),
         fin=managerControlledFinance(career);
 
-      // If this world has no usable Super League, the award is still guaranteed at season end.
       if(!(career.manager.ballonDorHistory||[]).some(a=>Number(a.season)===season)){
         try{
           managerFinalizeBallonDor(career,false);
@@ -14776,8 +15014,6 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         }
       }
 
-      // AI clubs renew important expiring contracts before the annual contract countdown.
-      // This prevents elite stars and award winners from randomly flooding free agency.
       managerAiRenewExpiringContracts(career);
 
       const leaguePos=careerLeaguePosition(career)||career.teams.length;
@@ -14786,8 +15022,10 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       managerAddLedger(career,team.id,bonus,'Board & commercial season payment','income');
       managerNotify(career,'Season Revenue',`${money(bonus)} in board and commercial revenue has been added to your budget.`,'finance');
 
+      // Age every contracted player and keep retirement plans deterministic.
       (career.teams||[]).forEach(club=>{
         (club.managerSquad||[]).forEach(p=>{
+          managerAssignRetirementPlan(p);
           p.age=Number(p.age||25)+1;
 
           if(p.age<=23&&p.overall<p.potential&&Math.random()<.72)p.overall+=Math.random()<.22?2:1;
@@ -14801,26 +15039,67 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         });
       });
 
+      // Free agents age too; they are still part of the same fixed player population.
+      (career.manager.freeAgents||[]).forEach(p=>{
+        managerAssignRetirementPlan(p);
+        p.age=Number(p.age||25)+1;
+        if(p.age>=32&&Math.random()<.55)p.overall=Math.max(55,Number(p.overall||60)-1-(p.age>=35&&Math.random()<.35?1:0));
+        p.marketValue=managerPlayerValue(p);
+      });
+
       managerMoveExpiredContractsToFreeAgency(career,true);
 
+      // Club retirements: one player leaves, exactly one new player is created.
       (career.teams||[]).forEach(club=>{
-        const retiring=[];
-        (club.managerSquad||[]).forEach(p=>{
-          if((p.age>=36&&Math.random()<.48)||p.age>=39)retiring.push(p);
-          else if((p.morale<45||p.wantsOut)&&Math.random()<.38)p.wantsOut=true;
-        });
+        const retiring=(club.managerSquad||[]).filter(p=>
+          Number(p.age||0)>=Number(managerAssignRetirementPlan(p)||99)
+        );
 
         retiring.forEach(p=>{
           club.managerSquad=club.managerSquad.filter(x=>x.id!==p.id);
-          career.manager.playerRetirements.unshift({season,playerId:p.id,playerName:p.name,clubId:club.id});
+          career.manager.playerRetirements.unshift({
+            season,
+            playerId:p.id,
+            playerName:p.name,
+            clubId:club.id,
+            age:p.age,
+            plannedAge:p.plannedRetirementAge
+          });
           managerRemovePlayerFromRecruitmentState(career,p.id);
+
+          const replacement=managerCreateRetirementReplacement(career,club,p,false);
+
           if(club.id===career.controlledTeamId){
-            managerNotify(career,'Player Retired',`${p.name} retired at age ${p.age}.`,'retirement',{kind:'retirement',playerId:p.id,status:'completed'});
+            managerNotify(
+              career,
+              'Player Retired',
+              `${p.name} retired at age ${p.age}. ${replacement?.name||"A new academy player"} has entered the player pool as his replacement.`,
+              'retirement',
+              {kind:'retirement',playerId:p.id,status:'completed'}
+            );
           }
         });
 
-        managerEnsureSquadDepth(career,club);
         managerRecalculateTeam(club);
+      });
+
+      // Free-agent retirements also create exactly one new free agent.
+      const retiringFreeAgents=(career.manager.freeAgents||[]).filter(p=>
+        Number(p.age||0)>=Number(managerAssignRetirementPlan(p)||99)
+      );
+
+      retiringFreeAgents.forEach(p=>{
+        career.manager.freeAgents=career.manager.freeAgents.filter(x=>x.id!==p.id);
+        career.manager.playerRetirements.unshift({
+          season,
+          playerId:p.id,
+          playerName:p.name,
+          clubId:null,
+          age:p.age,
+          plannedAge:p.plannedRetirementAge
+        });
+        managerRemovePlayerFromRecruitmentState(career,p.id);
+        managerCreateRetirementReplacement(career,null,p,true);
       });
 
       (career.teams||[]).forEach(club=>(club.managerSquad||[]).forEach(p=>{
@@ -14830,6 +15109,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         p.marketValue=managerPlayerValue(p);
       }));
 
+      managerGenerateRetirementWarnings(career);
       managerCleanShortlist(career);
       managerUpdateWageBills(career);
     }
