@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.19";
+  content:"V60.20";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.19" !important;
+  content:"V60.20" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7643,6 +7643,45 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
   font-size:11px;
 }
 
+
+
+/* V60.20 — keep ALL competition trophy/icon tiles identical in size.
+   Only the long qualification/waiting copy gets smaller. */
+.competition-row > div:nth-child(3){
+  width:74px !important;
+  min-width:74px !important;
+  height:74px !important;
+  min-height:74px !important;
+  flex:0 0 74px !important;
+  align-self:start !important;
+}
+.competition-row > div:nth-child(3) img{
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+.competition-row .competition-status-pill{
+  font-size:clamp(8.5px,.66vw,10px) !important;
+  line-height:1.12 !important;
+  padding:4px 7px !important;
+  max-width:100% !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+}
+/* Never let responsive rules shrink the competition icon tile. */
+@media(max-width:1200px){
+  .competition-row > div:nth-child(3){
+    width:74px !important;
+    min-width:74px !important;
+    height:74px !important;
+    min-height:74px !important;
+    flex-basis:74px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -7664,7 +7703,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.19</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.20</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7733,7 +7772,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.19</p>
+          <p id="saveStatus">V60.20</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
