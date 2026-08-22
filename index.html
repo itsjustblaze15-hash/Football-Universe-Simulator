@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.23";
+  content:"V60.24";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.23" !important;
+  content:"V60.24" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7682,6 +7682,26 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
   }
 }
 
+
+
+/* V60.24 — pre-Super League Ballon d'Or screen is intentionally unranked */
+.ballon-nominee-unranked{
+  grid-template-columns:42px 58px minmax(0,1fr) auto !important;
+}
+.ballon-unranked-dot{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:#f6c453;
+  background:rgba(246,196,83,.08);
+  border:1px solid rgba(246,196,83,.22);
+  font-size:14px;
+  font-weight:1000;
+  justify-self:center;
+}
+
 </style>
 </head>
 <body>
@@ -7703,7 +7723,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.23</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.24</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7772,7 +7792,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.23</p>
+          <p id="saveStatus">V60.24</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -13739,21 +13759,39 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       const season=Number(career.worldSeason||1);
       const existing=career.manager.ballonDorNominees?.[season];
 
-      // Rebuild once when the European finals are complete and the Super League is ready.
+      // Build the genuine Top 10 contender pool, but DO NOT expose their live ranking
+      // before the Super League. The ceremony is supposed to be the reveal.
       const ranking=managerBallonDorRanking(career,season,false);
       if(!ranking.length)return null;
 
+      const top10=ranking.slice(0,10).map(row=>({...row}));
+
+      // Keep one stable random order for presentation only.
+      // This order has no relationship to the Ballon d'Or score/ranking.
+      let displayIds=Array.isArray(existing?.displayIds)&&existing.displayIds.length
+        ?existing.displayIds.filter(id=>top10.some(row=>row.playerId===id))
+        :[];
+
+      const missing=top10.map(row=>row.playerId).filter(id=>!displayIds.includes(id));
+      for(let i=missing.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [missing[i],missing[j]]=[missing[j],missing[i]];
+      }
+      displayIds=[...displayIds,...missing].slice(0,10);
+
       const snapshot={
         season,
-        createdAt:Date.now(),
-        top10:ranking.slice(0,10).map((row,index)=>({...row,rank:index+1}))
+        createdAt:existing?.createdAt||Date.now(),
+        top10,
+        displayIds,
+        shown:Boolean(existing?.shown)
       };
 
       career.manager.ballonDorNominees=career.manager.ballonDorNominees||{};
       career.manager.ballonDorNominees[season]=snapshot;
       persistDataSilently();
 
-      if(show&&!existing?.shown){
+      if(show&&!snapshot.shown){
         snapshot.shown=true;
         persistDataSilently();
         setTimeout(()=>managerShowBallonDorNominees(career,season),80);
@@ -13768,16 +13806,29 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       const dialog=$('managerBallonDorDialog');
       const content=$('managerBallonDorDialogContent');
 
+      const byId=new Map(snapshot.top10.map(row=>[row.playerId,row]));
+      const displayRows=(snapshot.displayIds||[])
+        .map(id=>byId.get(id))
+        .filter(Boolean);
+
+      // Safety fallback for old saves that have no presentation order yet.
+      snapshot.top10.forEach(row=>{
+        if(!displayRows.some(item=>item.playerId===row.playerId))displayRows.push(row);
+      });
+
       content.innerHTML=`
         <div class="ballon-shell">
-          <div class="ballon-kicker">🏅 BALLON D'OR WATCH · ${escapeHtml(seasonDisplay(season))}</div>
+          <div class="ballon-kicker">🏅 BALLON D'OR FINALISTS · ${escapeHtml(seasonDisplay(season))}</div>
           <h2 class="ballon-title">The Final 10</h2>
-          <p class="ballon-subtitle">The Champions League and Europa League are finished. These are the ten players leading the Ballon d'Or race before the Super League. The final can still change the order.</p>
+          <p class="ballon-subtitle">
+            These are the ten players still in contention before the Super League.
+            <strong>No ranking is being shown yet.</strong> They are listed in a random presentation order so the final ceremony stays a surprise.
+          </p>
 
           <div class="ballon-nominee-list">
-            ${snapshot.top10.map(row=>`
-              <div class="ballon-nominee-row">
-                <div class="ballon-rank">#${row.rank}</div>
+            ${displayRows.map(row=>`
+              <div class="ballon-nominee-row ballon-nominee-unranked">
+                <div class="ballon-unranked-dot">★</div>
                 <div class="ballon-face">${managerBallonPlayerFace(row,'bench')}</div>
                 <div>
                   <div class="ballon-player-name">${escapeHtml(row.name)}</div>
