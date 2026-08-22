@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.21";
+  content:"V60.22";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.21" !important;
+  content:"V60.22" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7703,7 +7703,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.21</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.22</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7772,7 +7772,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.21</p>
+          <p id="saveStatus">V60.22</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -19686,7 +19686,10 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       }
       pendingQualificationOverflow=null;
       $("qualificationResultTitle").textContent = `${seasonDisplay(result.nextSeason)} Participants`;
-      continueButton.classList.remove("hidden"); detailsButton.classList.remove("hidden");
+      continueButton.classList.remove("hidden");
+      continueButton.disabled=false;
+      continueButton.textContent="Continue";
+      detailsButton.classList.remove("hidden");
       detailsButton.textContent = qualificationDetailsExpanded ? "Hide Qualification Details" : "View Qualification Details";
       const controlledId = currentGameMode === "club-career" ? world.controlledTeamId : null;
       const routedRosters = Object.entries(result.rosters || {});
@@ -19816,46 +19819,103 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
     function commitGlobalNextSeason() {
       const world = currentWorld();
       const transition = pendingGlobalSeasonTransition;
-      if (!transition || Number(transition.nextSeason) !== Number(world.worldSeason || 1) + 1) return showToast("Qualification must be processed before starting the next season.",true);
-      if (!allRegularCompetitionsFinished(world)) return showToast("Finish every active competition first.",true);
+      const dialog = $("qualificationResultDialog");
+      const continueButton = $("continueQualificationBtn");
+
+      if (!transition || Number(transition.nextSeason) !== Number(world.worldSeason || 1) + 1) {
+        showToast("Qualification must be processed before starting the next season.",true);
+        return;
+      }
+
+      // The finished-competition check already happened BEFORE this qualification
+      // preview was created. Do not block Continue a second time after valid
+      // qualification rosters have already been calculated.
       const currentTab = transition.currentTab || "dashboard";
-      const nextSeason = transition.nextSeason;
-      if (currentGameMode === "club-career") {
-        processCareerSeasonEnd(world);
-      }
-      evolveWorldTeamStrengths(world);
-      regularCompetitions(world).forEach(comp => resetCompetitionForGlobalSeason(comp, nextSeason));
-      Object.keys(world.pendingQualificationRosters || {}).forEach(compId => {
-        if (Number(world.pendingQualificationRosters[compId]?.season) === Number(nextSeason)) delete world.pendingQualificationRosters[compId];
-      });
+      const nextSeason = Number(transition.nextSeason);
 
-      world.worldSeason = nextSeason;
-      if(currentGameMode==="club-career")$("worldTitle").textContent=`${world.name}${isManagerMode(world)?" · Manager Mode":""} · ${seasonDisplay(nextSeason)}`;
-      world.currentSeasonQualificationRoutes = [];
-      world.pendingQualificationRoutes = [];
-      if (currentGameMode === "club-career") {
-        world.careerSeason = nextSeason;
-        if (isManagerMode(world)) managerBeginNewSeason(world);
-        world.seasonObjective = createCareerObjective(world);
-        const controlled = controlledCareerTeam(world);
-        if (controlled) {
-          world.careerStats.highestOverall = Math.max(Number(world.careerStats.highestOverall || 0), Number(controlled.strength || 0));
+      if (continueButton) {
+        continueButton.disabled = true;
+        continueButton.textContent = "Starting Season…";
+      }
+
+      try {
+        if (currentGameMode === "club-career") {
+          processCareerSeasonEnd(world);
         }
+
+        evolveWorldTeamStrengths(world);
+
+        regularCompetitions(world).forEach(comp => {
+          resetCompetitionForGlobalSeason(comp,nextSeason);
+        });
+
+        Object.keys(world.pendingQualificationRosters || {}).forEach(compId => {
+          if (Number(world.pendingQualificationRosters[compId]?.season) === nextSeason) {
+            delete world.pendingQualificationRosters[compId];
+          }
+        });
+
+        world.worldSeason = nextSeason;
+
+        if (currentGameMode === "club-career") {
+          $("worldTitle").textContent =
+            `${world.name}${isManagerMode(world)?" · Manager Mode":""} · ${seasonDisplay(nextSeason)}`;
+        }
+
+        world.currentSeasonQualificationRoutes = [];
+        world.pendingQualificationRoutes = [];
+
+        if (currentGameMode === "club-career") {
+          world.careerSeason = nextSeason;
+
+          if (isManagerMode(world)) {
+            managerBeginNewSeason(world);
+          }
+
+          world.seasonObjective = createCareerObjective(world);
+          const controlled = controlledCareerTeam(world);
+
+          if (controlled) {
+            world.careerStats.highestOverall = Math.max(
+              Number(world.careerStats.highestOverall || 0),
+              Number(controlled.strength || 0)
+            );
+          }
+        }
+
+        world.currentNews = [];
+        world.regularSeasonsSinceWorldCup = Math.max(0,(nextSeason - 1) % 10);
+
+        snapshotTeamRankings(world,true);
+        calculateWorldCupQualification(world);
+
+        pendingGlobalSeasonTransition = null;
+        qualificationResolutionExclusions.clear();
+        activeCompetitionId = null;
+
+        saveData(`World Season ${nextSeason} started`);
+
+        if (dialog?.open) dialog.close();
+
+        renderAll();
+        switchTab(currentTab);
+        showToast(`${seasonDisplay(nextSeason)} started`);
+      } catch (error) {
+        console.error("Failed to start next season:",error);
+
+        if (continueButton) {
+          continueButton.disabled = false;
+          continueButton.textContent = "Continue";
+        }
+
+        if (dialog && !dialog.open) dialog.showModal();
+
+        showToast(
+          `Could not start the next season: ${error?.message || "Unknown error"}`,
+          true
+        );
       }
-      world.currentNews = [];
-      world.regularSeasonsSinceWorldCup = Math.max(0, (nextSeason - 1) % 10);
-      snapshotTeamRankings(world, true);
-      calculateWorldCupQualification(world);
-
-      saveData(`World Season ${nextSeason} started`);
-      $("qualificationResultDialog").close();
-      pendingGlobalSeasonTransition = null;
-      qualificationResolutionExclusions.clear();
-      activeCompetitionId = null;
-      renderAll();
-      switchTab(currentTab);
     }
-
     function startNextSeason() {
       startGlobalNextSeason();
     }
@@ -21468,7 +21528,12 @@ function renderWorldCupQualification() {
     });
 
     $("seasonCompleteContinueBtn").addEventListener("click", continueFromSeasonComplete);
-    $("continueQualificationBtn").addEventListener("click",commitGlobalNextSeason);
+    $("continueQualificationBtn")?.addEventListener("click",event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      if(event.currentTarget.disabled)return;
+      commitGlobalNextSeason();
+    });
     $("viewQualificationDetailsBtn").addEventListener("click",() => {
       if (!pendingGlobalSeasonTransition?.result) return;
       qualificationDetailsExpanded = !qualificationDetailsExpanded;
