@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.24";
+  content:"V60.26";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.24" !important;
+  content:"V60.26" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7702,6 +7702,15 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
   justify-self:center;
 }
 
+
+
+/* V60.26 — immediate simulation feedback */
+.btn.simulation-busy{
+  opacity:.78;
+  cursor:wait!important;
+  pointer-events:none;
+}
+
 </style>
 </head>
 <body>
@@ -7723,7 +7732,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.24</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.26</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7792,7 +7801,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.24</p>
+          <p id="saveStatus">V60.26</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -10498,7 +10507,10 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       player.clubId=null;
       player.transferListed=true;
       player.contractExpiredPending=false;
-      career.manager.freeAgents.push(player);
+      player.freeAgentSinceSeason=Number(career.worldSeason||1);
+      if(!(career.manager.freeAgents||[]).some(p=>p.id===player.id)){
+        career.manager.freeAgents.push(player);
+      }
       if(note.actions)note.actions.status="released";
       note.message+=` You released ${player.name} as a free agent.`;
 
@@ -10869,6 +10881,15 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       }
 
       managerMoveExpiredContractsToFreeAgency(career,false);
+
+      // Repair old saves created before AI renewal/free-agent logic was fixed.
+      // This immediately removes impossible piles of elite unattached stars.
+      if(career.manager.freeAgentAiRepairVersion!=="v60.25"){
+        managerAiResolveFreeAgents(career,{repairMode:true});
+        career.manager.freeAgentAiRepairVersion="v60.25";
+      }
+
+      managerCleanShortlist(career);
       managerUpdateWageBills(career)
     }
 
@@ -12619,38 +12640,281 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         managerGeneratePlayerRequests(career);
       }
 
-      persistDataSilently();
+      // V60.26: do not serialize/compress the entire save here.
+      // The outer matchday/season simulation persists once after simulation finishes.
+    }
+
+
+    function managerCleanShortlist(career=currentCareerSave()){
+      if(!isManagerMode(career))return 0;
+
+      const before=Array.isArray(career.manager.shortlist)?career.manager.shortlist.length:0;
+      const retiredIds=new Set((career.manager.playerRetirements||[]).map(item=>item.playerId));
+      const seen=new Set();
+
+      career.manager.shortlist=(Array.isArray(career.manager.shortlist)?career.manager.shortlist:[])
+        .filter(playerId=>{
+          if(!playerId||seen.has(playerId)||retiredIds.has(playerId))return false;
+          const player=managerPlayerById(playerId,career);
+          if(!player)return false;
+          seen.add(playerId);
+          return true;
+        });
+
+      return before-career.manager.shortlist.length;
+    }
+
+    function managerRemovePlayerFromRecruitmentState(career,playerId){
+      if(!career?.manager||!playerId)return;
+      career.manager.shortlist=(career.manager.shortlist||[]).filter(id=>id!==playerId);
+      if(career.manager.scoutingReports)delete career.manager.scoutingReports[playerId];
+      if(career.manager.transferCooldowns)delete career.manager.transferCooldowns[playerId];
+      if(career.manager.pendingTransferAgreements)delete career.manager.pendingTransferAgreements[playerId];
+    }
+
+    function managerAiRenewExpiringContracts(career=currentCareerSave()){
+      if(!isManagerMode(career))return 0;
+      let renewed=0;
+
+      (career.teams||[]).forEach(club=>{
+        if(club.id===career.controlledTeamId)return;
+
+        (club.managerSquad||[]).forEach(player=>{
+          if(Number(player.contractYears||0)>1)return;
+
+          const overall=Number(player.overall||60);
+          const age=Number(player.age||25);
+          const ballonWins=Number(player.ballonDorsCareer||0);
+          const isBallonWinner=
+            ballonWins>0 ||
+            (career.manager.ballonDorHistory||[]).some(a=>a.playerId===player.id);
+          const elite=isBallonWinner||overall>=88;
+          const important=overall>=84||overall>=Number(club.strength||70)-1;
+
+          // Very old players are allowed to reach the end of a deal and retire.
+          if(age>=38)return;
+
+          let chance=
+            elite ? .995 :
+            important ? .91 :
+            overall>=80 ? .80 :
+            overall>=75 ? .67 :
+            .48;
+
+          if(age>=35)chance*=.58;
+          else if(age>=32)chance*=.80;
+
+          if(player.wantsOut)chance*=elite?.82:.52;
+
+          if(Math.random()>chance)return;
+
+          const years=
+            elite ? (age>=33?2:4) :
+            important ? (age>=32?2:3+Math.floor(Math.random()*2)) :
+            (age>=32?1+Math.floor(Math.random()*2):2+Math.floor(Math.random()*3));
+
+          player.contractYears=clamp(years,1,5);
+          player.wage=Math.max(
+            Number(player.wage||0),
+            Math.round(managerExpectedWage(player)*(elite?1.12:1.03)/5000)*5000
+          );
+          player.releaseClause=managerReleaseClause(player);
+          player.transferListed=false;
+          player.contractExpiredPending=false;
+          player.morale=clamp(Number(player.morale||70)+4,20,100);
+          renewed++;
+        });
+      });
+
+      if(renewed)managerUpdateWageBills(career);
+      return renewed;
+    }
+
+    function managerAiSignFreeAgent(career,player,club){
+      if(!isManagerMode(career)||!player||!club||club.id===career.controlledTeamId)return false;
+
+      const index=(career.manager.freeAgents||[]).findIndex(p=>p.id===player.id);
+      if(index<0)return false;
+
+      career.manager.freeAgents.splice(index,1);
+      club.managerSquad=Array.isArray(club.managerSquad)?club.managerSquad:[];
+
+      player.clubId=club.id;
+      player.transferListed=false;
+      player.wantsOut=false;
+      player.contractExpiredPending=false;
+      player.freeAgentSinceSeason=null;
+      player.contractYears=
+        player.overall>=88 ? (player.age>=33?2:4) :
+        player.age>=32 ? 2 :
+        3+Math.floor(Math.random()*2);
+      player.wage=Math.max(
+        Number(player.wage||0),
+        Math.round(managerExpectedWage(player)/5000)*5000
+      );
+      player.releaseClause=managerReleaseClause(player);
+      player.morale=78+Math.floor(Math.random()*10);
+
+      club.managerSquad.push(player);
+      managerRecalculateTeam(club);
+      managerUpdateWageBills(career);
+
+      career.manager.transferHistory.unshift({
+        id:uid(),
+        season:Number(career.worldSeason||1),
+        playerId:player.id,
+        playerName:player.name,
+        fromId:null,
+        toId:club.id,
+        fee:0,
+        timestamp:Date.now(),
+        reason:'AI free-agent signing'
+      });
+
+      return true;
+    }
+
+    function managerAiResolveFreeAgents(career=currentCareerSave(),options={}){
+      if(!isManagerMode(career))return 0;
+
+      career.manager.freeAgents=Array.isArray(career.manager.freeAgents)?career.manager.freeAgents:[];
+      const currentSeason=Number(career.worldSeason||1);
+      const repairMode=Boolean(options.repairMode);
+      let signed=0;
+
+      // Existing saves from the old bug may have stars already sitting unattached.
+      // Elite players are aggressively re-housed; normal players are handled more gradually.
+      const candidates=[...career.manager.freeAgents]
+        .filter(p=>Number(p.age||25)<39)
+        .sort((a,b)=>
+          Number((career.manager.ballonDorHistory||[]).some(x=>x.playerId===b.id))-
+          Number((career.manager.ballonDorHistory||[]).some(x=>x.playerId===a.id)) ||
+          Number(b.overall||0)-Number(a.overall||0) ||
+          Number(b.potential||0)-Number(a.potential||0)
+        );
+
+      const maxNormalSignings=repairMode?Math.min(24,Math.max(8,Math.round(career.teams.length*.65))):Math.min(14,Math.max(5,Math.round(career.teams.length*.4)));
+      let normalSigned=0;
+
+      for(const player of candidates){
+        if(!(career.manager.freeAgents||[]).some(p=>p.id===player.id))continue;
+
+        const overall=Number(player.overall||60);
+        const ballonWinner=(career.manager.ballonDorHistory||[]).some(a=>a.playerId===player.id);
+        const elite=ballonWinner||overall>=88;
+        const highLevel=overall>=84;
+
+        if(!elite && normalSigned>=maxNormalSignings)continue;
+        if(!elite && !highLevel && !repairMode && Math.random()>.42)continue;
+
+        const possible=(career.teams||[])
+          .filter(club=>club.id!==career.controlledTeamId)
+          .map(club=>{
+            const rep=managerClubReputation(career,club);
+            const weakest=[...(club.managerSquad||[])].sort((a,b)=>a.overall-b.overall)[0];
+            const squadNeed=Math.max(0,overall-Number(weakest?.overall||0));
+            const fit=Math.abs(Number(club.strength||70)-overall);
+            const prestigeFit=elite?Math.abs(rep-88):Math.abs(rep-Math.max(55,overall));
+            return {club,score:prestigeFit+fit*.35-squadNeed*.5+Math.random()*8};
+          })
+          .sort((a,b)=>a.score-b.score);
+
+        const destination=possible[0]?.club;
+        if(!destination)continue;
+
+        if(managerAiSignFreeAgent(career,player,destination)){
+          signed++;
+          if(!elite)normalSigned++;
+
+          if(elite||overall>=86){
+            managerNotify(
+              career,
+              'Free Agent Signed',
+              `${destination.name} signed ${player.name} (${overall} OVR) as a free agent.`,
+              'news'
+            );
+          }
+        }
+      }
+
+      // Old low-level free agents should not pile up forever.
+      const retired=[];
+      career.manager.freeAgents=career.manager.freeAgents.filter(player=>{
+        if(player.freeAgentSinceSeason==null){
+          player.freeAgentSinceSeason=Math.max(1,currentSeason-1);
+        }
+
+        const seasonsFree=Math.max(0,currentSeason-Number(player.freeAgentSinceSeason||currentSeason));
+        const age=Number(player.age||25);
+        const overall=Number(player.overall||60);
+
+        const shouldRetire=
+          age>=39 ||
+          (age>=36&&seasonsFree>=1&&overall<82) ||
+          (seasonsFree>=3&&overall<72);
+
+        if(shouldRetire){
+          retired.push(player);
+          managerRemovePlayerFromRecruitmentState(career,player.id);
+          career.manager.playerRetirements.unshift({
+            season:currentSeason,
+            playerId:player.id,
+            playerName:player.name,
+            clubId:null,
+            reason:'Retired while a free agent'
+          });
+          return false;
+        }
+        return true;
+      });
+
+      managerCleanShortlist(career);
+      return signed;
     }
 
     function managerMoveExpiredContractsToFreeAgency(career,notifyControlled=false){
       if(!isManagerMode(career))return 0;
+
       career.manager.freeAgents=Array.isArray(career.manager.freeAgents)?career.manager.freeAgents:[];
       const freeIds=new Set(career.manager.freeAgents.map(p=>p.id));
       let moved=0;
 
       (career.teams||[]).forEach(club=>{
         const expired=(club.managerSquad||[]).filter(p=>Number(p.contractYears||0)<=0);
-        expired.forEach(p=>{
-          club.managerSquad=club.managerSquad.filter(x=>x.id!==p.id);
-          p.clubId=null;
-          p.transferListed=true;
-          p.wantsOut=false;
-          p.contractExpiredPending=false;
-          if(!freeIds.has(p.id)){
-            career.manager.freeAgents.push(p);
-            freeIds.add(p.id);
+
+        expired.forEach(player=>{
+          club.managerSquad=club.managerSquad.filter(p=>p.id!==player.id);
+
+          player.clubId=null;
+          player.transferListed=true;
+          player.wantsOut=false;
+          player.contractExpiredPending=false;
+          player.freeAgentSinceSeason=Number(career.worldSeason||1);
+
+          if(!freeIds.has(player.id)){
+            career.manager.freeAgents.push(player);
+            freeIds.add(player.id);
           }
+
           moved++;
+
           if(notifyControlled&&club.id===career.controlledTeamId){
-            managerNotify(career,'Player Left on a Free',`${p.name}'s contract expired and he is now a free agent.`,'contract');
+            managerNotify(
+              career,
+              'Player Left on a Free',
+              `${player.name}'s contract expired and he is now a free agent.`,
+              'contract'
+            );
           }
         });
+
         if(expired.length)managerRecalculateTeam(club);
       });
+
+      managerCleanShortlist(career);
       if(moved)managerUpdateWageBills(career);
       return moved;
     }
-
     function managerTransferSearchHasCriteria(career){
       return Boolean(
         String(career.manager.transferMarketPlayerSearch||'').trim() ||
@@ -12663,6 +12927,9 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       const career=currentCareerSave(),panel=$('tab-manager-transfers');
       if(!panel)return;
       if(!isManagerMode(career)){panel.innerHTML='';return}
+
+      // Retired/deleted players must never leave ghost stars or inflate the shortlist count.
+      managerCleanShortlist(career);
 
       const fin=managerControlledFinance(career);
       const allPlayers=managerMarketPlayers(career);
@@ -13139,6 +13406,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         career.manager.freeAgents=career.manager.freeAgents.filter(x=>x.id!==p.id);
         buyer.managerSquad.push(p);
         p.clubId=buyer.id;
+        p.freeAgentSinceSeason=null;
         p.wage=Math.round(wage/5000)*5000;
         p.contractYears=clamp(Math.round(years),1,5);
         p.releaseClause=Math.max(0,Math.round(Number(clause||0)/1_000_000)*1_000_000);
@@ -13175,41 +13443,73 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
     function managerEnsureSquadDepth(career,team){while((team.managerSquad||[]).length<18){const p=managerGeneratePlayer(Math.max(58,Number(team.strength||70)-5),MANAGER_POSITIONS[team.managerSquad.length%MANAGER_POSITIONS.length],team.managerSquad.length,team.id);p.age=18+Math.floor(Math.random()*4);p.overall=Math.max(55,p.overall-3);p.potential=clamp(p.overall+5+Math.floor(Math.random()*6),p.overall,96);p.marketValue=managerPlayerValue(p);p.wage=managerExpectedWage(p);p.releaseClause=managerReleaseClause(p);team.managerSquad.push(p)}}
 
     function managerGenerateIncomingOffers(career=currentCareerSave(),count=1){if(!isManagerMode(career)||!managerWindowOpen(career))return;const own=controlledCareerTeam(career),candidates=(own.managerSquad||[]).filter(p=>p.transferListed||p.wantsOut||p.overall>=own.strength+1).sort((a,b)=>b.overall-a.overall);for(let i=0;i<Math.min(count,candidates.length);i++){const p=candidates[i],buyers=career.teams.filter(t=>t.id!==own.id&&career.manager.clubFinances[t.id]?.budget>p.marketValue*.8).sort((a,b)=>b.strength-a.strength);if(!buyers.length)continue;const buyer=buyers[Math.floor(Math.random()*Math.min(8,buyers.length))],release=(Number(career.worldSeason||1)>1||p.wantsOut)&&Math.random()<.12&&p.releaseClause>0&&career.manager.clubFinances[buyer.id].budget>=p.releaseClause,fee=release?p.releaseClause:Math.round(p.marketValue*(.9+Math.random()*.25)/1_000_000)*1_000_000;const note=managerNotify(career,release?'Release Clause Activated':'Transfer Offer',release?`${buyer.name} activated ${p.name}'s ${money(fee)} release clause. The player will decide whether to leave.`:`${buyer.name} offered ${money(fee)} (${moneyFull(fee)}) for ${p.name}.`,'offer',{kind:'incoming-offer',playerId:p.id,buyerId:buyer.id,fee,releaseClause:release,status:'pending'});if(release){const accepts=p.wantsOut||p.morale<65||buyer.strength>own.strength+3;if(accepts){managerCompleteTransfer(career,p.id,own.id,buyer.id,fee,{reason:'Release clause'});note.actions.status='completed';note.message+=` ${p.name} accepted the move.`}else{note.actions.status='rejected-player';note.message+=` ${p.name} rejected the move and stays.`}}}}
-    function managerRunAiTransferMarket(career=currentCareerSave(),phase='summer',quiet=false){if(!isManagerMode(career))return;const key=`${career.worldSeason}:${phase}`;if(career.manager.lastAiWindowKey===key)return;career.manager.lastAiWindowKey=key;const deals=phase==='summer'?Math.min(18,Math.max(6,Math.round(career.teams.length*.45))):Math.min(10,Math.max(3,Math.round(career.teams.length*.25)));for(let i=0;i<deals;i++){const buyers=career.teams.filter(t=>t.id!==career.controlledTeamId&&career.manager.clubFinances[t.id]?.budget>25_000_000);if(!buyers.length)break;const buyer=buyers[Math.floor(Math.random()*buyers.length)],fin=career.manager.clubFinances[buyer.id],needPos=['GK','CB','CM','CAM','RW','LW','ST'][Math.floor(Math.random()*7)],targets=career.teams.filter(t=>t.id!==buyer.id&&t.id!==career.controlledTeamId).flatMap(t=>(t.managerSquad||[]).filter(p=>(p.position===needPos||Math.random()<.15)&&p.marketValue<fin.budget*.55).map(p=>({p,seller:t}))).sort((a,b)=>b.p.overall-a.p.overall);if(!targets.length)continue;const target=targets[Math.floor(Math.random()*Math.min(12,targets.length))],fee=Math.round(target.p.marketValue*(.9+Math.random()*.2)/1_000_000)*1_000_000;if(fee<=0||fee>fin.budget)continue;if(managerCompleteTransfer(career,target.p.id,target.seller.id,buyer.id,fee,{wage:managerExpectedWage(target.p),years:3+Math.floor(Math.random()*3),clause:managerReleaseClause(target.p),reason:'AI transfer'})){if(target.p.overall>=90||fee>=180_000_000)managerNotify(career,'Major Transfer',`${buyer.name} signed ${target.p.name} from ${target.seller.name} for ${money(fee)}.`,'news')}}if(!quiet)saveData('AI transfer market updated')}
+    function managerRunAiTransferMarket(career=currentCareerSave(),phase='summer',quiet=false){
+      if(!isManagerMode(career))return;
 
-    function renderManagerInbox(){const career=currentCareerSave(),panel=$('tab-manager-inbox');if(!panel)return;if(!isManagerMode(career)){panel.innerHTML='';return}const inbox=career.manager.inbox||[],viewing=document.querySelector('.tab.active')?.dataset.tab==='manager-inbox';panel.innerHTML=`<div class="card"><div class="manager-transfer-toolbar"><div><div class="startup-kicker">📩 MANAGER INBOX</div><h1 style="margin:4px 0">Club Messages</h1></div><span class="badge">${inbox.filter(n=>n.unread).length} unread</span></div><p class="muted">Offers, contracts, player requests, prize money, transfer windows and major deals appear here.</p></div><div class="manager-inbox-list" style="margin-top:14px">${inbox.length?inbox.map(n=>`<article class="manager-inbox-item ${n.unread?'unread':''}" data-inbox-id="${n.id}"><div class="manager-inbox-meta"><div><strong>${escapeHtml(n.title)}</strong><small class="muted" style="display:block">${escapeHtml(seasonDisplay(n.season||1))}</small></div><span class="badge">${escapeHtml(n.type||'Update')}</span></div><div>${escapeHtml(n.message)}</div>${managerInboxActionsHtml(n)}</article>`).join(''):'<div class="card"><p class="muted">Your inbox is empty.</p></div>'}</div>`;if(viewing){inbox.forEach(n=>n.unread=false);persistDataSilently()}panel.querySelectorAll('[data-offer-accept]').forEach(b=>b.onclick=()=>managerResolveIncomingOffer(b.dataset.offerAccept,'accept'));panel.querySelectorAll('[data-offer-reject]').forEach(b=>b.onclick=()=>managerResolveIncomingOffer(b.dataset.offerReject,'reject'));panel.querySelectorAll('[data-offer-negotiate]').forEach(b=>b.onclick=()=>managerResolveIncomingOffer(b.dataset.offerNegotiate,'negotiate'))}
-    function managerInboxActionsHtml(note){const a=note.actions;if(!a||a.kind!=='incoming-offer'||a.status!=='pending'||a.releaseClause)return '';return `<div class="manager-inbox-actions"><button class="btn success small" data-offer-accept="${note.id}">Accept</button><button class="btn secondary small" data-offer-negotiate="${note.id}">Negotiate</button><button class="btn danger small" data-offer-reject="${note.id}">Reject</button></div>`}
-    function managerResolveIncomingOffer(noteId,choice){const career=currentCareerSave(),note=career.manager.inbox.find(n=>n.id===noteId),a=note?.actions;if(!a||a.status!=='pending')return;const p=managerPlayerById(a.playerId,career),buyer=managerTeam(a.buyerId,career);if(!p||!buyer)return;if(choice==='reject'){a.status='rejected';note.message+=` You rejected ${buyer.name}'s offer.`;p.morale=Math.max(25,Number(p.morale||70)-(p.wantsOut?12:4))}else{let fee=Number(a.fee);if(choice==='negotiate'){const counter=Number(prompt(`Counter offer to ${buyer.name}:`,String(Math.round(fee*1.12/1_000_000)*1_000_000)));if(!Number.isFinite(counter))return;if(counter>fee*1.22){a.status='walked';note.message+=` ${buyer.name} walked away from your ${money(counter)} counteroffer.`;saveData('Offer negotiation ended');renderManagerInbox();return}fee=counter}const buyerFin=career.manager.clubFinances[buyer.id];if(!buyerFin||buyerFin.budget<fee){a.status='walked';note.message+=` ${buyer.name} could not fund the deal.`}else{managerCompleteTransfer(career,p.id,career.controlledTeamId,buyer.id,fee,{reason:'Accepted offer'});a.status='completed';note.message+=` Deal completed for ${money(fee)}.`}}saveData('Transfer offer resolved');renderManagerInbox();renderManagerSquad();renderManagerTransfers();renderManagerFinances();renderCareerDashboard();renderTeams()}
+      const key=`${career.worldSeason}:${phase}`;
+      if(career.manager.lastAiWindowKey===key)return;
+      career.manager.lastAiWindowKey=key;
 
-    function renderManagerFinances(){const career=currentCareerSave(),panel=$('tab-manager-finances');if(!panel)return;if(!isManagerMode(career)){panel.innerHTML='';return}const fin=managerControlledFinance(career),team=controlledCareerTeam(career),ledger=[...(fin.ledger||[])].reverse();panel.innerHTML=`<section class="career-hero">${teamLogo(team)}<div><div class="startup-kicker">💵 CLUB FINANCES</div><h1>${escapeHtml(team.name)}</h1><p class="muted">Transfer budget, wages, prize money and completed deals.</p></div><div><div class="muted">AVAILABLE</div><div class="career-overall" style="font-size:36px">${money(fin.budget)}</div></div></section><div class="manager-summary-grid"><div class="manager-summary-card"><small>Transfer Budget</small><strong class="manager-money">${money(fin.budget)}</strong></div><div class="manager-summary-card"><small>Weekly Wage Bill</small><strong>${money(fin.wageBill)}</strong></div><div class="manager-summary-card"><small>Total Transfer Spend</small><strong>${money(fin.totalSpent)}</strong></div><div class="manager-summary-card"><small>Total Sales</small><strong>${money(fin.totalReceived)}</strong></div><div class="manager-summary-card"><small>Prize Money</small><strong>${money(fin.prizeMoney)}</strong></div><div class="manager-summary-card"><small>Squad Value</small><strong>${money((team.managerSquad||[]).reduce((s,p)=>s+p.marketValue,0))}</strong></div></div><article class="card"><h2>Finance Ledger</h2><div class="manager-ledger">${ledger.length?ledger.map(x=>`<div class="manager-ledger-row"><span class="muted">${escapeHtml(seasonDisplay(x.season||1))}</span><span>${escapeHtml(x.text)}</span><strong class="${x.amount>=0?'manager-money':''}">${x.amount>=0?'+':''}${money(Math.abs(x.amount))}</strong></div>`).join(''):'<p class="muted">No financial activity yet.</p>'}</div></article>`}
+      // AI clubs now actively use the free-agent market first.
+      managerAiResolveFreeAgents(career,{repairMode:false});
 
-    function managerPrizeForCompetition(comp,place,size){const cat=comp.isWorldCup?'world-cup':comp.category;if(cat==='champions-league')return place===1?200_000_000:place===2?125_000_000:place<=4?80_000_000:place<=8?45_000_000:20_000_000;if(cat==='europa-league')return place===1?115_000_000:place===2?75_000_000:place<=4?45_000_000:22_000_000;if(cat==='super-league')return place===1?85_000_000:55_000_000;if(cat==='world-cup')return place===1?150_000_000:place===2?95_000_000:place<=4?55_000_000:25_000_000;if(cat==='league'){const ratio=1-(place-1)/Math.max(1,size-1),tierWeight=leagueTierMultiplier(comp);return Math.round(((25_000_000+ratio*125_000_000)*tierWeight)/5_000_000)*5_000_000}return place===1?65_000_000:place===2?38_000_000:place<=4?20_000_000:8_000_000}
-    function managerAwardCompetitionPrize(comp,ranking){const career=currentCareerSave();if(!isManagerMode(career)||!Array.isArray(ranking))return;ranking.forEach((teamId,index)=>{const fin=career.manager.clubFinances[teamId];if(!fin)return;const amount=managerPrizeForCompetition(comp,index+1,ranking.length);fin.budget+=amount;fin.prizeMoney+=amount;managerAddLedger(career,teamId,amount,`${comp.name} prize money · #${index+1}`,'prize');if(teamId===career.controlledTeamId)managerNotify(career,'Prize Money Received',`${comp.name}: ${money(amount)} added to your transfer budget for finishing #${index+1}.`,'finance')})}
+      const deals=phase==='summer'
+        ?Math.min(18,Math.max(6,Math.round(career.teams.length*.45)))
+        :Math.min(10,Math.max(3,Math.round(career.teams.length*.25)));
 
-    function managerCurrentSeasonStats(career,teamId){
-      const season=String(Number(career.worldSeason||1));
-      career.manager.teamSeasonStats[teamId]=career.manager.teamSeasonStats[teamId]||{};
-      const stats=career.manager.teamSeasonStats[teamId][season]||{
-        season:Number(season),
-        teamGoals:0,
-        matches:0,
-        playerGoals:{},
-        playerAssists:{},
-        playerAppearances:{},
-        playerNames:{},
-        maxTeamGoalsGame:0,
-        maxTeamGoalsOpponent:'',
-        maxPlayerGoalsGame:{goals:0,playerId:null,playerName:'',opponent:''},
-        maxPlayerAssistsGame:{assists:0,playerId:null,playerName:'',opponent:''}
-      };
-      stats.playerGoals=stats.playerGoals||{};
-      stats.playerAssists=stats.playerAssists||{};
-      stats.playerAppearances=stats.playerAppearances||{};
-      stats.playerNames=stats.playerNames||{};
-      stats.maxPlayerGoalsGame=stats.maxPlayerGoalsGame||{goals:0,playerId:null,playerName:'',opponent:''};
-      stats.maxPlayerAssistsGame=stats.maxPlayerAssistsGame||{assists:0,playerId:null,playerName:'',opponent:''};
-      career.manager.teamSeasonStats[teamId][season]=stats;
-      return stats;
+      for(let i=0;i<deals;i++){
+        const buyers=career.teams.filter(
+          t=>t.id!==career.controlledTeamId&&career.manager.clubFinances[t.id]?.budget>25_000_000
+        );
+        if(!buyers.length)break;
+
+        const buyer=buyers[Math.floor(Math.random()*buyers.length)],
+          fin=career.manager.clubFinances[buyer.id],
+          needPos=['GK','CB','CM','CAM','RW','LW','ST'][Math.floor(Math.random()*7)],
+          targets=career.teams
+            .filter(t=>t.id!==buyer.id&&t.id!==career.controlledTeamId)
+            .flatMap(t=>(t.managerSquad||[])
+              .filter(p=>
+                (p.position===needPos||Math.random()<.15)&&
+                p.marketValue<fin.budget*.55
+              )
+              .map(p=>({p,seller:t}))
+            )
+            .sort((a,b)=>b.p.overall-a.p.overall);
+
+        if(!targets.length)continue;
+
+        const target=targets[Math.floor(Math.random()*Math.min(12,targets.length))],
+          fee=Math.round(target.p.marketValue*(.9+Math.random()*.2)/1_000_000)*1_000_000;
+
+        if(fee<=0||fee>fin.budget)continue;
+
+        if(managerCompleteTransfer(
+          career,
+          target.p.id,
+          target.seller.id,
+          buyer.id,
+          fee,
+          {
+            wage:managerExpectedWage(target.p),
+            years:3+Math.floor(Math.random()*3),
+            clause:managerReleaseClause(target.p),
+            reason:'AI transfer'
+          }
+        )){
+          if(target.p.overall>=90||fee>=180_000_000){
+            managerNotify(
+              career,
+              'Major Transfer',
+              `${buyer.name} signed ${target.p.name} from ${target.seller.name} for ${money(fee)}.`,
+              'news'
+            );
+          }
+        }
+      }
+
+      managerCleanShortlist(career);
+      if(!quiet)saveData('AI transfer market updated');
     }
     function managerClubTotals(career,teamId){career.manager.clubPlayerTotals[teamId]=career.manager.clubPlayerTotals[teamId]||{};return career.manager.clubPlayerTotals[teamId]}
     function managerPickScorer(teamId,career=currentCareerSave()){
@@ -14423,6 +14723,10 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         }
       }
 
+      // AI clubs renew important expiring contracts before the annual contract countdown.
+      // This prevents elite stars and award winners from randomly flooding free agency.
+      managerAiRenewExpiringContracts(career);
+
       const leaguePos=careerLeaguePosition(career)||career.teams.length;
       const bonus=Math.round((25_000_000+Math.max(0,career.teams.length-leaguePos)*2_500_000)/5_000_000)*5_000_000;
       fin.budget+=bonus;
@@ -14456,6 +14760,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         retiring.forEach(p=>{
           club.managerSquad=club.managerSquad.filter(x=>x.id!==p.id);
           career.manager.playerRetirements.unshift({season,playerId:p.id,playerName:p.name,clubId:club.id});
+          managerRemovePlayerFromRecruitmentState(career,p.id);
           if(club.id===career.controlledTeamId){
             managerNotify(career,'Player Retired',`${p.name} retired at age ${p.age}.`,'retirement',{kind:'retirement',playerId:p.id,status:'completed'});
           }
@@ -14472,6 +14777,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         p.marketValue=managerPlayerValue(p);
       }));
 
+      managerCleanShortlist(career);
       managerUpdateWageBills(career);
     }
     function managerBeginNewSeason(career){
@@ -17777,7 +18083,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         matchdayButton.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          simulateOneMatchdayAndStay(comp.id);
+          runMatchdaySimulationWithFeedback(comp.id,matchdayButton);
         });
       }
 
@@ -17786,7 +18092,7 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         finalButton.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          simulateOneMatchdayAndStay(comp.id);
+          runMatchdaySimulationWithFeedback(comp.id,finalButton);
         });
       }
 
@@ -18327,6 +18633,69 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       }
     }
 
+    let pendingSimulationSaveTimer=null;
+    let pendingSimulationSaveMessage="";
+
+    function flushPendingSimulationSave(){
+      if(pendingSimulationSaveTimer){
+        clearTimeout(pendingSimulationSaveTimer);
+        pendingSimulationSaveTimer=null;
+      }
+
+      const message=pendingSimulationSaveMessage;
+      pendingSimulationSaveMessage="";
+      const saved=saveData("");
+
+      if(!saved){
+        showToast("Match simulated, but the browser save could not be written. Export a backup.",true);
+      }
+
+      return saved;
+    }
+
+    function queueSimulationSave(message="Matchday simulated",delay=220){
+      pendingSimulationSaveMessage=message||pendingSimulationSaveMessage||"Matchday simulated";
+
+      if(pendingSimulationSaveTimer)clearTimeout(pendingSimulationSaveTimer);
+
+      pendingSimulationSaveTimer=setTimeout(()=>{
+        pendingSimulationSaveTimer=null;
+
+        // Let the newly-rendered score/table paint before the expensive
+        // save serialization + compression starts.
+        requestAnimationFrame(()=>{
+          setTimeout(()=>flushPendingSimulationSave(),0);
+        });
+      },Math.max(0,Number(delay)||0));
+    }
+
+    function runMatchdaySimulationWithFeedback(compId,button){
+      if(!button||button.disabled)return;
+
+      const originalText=button.textContent;
+      button.disabled=true;
+      button.classList.add("simulation-busy");
+      button.textContent="⏳ Simulating…";
+
+      // Yield one frame so the button visually reacts immediately.
+      requestAnimationFrame(()=>{
+        setTimeout(()=>{
+          try{
+            simulateOneMatchdayAndStay(compId);
+          }catch(error){
+            console.error("Matchday simulation failed:",error);
+            showToast(`Simulation failed: ${error?.message||"Unknown error"}`,true);
+
+            if(button.isConnected){
+              button.disabled=false;
+              button.classList.remove("simulation-busy");
+              button.textContent=originalText;
+            }
+          }
+        },0);
+      });
+    }
+
     function simulateOneMatchdayAndStay(compId, options={}) {
       const comp = currentWorld().competitions.find(c => c.id === compId);
       if (!comp) {
@@ -18344,21 +18713,21 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
       simulateMatchday(compId, true, options.forcedResults || null);
 
       const updated = currentWorld().competitions.find(c => c.id === compId);
-      const newRound = updated.results[resultsBefore];
+      const newRound = updated?.results?.[resultsBefore];
       activeCompetitionId = compId;
-      calculateWorldCupQualification(currentWorld());
-      saveData("Matchday simulated");
 
       const finishUI = () => {
         if (updated.worldCupFinalizationPending && !options.deferWorldCupFinalization) {
           finishCompetition(updated,true);
-          saveData("World Cup champion confirmed");
         }
+
+        // Render what the player is actually looking at first.
         renderCompetitionDetail(updated);
-        renderDashboard();
-        renderRecords();
-        renderTeamHistory();
+
+        // Hidden pages re-render when the user opens them through switchTab(),
+        // so rebuilding all of them after every match only caused input lag.
         requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
+
         if (!options.suppressEliminationNotice) maybeShowCareerElimination(updated);
 
         if (!options.suppressCompletionPopup && !wasFinished && updated.finished && !updated.isWorldCup) {
@@ -18368,6 +18737,14 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
             showSeasonCompletePopup(updated);
           }
         }
+
+        // A completed competition is slightly more important, so persist sooner.
+        // Normal matchdays are debounced so repeated clicks do not recompress the
+        // entire world over and over.
+        queueSimulationSave(
+          updated.finished ? "Competition completed" : "Matchday simulated",
+          updated.finished ? 0 : 220
+        );
       };
 
       if (isKnockout && newRound && !options.skipSuspense) {
@@ -18376,7 +18753,6 @@ body.career-mode:not(.world-cup-theme) .competition-row.competition-custom-color
         finishUI();
       }
     }
-
     function showPendingWorldCupFinalReveal(comp) {
       if (!comp?.worldCupFinalizationPending) return false;
       if (pendingWorldCupRevealCompetitionId===comp.id||$("knockoutRevealDialog").open) return false;
@@ -21604,9 +21980,24 @@ function renderWorldCupQualification() {
       pendingQualificationRules = [];
     });
     $("confirmSimSeasonBtn").addEventListener("click", () => {
+      const compId=pendingSeasonCompetitionId;
+      pendingSeasonCompetitionId=null;
       $("confirmSeasonDialog").close();
-      if (pendingSeasonCompetitionId) simulateSeason(pendingSeasonCompetitionId);
-      pendingSeasonCompetitionId = null;
+
+      if(!compId)return;
+
+      showToast("Simulating remaining matches…");
+
+      requestAnimationFrame(()=>{
+        setTimeout(()=>{
+          try{
+            simulateSeason(compId);
+          }catch(error){
+            console.error("Season simulation failed:",error);
+            showToast(`Season simulation failed: ${error?.message||"Unknown error"}`,true);
+          }
+        },0);
+      });
     });
 
     $("seasonCompleteContinueBtn").addEventListener("click", continueFromSeasonComplete);
