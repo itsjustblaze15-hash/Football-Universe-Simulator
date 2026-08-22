@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V60.13";
+  content:"V60.14";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V60.13" !important;
+  content:"V60.14" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7042,6 +7042,265 @@ body.manager-mode{--manager-money:#86efac}
   .manager-market-actions .btn{flex:1}
 }
 
+
+
+/* =========================================================
+   V60.14 — Ballon d'Or + Player History
+   ========================================================= */
+.manager-ballon-dialog{
+  width:min(900px,calc(100% - 24px));
+  max-width:900px;
+  max-height:92vh;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(246,196,83,.48);
+  background:#07111f;
+}
+.manager-ballon-dialog::backdrop{
+  background:rgba(0,0,0,.86);
+  backdrop-filter:blur(9px);
+}
+.ballon-shell{
+  min-height:560px;
+  max-height:92vh;
+  overflow:auto;
+  padding:28px;
+  background:
+    radial-gradient(circle at 50% -8%,rgba(246,196,83,.22),transparent 34%),
+    radial-gradient(circle at 92% 88%,rgba(79,156,255,.10),transparent 28%),
+    #07111f;
+}
+.ballon-kicker{
+  color:#f6c453;
+  font-weight:1000;
+  letter-spacing:.18em;
+  font-size:11px;
+  text-transform:uppercase;
+}
+.ballon-title{
+  margin:7px 0 8px;
+  font-size:clamp(32px,6vw,58px);
+  line-height:.98;
+}
+.ballon-subtitle{
+  color:var(--muted);
+  max-width:700px;
+  line-height:1.55;
+}
+.ballon-nominee-list{
+  display:grid;
+  gap:9px;
+  margin-top:20px;
+}
+.ballon-nominee-row{
+  display:grid;
+  grid-template-columns:42px 58px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:11px 13px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.035);
+}
+.ballon-rank{
+  font-size:20px;
+  font-weight:1000;
+  color:#f6c453;
+  text-align:center;
+}
+.ballon-face{
+  width:58px;
+  height:58px;
+  display:grid;
+  place-items:end center;
+  overflow:hidden;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+}
+.ballon-face .manager-player-photo{
+  width:62px;
+  height:62px;
+  object-fit:contain;
+  object-position:center bottom;
+}
+.ballon-player-name{font-weight:1000;font-size:16px}
+.ballon-player-meta{color:var(--muted);font-size:12px;margin-top:3px}
+.ballon-reason{color:#dce8f8;font-size:12px;margin-top:5px;line-height:1.35}
+.ballon-stat-line{
+  text-align:right;
+  min-width:110px;
+  font-weight:900;
+}
+.ballon-stat-line small{
+  display:block;
+  color:var(--muted);
+  font-weight:700;
+  margin-top:3px;
+}
+.ballon-reveal-card{
+  min-height:470px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+}
+.ballon-reveal-face{
+  width:190px;
+  height:190px;
+  margin:18px auto 10px;
+  display:grid;
+  place-items:end center;
+  overflow:hidden;
+  border-radius:34px;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(246,196,83,.18),transparent 48%),
+    rgba(255,255,255,.035);
+  border:1px solid rgba(246,196,83,.25);
+}
+.ballon-reveal-face .manager-player-photo{
+  width:195px;
+  height:195px;
+  object-fit:contain;
+  object-position:center bottom;
+}
+.ballon-place{
+  color:#f6c453;
+  font-size:70px;
+  line-height:1;
+  font-weight:1000;
+}
+.ballon-reveal-name{
+  font-size:clamp(32px,6vw,54px);
+  font-weight:1000;
+  margin:8px 0 5px;
+}
+.ballon-top3{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-top:26px;
+}
+.ballon-top3-card{
+  padding:18px 12px;
+  border:1px solid rgba(246,196,83,.25);
+  border-radius:18px;
+  text-align:center;
+  background:rgba(246,196,83,.045);
+}
+.ballon-top3-card .ballon-face{margin:0 auto 10px}
+.ballon-winner-glow{
+  animation:ballonGlow 1.6s ease-in-out infinite alternate;
+}
+@keyframes ballonGlow{
+  from{box-shadow:0 0 20px rgba(246,196,83,.12)}
+  to{box-shadow:0 0 52px rgba(246,196,83,.35)}
+}
+.ballon-full-list{
+  display:grid;
+  gap:7px;
+  margin-top:18px;
+  max-height:520px;
+  overflow:auto;
+  padding-right:4px;
+}
+.ballon-actions{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:22px;
+}
+.player-record-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px;
+  align-items:end;
+}
+.player-record-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-top:16px;
+}
+.player-record-card{
+  padding:15px;
+  border-radius:15px;
+  border:1px solid var(--border);
+  background:var(--panel-2);
+}
+.player-record-card small{
+  display:block;
+  color:var(--muted);
+  margin-bottom:7px;
+}
+.player-record-card strong{
+  display:block;
+  font-size:17px;
+}
+.player-leaderboard{
+  display:grid;
+  gap:7px;
+}
+.player-leader-row{
+  display:grid;
+  grid-template-columns:42px 54px minmax(180px,1.3fr) repeat(6,minmax(70px,.6fr));
+  gap:9px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:13px;
+  background:var(--panel-2);
+  border:1px solid var(--border);
+}
+.player-leader-face{
+  width:50px;
+  height:50px;
+  display:grid;
+  place-items:end center;
+  overflow:hidden;
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+}
+.player-leader-face .manager-player-photo{
+  width:54px;height:54px;object-fit:contain;object-position:center bottom;
+}
+.player-leader-num{font-weight:1000;text-align:center}
+.player-leader-cell{text-align:center;font-weight:900}
+.player-leader-cell small{display:block;color:var(--muted);font-size:10px}
+.club-player-legacy{
+  margin-top:16px;
+  max-height:420px;
+  overflow:auto;
+}
+.club-player-legacy-row{
+  display:grid;
+  grid-template-columns:minmax(180px,1.4fr) repeat(5,minmax(70px,.6fr));
+  gap:8px;
+  align-items:center;
+  padding:9px 10px;
+  border-bottom:1px solid rgba(164,214,181,.11);
+}
+.club-player-legacy-row.header{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:#0c1b13;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+@media(max-width:900px){
+  .player-record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .player-leaderboard{overflow-x:auto}
+  .player-leader-row{min-width:850px}
+}
+@media(max-width:650px){
+  .ballon-top3{grid-template-columns:1fr}
+  .ballon-nominee-row{grid-template-columns:38px 52px minmax(0,1fr)}
+  .ballon-stat-line{grid-column:2/-1;text-align:left}
+  .player-record-grid{grid-template-columns:1fr}
+  .player-record-hero{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -7063,7 +7322,7 @@ body.manager-mode{--manager-money:#86efac}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.13</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V60.14</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -7132,7 +7391,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V60.13</p>
+          <p id="saveStatus">V60.14</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -7160,6 +7419,7 @@ body.manager-mode{--manager-money:#86efac}
           <button class="tab manager-only" data-tab="manager-transfers">🔄 Transfers</button>
           <button class="tab manager-only" data-tab="manager-inbox">📩 Inbox</button>
           <button class="tab manager-only" data-tab="manager-finances">💵 Finances</button>
+          <button class="tab manager-only" data-tab="manager-player-records">🏅 Player Records</button>
           <button class="tab career-only" data-tab="club-development">🛠 Club Development</button>
           <button class="tab career-only" data-tab="club-legacy">👑 Club Legacy</button>
         </nav>
@@ -7180,6 +7440,7 @@ body.manager-mode{--manager-money:#86efac}
           <section id="tab-manager-transfers" class="tab-panel hidden"></section>
           <section id="tab-manager-inbox" class="tab-panel hidden"></section>
           <section id="tab-manager-finances" class="tab-panel hidden"></section>
+          <section id="tab-manager-player-records" class="tab-panel hidden"></section>
           <section id="tab-club-development" class="tab-panel hidden"></section>
           <section id="tab-club-legacy" class="tab-panel hidden"></section>
         </div>
@@ -7190,6 +7451,11 @@ body.manager-mode{--manager-money:#86efac}
 
 
 
+
+
+  <dialog id="managerBallonDorDialog" class="manager-ballon-dialog">
+    <div id="managerBallonDorDialogContent"></div>
+  </dialog>
 
   <dialog id="managerUrgentDialog" class="manager-urgent-dialog">
     <div id="managerUrgentDialogContent"></div>
@@ -9546,7 +9812,7 @@ body.manager-mode{--manager-money:#86efac}
       if(title.includes("player wants to leave")) return "player";
       if(title.includes("player retired")) return "retirement";
       if(title.includes("transfer window open")) return "window";
-      if(title.includes("world player of the year")) return "award";
+      if(title.includes("world player of the year")||title.includes("ballon d\'or")) return "award";
 
       return null;
     }
@@ -9852,6 +10118,8 @@ body.manager-mode{--manager-money:#86efac}
         clubRecords:{},
         transferHistory:[],
         awards:[],
+        ballonDorHistory:[],
+        ballonDorNominees:{},
         playerRetirements:[],
         lastAiWindowKey:'',
         transferMarketSearch:'',
@@ -9927,6 +10195,8 @@ body.manager-mode{--manager-money:#86efac}
       career.manager.clubRecords=career.manager.clubRecords||{};
       career.manager.transferHistory=Array.isArray(career.manager.transferHistory)?career.manager.transferHistory:[];
       career.manager.awards=Array.isArray(career.manager.awards)?career.manager.awards:[];
+      career.manager.ballonDorHistory=Array.isArray(career.manager.ballonDorHistory)?career.manager.ballonDorHistory:[];
+      career.manager.ballonDorNominees=career.manager.ballonDorNominees||{};
       career.manager.playerRetirements=Array.isArray(career.manager.playerRetirements)?career.manager.playerRetirements:[];
       career.manager.formation=career.manager.formation||'4-2-3-1';
       career.manager.formationAssignments=career.manager.formationAssignments||{};
@@ -9944,6 +10214,22 @@ body.manager-mode{--manager-money:#86efac}
       career.manager.playerRequestGraceUntilTick=Number(career.manager.playerRequestGraceUntilTick??(career.manager.managerActionTick+3));
       career.manager.lastIncomingOfferTick=Number(career.manager.lastIncomingOfferTick??-99);
       career.manager.lastPlayerRequestTick=Number(career.manager.lastPlayerRequestTick??-99);
+      Object.entries(career.manager.clubPlayerTotals||{}).forEach(([teamId,players])=>{
+        Object.values(players||{}).forEach(item=>{
+          item.goals=Number(item.goals||0);
+          item.assists=Number(item.assists||0);
+          item.appearances=Number(item.appearances||0);
+          item.honours=Array.isArray(item.honours)?item.honours:[];
+          item.ballonDors=Number(item.ballonDors||0);
+        });
+      });
+      (career.teams||[]).forEach(team=>(team.managerSquad||[]).forEach(p=>{
+        p.assistsSeason=Number(p.assistsSeason||0);
+        p.assistsCareer=Number(p.assistsCareer||0);
+        p.ballonDorsCareer=Number(p.ballonDorsCareer||0);
+        p.trophiesCareer=Number(p.trophiesCareer||0);
+      }));
+
       const shouldApplyFcRatings=
         career.manager.ratingDataVersion!==FC27_RATING_DATA_VERSION;
 
@@ -12313,13 +12599,213 @@ body.manager-mode{--manager-money:#86efac}
     function managerPrizeForCompetition(comp,place,size){const cat=comp.isWorldCup?'world-cup':comp.category;if(cat==='champions-league')return place===1?200_000_000:place===2?125_000_000:place<=4?80_000_000:place<=8?45_000_000:20_000_000;if(cat==='europa-league')return place===1?115_000_000:place===2?75_000_000:place<=4?45_000_000:22_000_000;if(cat==='super-league')return place===1?85_000_000:55_000_000;if(cat==='world-cup')return place===1?150_000_000:place===2?95_000_000:place<=4?55_000_000:25_000_000;if(cat==='league'){const ratio=1-(place-1)/Math.max(1,size-1);return Math.round((25_000_000+ratio*125_000_000)/5_000_000)*5_000_000}return place===1?65_000_000:place===2?38_000_000:place<=4?20_000_000:8_000_000}
     function managerAwardCompetitionPrize(comp,ranking){const career=currentCareerSave();if(!isManagerMode(career)||!Array.isArray(ranking))return;ranking.forEach((teamId,index)=>{const fin=career.manager.clubFinances[teamId];if(!fin)return;const amount=managerPrizeForCompetition(comp,index+1,ranking.length);fin.budget+=amount;fin.prizeMoney+=amount;managerAddLedger(career,teamId,amount,`${comp.name} prize money · #${index+1}`,'prize');if(teamId===career.controlledTeamId)managerNotify(career,'Prize Money Received',`${comp.name}: ${money(amount)} added to your transfer budget for finishing #${index+1}.`,'finance')})}
 
-    function managerCurrentSeasonStats(career,teamId){const season=String(Number(career.worldSeason||1));career.manager.teamSeasonStats[teamId]=career.manager.teamSeasonStats[teamId]||{};career.manager.teamSeasonStats[teamId][season]=career.manager.teamSeasonStats[teamId][season]||{season:Number(season),teamGoals:0,matches:0,playerGoals:{},playerNames:{},maxTeamGoalsGame:0,maxTeamGoalsOpponent:'',maxPlayerGoalsGame:{goals:0,playerId:null,playerName:'',opponent:''}};return career.manager.teamSeasonStats[teamId][season]}
+    function managerCurrentSeasonStats(career,teamId){
+      const season=String(Number(career.worldSeason||1));
+      career.manager.teamSeasonStats[teamId]=career.manager.teamSeasonStats[teamId]||{};
+      const stats=career.manager.teamSeasonStats[teamId][season]||{
+        season:Number(season),
+        teamGoals:0,
+        matches:0,
+        playerGoals:{},
+        playerAssists:{},
+        playerAppearances:{},
+        playerNames:{},
+        maxTeamGoalsGame:0,
+        maxTeamGoalsOpponent:'',
+        maxPlayerGoalsGame:{goals:0,playerId:null,playerName:'',opponent:''},
+        maxPlayerAssistsGame:{assists:0,playerId:null,playerName:'',opponent:''}
+      };
+      stats.playerGoals=stats.playerGoals||{};
+      stats.playerAssists=stats.playerAssists||{};
+      stats.playerAppearances=stats.playerAppearances||{};
+      stats.playerNames=stats.playerNames||{};
+      stats.maxPlayerGoalsGame=stats.maxPlayerGoalsGame||{goals:0,playerId:null,playerName:'',opponent:''};
+      stats.maxPlayerAssistsGame=stats.maxPlayerAssistsGame||{assists:0,playerId:null,playerName:'',opponent:''};
+      career.manager.teamSeasonStats[teamId][season]=stats;
+      return stats;
+    }
     function managerClubTotals(career,teamId){career.manager.clubPlayerTotals[teamId]=career.manager.clubPlayerTotals[teamId]||{};return career.manager.clubPlayerTotals[teamId]}
-    function managerPickScorer(teamId,career=currentCareerSave()){const squad=managerSquad(teamId,career),pool=squad.filter(p=>p.isStarter).length?squad.filter(p=>p.isStarter):squad;if(!pool.length)return null;const weight=p=>({ST:6,RW:4.2,LW:4.2,CAM:3.2,CM:1.8,RB:.7,LB:.7,CB:.45,GK:.03}[p.position]||1)*(.8+p.overall/100);const total=pool.reduce((s,p)=>s+weight(p),0);let roll=Math.random()*total;for(const p of pool){roll-=weight(p);if(roll<=0)return p}return pool[pool.length-1]}
-    function managerScorerIds(teamId,goals,career=currentCareerSave()){return Array.from({length:Number(goals||0)},()=>managerPickScorer(teamId,career)?.id||null)}
-    function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null){const career=currentCareerSave();if(!isManagerMode(career))return;const season=Number(career.worldSeason||1);[[game.homeId,hg,game.awayId],[game.awayId,ag,game.homeId]].forEach(([teamId,goals,oppId],sideIndex)=>{const team=managerTeam(teamId,career);if(!team)return;const starters=(team.managerSquad||[]).filter(p=>p.isStarter).slice(0,11);const stats=managerCurrentSeasonStats(career,teamId),totals=managerClubTotals(career,teamId);stats.teamGoals+=Number(goals||0);stats.matches++;if(Number(goals)>Number(stats.maxTeamGoalsGame||0)){stats.maxTeamGoalsGame=Number(goals);stats.maxTeamGoalsOpponent=teamName(oppId)}starters.forEach(p=>{p.appearancesSeason=(p.appearancesSeason||0)+1;p.appearancesCareer=(p.appearancesCareer||0)+1;totals[p.id]=totals[p.id]||{playerId:p.id,name:p.name,goals:0,appearances:0};totals[p.id].name=p.name;totals[p.id].appearances++});const scorerIds=forcedScorers?.[sideIndex===0?'home':'away']||managerScorerIds(teamId,goals,career),perGame={};scorerIds.filter(Boolean).forEach(id=>{const p=managerPlayerById(id,career);if(!p)return;p.goalsSeason=(p.goalsSeason||0)+1;p.goalsCareer=(p.goalsCareer||0)+1;stats.playerGoals[id]=(stats.playerGoals[id]||0)+1;stats.playerNames[id]=p.name;totals[id]=totals[id]||{playerId:id,name:p.name,goals:0,appearances:0};totals[id].name=p.name;totals[id].goals++;perGame[id]=(perGame[id]||0)+1});Object.entries(perGame).forEach(([id,count])=>{if(count>Number(stats.maxPlayerGoalsGame?.goals||0)){stats.maxPlayerGoalsGame={goals:count,playerId:id,playerName:managerPlayerById(id,career)?.name||stats.playerNames[id]||'Unknown',opponent:teamName(oppId)}}})})}
-    function managerClubRecordsFor(teamId,career=currentCareerSave()){if(!isManagerMode(career))return null;const seasons=Object.values(career.manager.teamSeasonStats?.[teamId]||{}),totals=Object.values(career.manager.clubPlayerTotals?.[teamId]||{});let mostSeason={goals:0,playerName:'—',season:null},mostGame={goals:0,playerName:'—',opponent:'—'},teamSeason={goals:0,season:null},teamGame={goals:0,opponent:'—'};seasons.forEach(s=>{if(s.teamGoals>teamSeason.goals)teamSeason={goals:s.teamGoals,season:s.season};if(s.maxTeamGoalsGame>teamGame.goals)teamGame={goals:s.maxTeamGoalsGame,opponent:s.maxTeamGoalsOpponent||'—'};Object.entries(s.playerGoals||{}).forEach(([id,g])=>{if(g>mostSeason.goals)mostSeason={goals:g,playerName:s.playerNames?.[id]||'Unknown',season:s.season}});if(Number(s.maxPlayerGoalsGame?.goals||0)>mostGame.goals)mostGame={goals:s.maxPlayerGoalsGame.goals,playerName:s.maxPlayerGoalsGame.playerName||'Unknown',opponent:s.maxPlayerGoalsGame.opponent||'—'}});const topScorer=totals.sort((a,b)=>b.goals-a.goals)[0]||{name:'—',goals:0},appear=Object.values(career.manager.clubPlayerTotals?.[teamId]||{}).sort((a,b)=>b.appearances-a.appearances)[0]||{name:'—',appearances:0};const transfers=(career.manager.transferHistory||[]),buy=transfers.filter(t=>t.toId===teamId).sort((a,b)=>b.fee-a.fee)[0],sale=transfers.filter(t=>t.fromId===teamId).sort((a,b)=>b.fee-a.fee)[0];return {mostSeason,mostGame,teamSeason,teamGame,topScorer,appear,buy,sale}}
+    function managerPickScorer(teamId,career=currentCareerSave()){
+      const squad=managerSquad(teamId,career),
+        pool=squad.filter(p=>p.isStarter).length?squad.filter(p=>p.isStarter):squad;
+      if(!pool.length)return null;
+      const weight=p=>({ST:6,RW:4.2,LW:4.2,CAM:3.2,CM:1.8,RB:.7,LB:.7,CB:.45,GK:.03}[p.position]||1)*(.8+p.overall/100);
+      const total=pool.reduce((s,p)=>s+weight(p),0);
+      let roll=Math.random()*total;
+      for(const p of pool){roll-=weight(p);if(roll<=0)return p}
+      return pool[pool.length-1];
+    }
 
+    function managerPickAssister(teamId,scorerId,career=currentCareerSave()){
+      const squad=managerSquad(teamId,career),
+        starters=squad.filter(p=>p.isStarter).length?squad.filter(p=>p.isStarter):squad,
+        pool=starters.filter(p=>p.id!==scorerId);
+      if(!pool.length)return null;
+      const weight=p=>({CAM:6,RW:5,LW:5,CM:4,ST:2.8,RB:1.4,LB:1.4,CB:.65,GK:.08}[p.position]||1)*(0.75+p.overall/105);
+      const total=pool.reduce((s,p)=>s+weight(p),0);
+      let roll=Math.random()*total;
+      for(const p of pool){roll-=weight(p);if(roll<=0)return p}
+      return pool[pool.length-1];
+    }
+    function managerScorerIds(teamId,goals,career=currentCareerSave()){return Array.from({length:Number(goals||0)},()=>managerPickScorer(teamId,career)?.id||null)}
+    function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null){
+      const career=currentCareerSave();
+      if(!isManagerMode(career))return;
+
+      [[game.homeId,hg,game.awayId],[game.awayId,ag,game.homeId]].forEach(([teamId,goals,oppId],sideIndex)=>{
+        const team=managerTeam(teamId,career);
+        if(!team)return;
+
+        const starters=(team.managerSquad||[]).filter(p=>p.isStarter).slice(0,11);
+        const stats=managerCurrentSeasonStats(career,teamId);
+        const totals=managerClubTotals(career,teamId);
+
+        stats.teamGoals+=Number(goals||0);
+        stats.matches++;
+
+        if(Number(goals)>Number(stats.maxTeamGoalsGame||0)){
+          stats.maxTeamGoalsGame=Number(goals);
+          stats.maxTeamGoalsOpponent=teamName(oppId);
+        }
+
+        starters.forEach(p=>{
+          p.appearancesSeason=(p.appearancesSeason||0)+1;
+          p.appearancesCareer=(p.appearancesCareer||0)+1;
+          stats.playerAppearances[p.id]=(stats.playerAppearances[p.id]||0)+1;
+          stats.playerNames[p.id]=p.name;
+          totals[p.id]=totals[p.id]||{playerId:p.id,name:p.name,goals:0,assists:0,appearances:0,honours:[]};
+          totals[p.id].name=p.name;
+          totals[p.id].assists=Number(totals[p.id].assists||0);
+          totals[p.id].honours=Array.isArray(totals[p.id].honours)?totals[p.id].honours:[];
+          totals[p.id].appearances++;
+        });
+
+        const scorerIds=forcedScorers?.[sideIndex===0?'home':'away']||managerScorerIds(teamId,goals,career);
+        const perGameGoals={};
+        const perGameAssists={};
+
+        scorerIds.filter(Boolean).forEach(id=>{
+          const scorer=managerPlayerById(id,career);
+          if(!scorer)return;
+
+          scorer.goalsSeason=(scorer.goalsSeason||0)+1;
+          scorer.goalsCareer=(scorer.goalsCareer||0)+1;
+          stats.playerGoals[id]=(stats.playerGoals[id]||0)+1;
+          stats.playerNames[id]=scorer.name;
+
+          totals[id]=totals[id]||{playerId:id,name:scorer.name,goals:0,assists:0,appearances:0,honours:[]};
+          totals[id].name=scorer.name;
+          totals[id].goals=Number(totals[id].goals||0)+1;
+          totals[id].assists=Number(totals[id].assists||0);
+          totals[id].honours=Array.isArray(totals[id].honours)?totals[id].honours:[];
+
+          perGameGoals[id]=(perGameGoals[id]||0)+1;
+
+          // Most goals in modern football are assisted, but not every goal is.
+          if(Math.random()<.84){
+            const assister=managerPickAssister(teamId,id,career);
+            if(assister){
+              assister.assistsSeason=(assister.assistsSeason||0)+1;
+              assister.assistsCareer=(assister.assistsCareer||0)+1;
+              stats.playerAssists[assister.id]=(stats.playerAssists[assister.id]||0)+1;
+              stats.playerNames[assister.id]=assister.name;
+
+              totals[assister.id]=totals[assister.id]||{playerId:assister.id,name:assister.name,goals:0,assists:0,appearances:0,honours:[]};
+              totals[assister.id].name=assister.name;
+              totals[assister.id].assists=Number(totals[assister.id].assists||0)+1;
+              totals[assister.id].honours=Array.isArray(totals[assister.id].honours)?totals[assister.id].honours:[];
+
+              perGameAssists[assister.id]=(perGameAssists[assister.id]||0)+1;
+            }
+          }
+        });
+
+        Object.entries(perGameGoals).forEach(([id,count])=>{
+          if(count>Number(stats.maxPlayerGoalsGame?.goals||0)){
+            stats.maxPlayerGoalsGame={
+              goals:count,
+              playerId:id,
+              playerName:managerPlayerById(id,career)?.name||stats.playerNames[id]||'Unknown',
+              opponent:teamName(oppId)
+            };
+          }
+        });
+
+        Object.entries(perGameAssists).forEach(([id,count])=>{
+          if(count>Number(stats.maxPlayerAssistsGame?.assists||0)){
+            stats.maxPlayerAssistsGame={
+              assists:count,
+              playerId:id,
+              playerName:managerPlayerById(id,career)?.name||stats.playerNames[id]||'Unknown',
+              opponent:teamName(oppId)
+            };
+          }
+        });
+      });
+    }
+    function managerClubRecordsFor(teamId,career=currentCareerSave()){
+      if(!isManagerMode(career))return null;
+
+      const seasons=Object.values(career.manager.teamSeasonStats?.[teamId]||{});
+      const totals=Object.values(career.manager.clubPlayerTotals?.[teamId]||{}).map(item=>({
+        ...item,
+        goals:Number(item.goals||0),
+        assists:Number(item.assists||0),
+        appearances:Number(item.appearances||0),
+        honours:Array.isArray(item.honours)?item.honours:[]
+      }));
+
+      let mostSeason={goals:0,playerName:'—',season:null};
+      let mostAssistSeason={assists:0,playerName:'—',season:null};
+      let mostGame={goals:0,playerName:'—',opponent:'—'};
+      let mostAssistGame={assists:0,playerName:'—',opponent:'—'};
+      let teamSeason={goals:0,season:null};
+      let teamGame={goals:0,opponent:'—'};
+
+      seasons.forEach(s=>{
+        if(Number(s.teamGoals||0)>teamSeason.goals)teamSeason={goals:Number(s.teamGoals||0),season:s.season};
+        if(Number(s.maxTeamGoalsGame||0)>teamGame.goals)teamGame={goals:Number(s.maxTeamGoalsGame||0),opponent:s.maxTeamGoalsOpponent||'—'};
+
+        Object.entries(s.playerGoals||{}).forEach(([id,g])=>{
+          if(Number(g)>mostSeason.goals)mostSeason={goals:Number(g),playerName:s.playerNames?.[id]||'Unknown',season:s.season};
+        });
+
+        Object.entries(s.playerAssists||{}).forEach(([id,a])=>{
+          if(Number(a)>mostAssistSeason.assists)mostAssistSeason={assists:Number(a),playerName:s.playerNames?.[id]||'Unknown',season:s.season};
+        });
+
+        if(Number(s.maxPlayerGoalsGame?.goals||0)>mostGame.goals){
+          mostGame={
+            goals:Number(s.maxPlayerGoalsGame.goals||0),
+            playerName:s.maxPlayerGoalsGame.playerName||'Unknown',
+            opponent:s.maxPlayerGoalsGame.opponent||'—'
+          };
+        }
+
+        if(Number(s.maxPlayerAssistsGame?.assists||0)>mostAssistGame.assists){
+          mostAssistGame={
+            assists:Number(s.maxPlayerAssistsGame.assists||0),
+            playerName:s.maxPlayerAssistsGame.playerName||'Unknown',
+            opponent:s.maxPlayerAssistsGame.opponent||'—'
+          };
+        }
+      });
+
+      const topScorer=[...totals].sort((a,b)=>b.goals-a.goals)[0]||{name:'—',goals:0};
+      const topAssister=[...totals].sort((a,b)=>b.assists-a.assists)[0]||{name:'—',assists:0};
+      const appear=[...totals].sort((a,b)=>b.appearances-a.appearances)[0]||{name:'—',appearances:0};
+      const trophies=[...totals].sort((a,b)=>b.honours.length-a.honours.length)[0]||{name:'—',honours:[]};
+
+      const transfers=(career.manager.transferHistory||[]);
+      const buy=transfers.filter(t=>t.toId===teamId).sort((a,b)=>b.fee-a.fee)[0];
+      const sale=transfers.filter(t=>t.fromId===teamId).sort((a,b)=>b.fee-a.fee)[0];
+      const ballonDors=(career.manager.ballonDorHistory||[]).filter(a=>a.clubId===teamId);
+
+      return {
+        mostSeason,mostAssistSeason,mostGame,mostAssistGame,
+        teamSeason,teamGame,topScorer,topAssister,appear,trophies,buy,sale,ballonDors
+      };
+    }
     function managerUpdateWindowAfterMatch(career,comp){
       if(!isManagerMode(career)||comp.category!=='league'||!(comp.teamIds||[]).includes(career.controlledTeamId))return;
 
@@ -12352,7 +12838,766 @@ body.manager-mode{--manager-money:#86efac}
     }
     function managerShouldStopSeasonSim(career,comp,beforePhase){if(!isManagerMode(career)||comp.category!=='league')return false;const after=career.manager.transferWindow;return beforePhase!=='january-open'&&after.phase==='january'&&after.open}
 
-    function managerEndSeason(career){if(!isManagerMode(career))return;const season=Number(career.worldSeason||1),team=controlledCareerTeam(career),fin=managerControlledFinance(career);const leaguePos=careerLeaguePosition(career)||career.teams.length;const bonus=Math.round((25_000_000+Math.max(0,career.teams.length-leaguePos)*2_500_000)/5_000_000)*5_000_000;fin.budget+=bonus;managerAddLedger(career,team.id,bonus,'Board & commercial season payment','income');managerNotify(career,'Season Revenue',`${money(bonus)} in board and commercial revenue has been added to your budget.`,'finance');let awardCandidates=[];(career.teams||[]).forEach(club=>{(club.managerSquad||[]).forEach(p=>{awardCandidates.push({p,club,score:Number(p.goalsSeason||0)*5+Number(p.overall||0)*1.2+(club.trophies||0)*5});p.age=Number(p.age||25)+1;if(p.age<=23&&p.overall<p.potential&&Math.random()<.72)p.overall+=Math.random()<.22?2:1;else if(p.age<=28&&p.overall<p.potential&&Math.random()<.36)p.overall+=1;else if(p.age>=32&&Math.random()<.55)p.overall=Math.max(55,p.overall-1-(p.age>=35&&Math.random()<.35?1:0));p.contractYears=Math.max(0,Number(p.contractYears||0)-1);p.marketValue=managerPlayerValue(p);p.wage=Math.max(20000,Number(p.wage||managerExpectedWage(p)));p.morale=clamp(Number(p.morale||70)+(Math.random()*12-6),20,100)})});awardCandidates.sort((a,b)=>b.score-a.score);const winner=awardCandidates[0];if(winner){career.manager.awards.unshift({season,playerId:winner.p.id,playerName:winner.p.name,clubId:winner.club.id,clubName:winner.club.name,goals:winner.p.goalsSeason,overall:winner.p.overall});managerNotify(career,'World Player of the Year',`${winner.p.name} (${winner.club.name}) wins Player of the Year after ${winner.p.goalsSeason||0} goals at ${winner.p.overall} OVR.`,'award')}
+
+    let managerBallonDorRevealState=null;
+
+    function managerPlayerSeasonStats(career,season=Number(career.worldSeason||1)){
+      const combined={};
+
+      Object.entries(career.manager.teamSeasonStats||{}).forEach(([teamId,seasons])=>{
+        const stats=seasons?.[String(season)]||seasons?.[season];
+        if(!stats)return;
+
+        const ids=new Set([
+          ...Object.keys(stats.playerGoals||{}),
+          ...Object.keys(stats.playerAssists||{}),
+          ...Object.keys(stats.playerAppearances||{}),
+          ...Object.keys(stats.playerNames||{})
+        ]);
+
+        ids.forEach(playerId=>{
+          combined[playerId]=combined[playerId]||{
+            playerId,
+            name:stats.playerNames?.[playerId]||'Unknown',
+            goals:0,
+            assists:0,
+            appearances:0,
+            clubIds:[]
+          };
+          const row=combined[playerId];
+          row.name=stats.playerNames?.[playerId]||row.name;
+          row.goals+=Number(stats.playerGoals?.[playerId]||0);
+          row.assists+=Number(stats.playerAssists?.[playerId]||0);
+          row.appearances+=Number(stats.playerAppearances?.[playerId]||0);
+          if(!row.clubIds.includes(teamId))row.clubIds.push(teamId);
+        });
+      });
+
+      // Current player objects fill gaps for older saves that did not store appearances.
+      (career.teams||[]).forEach(club=>{
+        (club.managerSquad||[]).forEach(p=>{
+          if(!combined[p.id]){
+            combined[p.id]={
+              playerId:p.id,name:p.name,
+              goals:Number(p.goalsSeason||0),
+              assists:Number(p.assistsSeason||0),
+              appearances:Number(p.appearancesSeason||0),
+              clubIds:[club.id]
+            };
+          }else{
+            combined[p.id].name=p.name;
+            if(combined[p.id].appearances===0)combined[p.id].appearances=Number(p.appearancesSeason||0);
+          }
+        });
+      });
+
+      return combined;
+    }
+
+    function managerCompetitionCategory(career,entry){
+      return career.competitions.find(c=>c.id===entry.competitionId)?.category||
+        (/World Cup/i.test(entry.competitionName||'')?'world-cup':
+         /Champions/i.test(entry.competitionName||'')?'champions-league':
+         /Europa/i.test(entry.competitionName||'')?'europa-league':
+         /Super/i.test(entry.competitionName||'')?'super-league':
+         /League/i.test(entry.competitionName||'')?'league':'cup');
+    }
+
+    function managerSeasonHonoursForPlayer(career,playerStat,season,includeSuperLeague=true){
+      const clubIds=new Set(playerStat.clubIds||[]);
+      const honours=[];
+
+      (career.history||[])
+        .filter(entry=>Number(entry.season||0)===Number(season))
+        .forEach(entry=>{
+          const category=managerCompetitionCategory(career,entry);
+          if(!includeSuperLeague&&category==='super-league')return;
+
+          if(clubIds.has(entry.championId)){
+            honours.push({
+              category,
+              competitionName:entry.competitionName,
+              result:'winner'
+            });
+          }else if(clubIds.has(entry.runnerUpId)){
+            honours.push({
+              category,
+              competitionName:entry.competitionName,
+              result:'runner-up'
+            });
+          }
+        });
+
+      return honours;
+    }
+
+    function managerBallonDorHonourPoints(honour){
+      const win=honour.result==='winner';
+      if(honour.category==='world-cup')return win?52:28;
+      if(honour.category==='champions-league')return win?48:23;
+      if(honour.category==='europa-league')return win?28:14;
+      if(honour.category==='super-league')return win?22:10;
+      if(honour.category==='league')return win?27:8;
+      return win?17:5;
+    }
+
+    function managerBallonDorReason(row){
+      const reasons=[];
+      if(row.goals>=30)reasons.push(`${row.goals} goals`);
+      else if(row.goals>=18)reasons.push(`strong ${row.goals}-goal season`);
+
+      if(row.assists>=18)reasons.push(`${row.assists} assists`);
+      else if(row.assists>=10)reasons.push(`${row.assists} assists`);
+
+      const wins=row.honours.filter(h=>h.result==='winner');
+      const major=wins.find(h=>['world-cup','champions-league'].includes(h.category))||wins[0];
+      if(major)reasons.push(`${major.competitionName} winner`);
+
+      if(!major&&row.overall>=90)reasons.push(`${row.overall} OVR elite level`);
+      if(!reasons.length)reasons.push(`${row.overall} OVR with consistent performances`);
+
+      return reasons.slice(0,3).join(' · ');
+    }
+
+    function managerBallonDorRanking(career,season=Number(career.worldSeason||1),includeSuperLeague=true){
+      const stats=managerPlayerSeasonStats(career,season);
+
+      const rows=Object.values(stats).map(stat=>{
+        const player=managerPlayerById(stat.playerId,career);
+        const currentClub=player?managerPlayerClub(stat.playerId,career):null;
+        const lastClubId=stat.clubIds[stat.clubIds.length-1]||currentClub?.id||null;
+        const lastClub=career.teams.find(t=>t.id===lastClubId)||currentClub;
+        const overall=Number(player?.overall||70);
+        const honours=managerSeasonHonoursForPlayer(career,stat,season,includeSuperLeague);
+        const honourPoints=honours.reduce((sum,h)=>sum+managerBallonDorHonourPoints(h),0);
+
+        // Goals matter most, then assists, major trophies, individual level and volume.
+        const score=
+          Number(stat.goals||0)*4.6+
+          Number(stat.assists||0)*3.0+
+          Math.min(38,Number(stat.appearances||0))*.35+
+          overall*1.12+
+          honourPoints;
+
+        const row={
+          ...stat,
+          overall,
+          honours,
+          clubId:lastClub?.id||lastClubId,
+          clubName:lastClub?.name||'Free Agent',
+          score
+        };
+        row.reason=managerBallonDorReason(row);
+        return row;
+      });
+
+      return rows
+        .filter(row=>row.appearances>0||row.goals>0||row.assists>0)
+        .sort((a,b)=>b.score-a.score||b.goals-a.goals||b.assists-a.assists||b.overall-a.overall);
+    }
+
+    function managerBallonPlayerFace(row,context='bench'){
+      const player=managerPlayerById(row.playerId,currentCareerSave())||{name:row.name,position:'',overall:row.overall};
+      const photo=managerPlayerPhoto(row.name);
+      return photo
+        ?managerPlayerFaceHtml(player,context)
+        :`<div style="font-weight:1000;color:#dbeafe">${escapeHtml(managerPlayerInitials(player))}</div>`;
+    }
+
+    function managerPrepareBallonDorNominees(career=currentCareerSave(),show=true){
+      if(!isManagerMode(career))return null;
+
+      const season=Number(career.worldSeason||1);
+      const existing=career.manager.ballonDorNominees?.[season];
+
+      // Rebuild once when the European finals are complete and the Super League is ready.
+      const ranking=managerBallonDorRanking(career,season,false);
+      if(!ranking.length)return null;
+
+      const snapshot={
+        season,
+        createdAt:Date.now(),
+        top10:ranking.slice(0,10).map((row,index)=>({...row,rank:index+1}))
+      };
+
+      career.manager.ballonDorNominees=career.manager.ballonDorNominees||{};
+      career.manager.ballonDorNominees[season]=snapshot;
+      persistDataSilently();
+
+      if(show&&!existing?.shown){
+        snapshot.shown=true;
+        persistDataSilently();
+        setTimeout(()=>managerShowBallonDorNominees(career,season),80);
+      }
+      return snapshot;
+    }
+
+    function managerShowBallonDorNominees(career=currentCareerSave(),season=Number(career.worldSeason||1)){
+      const snapshot=career.manager.ballonDorNominees?.[season]||managerPrepareBallonDorNominees(career,false);
+      if(!snapshot?.top10?.length)return;
+
+      const dialog=$('managerBallonDorDialog');
+      const content=$('managerBallonDorDialogContent');
+
+      content.innerHTML=`
+        <div class="ballon-shell">
+          <div class="ballon-kicker">🏅 BALLON D'OR WATCH · ${escapeHtml(seasonDisplay(season))}</div>
+          <h2 class="ballon-title">The Final 10</h2>
+          <p class="ballon-subtitle">The Champions League and Europa League are finished. These are the ten players leading the Ballon d'Or race before the Super League. The final can still change the order.</p>
+
+          <div class="ballon-nominee-list">
+            ${snapshot.top10.map(row=>`
+              <div class="ballon-nominee-row">
+                <div class="ballon-rank">#${row.rank}</div>
+                <div class="ballon-face">${managerBallonPlayerFace(row,'bench')}</div>
+                <div>
+                  <div class="ballon-player-name">${escapeHtml(row.name)}</div>
+                  <div class="ballon-player-meta">${escapeHtml(row.clubName)} · ${row.overall} OVR</div>
+                  <div class="ballon-reason">${escapeHtml(row.reason)}</div>
+                </div>
+                <div class="ballon-stat-line">${row.goals} G · ${row.assists} A<small>${row.appearances} apps</small></div>
+              </div>`).join('')}
+          </div>
+
+          <div class="ballon-actions">
+            <button class="btn" id="closeBallonNomineesBtn">Continue to Super League</button>
+          </div>
+        </div>`;
+
+      $('closeBallonNomineesBtn').onclick=()=>dialog.close();
+      if(!dialog.open)dialog.showModal();
+    }
+
+    function managerFinalizeBallonDor(career=currentCareerSave(),show=true){
+      if(!isManagerMode(career))return null;
+
+      const season=Number(career.worldSeason||1);
+      const existing=(career.manager.ballonDorHistory||[]).find(a=>Number(a.season)===season);
+      if(existing){
+        if(show)setTimeout(()=>managerOpenBallonDorReveal(career,season),80);
+        return existing;
+      }
+
+      const ranking=managerBallonDorRanking(career,season,true);
+      if(!ranking.length)return null;
+
+      const finalRanking=ranking.map((row,index)=>({...row,rank:index+1}));
+      const winner=finalRanking[0];
+
+      const award={
+        id:uid(),
+        season,
+        timestamp:Date.now(),
+        playerId:winner.playerId,
+        playerName:winner.name,
+        clubId:winner.clubId,
+        clubName:winner.clubName,
+        goals:winner.goals,
+        assists:winner.assists,
+        overall:winner.overall,
+        reason:winner.reason,
+        top10:finalRanking.slice(0,10),
+        ranking:finalRanking
+      };
+
+      career.manager.ballonDorHistory=career.manager.ballonDorHistory||[];
+      career.manager.ballonDorHistory.unshift(award);
+
+      // Keep the old awards array compatible with old UI / saves.
+      career.manager.awards=career.manager.awards||[];
+      career.manager.awards.unshift({
+        season,
+        playerId:winner.playerId,
+        playerName:winner.name,
+        clubId:winner.clubId,
+        clubName:winner.clubName,
+        goals:winner.goals,
+        assists:winner.assists,
+        overall:winner.overall,
+        award:'Ballon d’Or'
+      });
+
+      const totals=career.manager.clubPlayerTotals?.[winner.clubId]?.[winner.playerId];
+      if(totals)totals.ballonDors=Number(totals.ballonDors||0)+1;
+
+      const player=managerPlayerById(winner.playerId,career);
+      if(player)player.ballonDorsCareer=Number(player.ballonDorsCareer||0)+1;
+
+      managerNotify(
+        career,
+        "Ballon d'Or Winner",
+        `${winner.name} (${winner.clubName}) wins the ${seasonDisplay(season)} Ballon d'Or after ${winner.goals} goals and ${winner.assists} assists.`,
+        'award'
+      );
+
+      persistDataSilently();
+      if(show)setTimeout(()=>managerOpenBallonDorReveal(career,season),100);
+      return award;
+    }
+
+    function managerOpenBallonDorReveal(career=currentCareerSave(),season=Number(career.worldSeason||1)){
+      const award=(career.manager.ballonDorHistory||[]).find(a=>Number(a.season)===Number(season));
+      if(!award)return;
+
+      managerBallonDorRevealState={
+        season:Number(season),
+        phase:'placements',
+        index:9
+      };
+      managerRenderBallonDorReveal();
+      const dialog=$('managerBallonDorDialog');
+      if(!dialog.open)dialog.showModal();
+    }
+
+    function managerBallonDorRevealNext(){
+      if(!managerBallonDorRevealState)return;
+      const state=managerBallonDorRevealState;
+
+      if(state.phase==='placements'){
+        // Reveal 10th through 4th one at a time.
+        if(state.index>3){
+          state.index--;
+        }else{
+          state.phase='top3';
+        }
+      }else if(state.phase==='top3'){
+        state.phase='winner';
+      }else if(state.phase==='winner'){
+        state.phase='full';
+      }else{
+        $('managerBallonDorDialog').close();
+        managerBallonDorRevealState=null;
+        return;
+      }
+
+      managerRenderBallonDorReveal();
+    }
+
+    function managerRenderBallonDorReveal(){
+      const career=currentCareerSave();
+      const state=managerBallonDorRevealState;
+      if(!career||!state)return;
+
+      const award=(career.manager.ballonDorHistory||[]).find(a=>Number(a.season)===Number(state.season));
+      if(!award)return;
+
+      const ranking=award.ranking||award.top10||[];
+      const content=$('managerBallonDorDialogContent');
+
+      if(state.phase==='placements'){
+        const row=ranking[state.index]||ranking[Math.min(ranking.length-1,state.index)];
+        if(!row){state.phase='top3';return managerRenderBallonDorReveal()}
+
+        content.innerHTML=`
+          <div class="ballon-shell">
+            <div class="ballon-reveal-card">
+              <div>
+                <div class="ballon-kicker">BALLON D'OR RESULTS · ${escapeHtml(seasonDisplay(state.season))}</div>
+                <div class="ballon-place">#${row.rank}</div>
+                <div class="ballon-reveal-face">${managerBallonPlayerFace(row,'info')}</div>
+                <div class="ballon-reveal-name">${escapeHtml(row.name)}</div>
+                <div class="muted">${escapeHtml(row.clubName)} · ${row.overall} OVR · ${row.goals} goals · ${row.assists} assists</div>
+                <p class="ballon-reason" style="font-size:14px">${escapeHtml(row.reason)}</p>
+                <div class="ballon-actions"><button class="btn" id="ballonRevealNextBtn">Next</button></div>
+              </div>
+            </div>
+          </div>`;
+      }else if(state.phase==='top3'){
+        const top3=ranking.slice(0,3);
+        content.innerHTML=`
+          <div class="ballon-shell">
+            <div class="ballon-kicker">THE FINAL THREE</div>
+            <h2 class="ballon-title">One of them will win it.</h2>
+            <p class="ballon-subtitle">The final three are shown together. Press Reveal Winner to see who takes the Ballon d'Or.</p>
+            <div class="ballon-top3">
+              ${top3.map(row=>`
+                <div class="ballon-top3-card">
+                  <div class="ballon-face">${managerBallonPlayerFace(row,'bench')}</div>
+                  <strong>${escapeHtml(row.name)}</strong>
+                  <div class="muted" style="font-size:12px;margin-top:4px">${escapeHtml(row.clubName)}</div>
+                  <div style="margin-top:8px;font-weight:900">${row.goals} G · ${row.assists} A</div>
+                </div>`).join('')}
+            </div>
+            <div class="ballon-actions"><button class="btn success" id="ballonRevealNextBtn">🏆 Reveal Winner</button></div>
+          </div>`;
+      }else if(state.phase==='winner'){
+        const row=ranking[0];
+        content.innerHTML=`
+          <div class="ballon-shell">
+            <div class="ballon-reveal-card ballon-winner-glow">
+              <div>
+                <div class="ballon-kicker">🏆 BALLON D'OR WINNER · ${escapeHtml(seasonDisplay(state.season))}</div>
+                <div class="ballon-reveal-face">${managerBallonPlayerFace(row,'info')}</div>
+                <div class="ballon-reveal-name">${escapeHtml(row.name)}</div>
+                <div style="font-size:22px;color:#f6c453;font-weight:1000">${escapeHtml(row.clubName)}</div>
+                <div class="muted" style="margin-top:7px">${row.overall} OVR · ${row.goals} goals · ${row.assists} assists</div>
+                <p class="ballon-reason" style="font-size:15px">${escapeHtml(row.reason)}</p>
+                <div class="ballon-actions"><button class="btn" id="ballonRevealNextBtn">See Full Ranking</button></div>
+              </div>
+            </div>
+          </div>`;
+      }else{
+        content.innerHTML=`
+          <div class="ballon-shell">
+            <div class="ballon-kicker">FINAL BALLOT</div>
+            <h2 class="ballon-title">${escapeHtml(seasonDisplay(state.season))} Ballon d'Or Ranking</h2>
+            <p class="ballon-subtitle">Every eligible player is ranked below. This result is permanently saved in Player Records.</p>
+            <div class="ballon-full-list">
+              ${ranking.map(row=>`
+                <div class="ballon-nominee-row">
+                  <div class="ballon-rank">#${row.rank}</div>
+                  <div class="ballon-face">${managerBallonPlayerFace(row,'bench')}</div>
+                  <div>
+                    <div class="ballon-player-name">${escapeHtml(row.name)}</div>
+                    <div class="ballon-player-meta">${escapeHtml(row.clubName)} · ${row.overall} OVR</div>
+                    <div class="ballon-reason">${escapeHtml(row.reason)}</div>
+                  </div>
+                  <div class="ballon-stat-line">${row.goals} G · ${row.assists} A<small>${row.appearances} apps</small></div>
+                </div>`).join('')}
+            </div>
+            <div class="ballon-actions">
+              <button class="btn secondary" id="ballonRecordsBtn">Open Player Records</button>
+              <button class="btn" id="ballonRevealNextBtn">Done</button>
+            </div>
+          </div>`;
+        $('ballonRecordsBtn')?.addEventListener('click',()=>{
+          $('managerBallonDorDialog').close();
+          managerBallonDorRevealState=null;
+          switchTab('manager-player-records');
+        });
+      }
+
+      $('ballonRevealNextBtn')?.addEventListener('click',managerBallonDorRevealNext);
+    }
+
+    function managerCreditPlayerTrophy(career,comp,championId){
+      if(!isManagerMode(career)||!championId)return;
+      const club=managerTeam(championId,career);
+      if(!club)return;
+
+      const category=comp.isWorldCup?'world-cup':comp.category;
+      (club.managerSquad||[]).forEach(p=>{
+        p.trophiesCareer=Number(p.trophiesCareer||0)+1;
+        const totals=managerClubTotals(career,club.id);
+        totals[p.id]=totals[p.id]||{playerId:p.id,name:p.name,goals:0,assists:0,appearances:0,honours:[]};
+        totals[p.id].name=p.name;
+        totals[p.id].goals=Number(totals[p.id].goals||0);
+        totals[p.id].assists=Number(totals[p.id].assists||0);
+        totals[p.id].appearances=Number(totals[p.id].appearances||0);
+        totals[p.id].honours=Array.isArray(totals[p.id].honours)?totals[p.id].honours:[];
+
+        const duplicate=totals[p.id].honours.some(h=>
+          Number(h.season)===Number(career.worldSeason||1)&&
+          h.competitionId===comp.id
+        );
+        if(!duplicate){
+          totals[p.id].honours.push({
+            season:Number(career.worldSeason||1),
+            category,
+            competitionId:comp.id,
+            competitionName:comp.isWorldCup?'World Cup':comp.name
+          });
+        }
+      });
+    }
+
+    function managerLongestHonourStreak(honours,category){
+      const seasons=[...new Set((honours||[]).filter(h=>h.category===category).map(h=>Number(h.season)))].sort((a,b)=>a-b);
+      let best=0,current=0,last=null;
+      seasons.forEach(season=>{
+        if(last!==null&&season===last+1)current++;
+        else current=1;
+        best=Math.max(best,current);
+        last=season;
+      });
+      return best;
+    }
+
+    function managerPlayerCareerLeaderboard(career=currentCareerSave()){
+      const map={};
+
+      Object.entries(career.manager.clubPlayerTotals||{}).forEach(([teamId,players])=>{
+        Object.values(players||{}).forEach(item=>{
+          const id=item.playerId;
+          if(!id)return;
+
+          map[id]=map[id]||{
+            playerId:id,
+            name:item.name||'Unknown',
+            goals:0,assists:0,appearances:0,
+            honours:[],
+            clubs:[]
+          };
+
+          const row=map[id];
+          row.name=item.name||row.name;
+          row.goals+=Number(item.goals||0);
+          row.assists+=Number(item.assists||0);
+          row.appearances+=Number(item.appearances||0);
+          row.honours.push(...(Array.isArray(item.honours)?item.honours:[]));
+          if(!row.clubs.includes(teamId))row.clubs.push(teamId);
+        });
+      });
+
+      // Season and one-game records are calculated from permanent team season history.
+      Object.values(map).forEach(row=>{
+        row.mostGoalsSeason=0;
+        row.mostGoalsSeasonNumber=null;
+        row.mostAssistsSeason=0;
+        row.mostAssistsSeasonNumber=null;
+        row.mostGoalsGame=0;
+        row.mostAssistsGame=0;
+      });
+
+      Object.entries(career.manager.teamSeasonStats||{}).forEach(([teamId,seasons])=>{
+        Object.values(seasons||{}).forEach(stats=>{
+          const ids=new Set([
+            ...Object.keys(stats.playerGoals||{}),
+            ...Object.keys(stats.playerAssists||{}),
+            ...Object.keys(stats.playerNames||{})
+          ]);
+
+          ids.forEach(id=>{
+            map[id]=map[id]||{
+              playerId:id,
+              name:stats.playerNames?.[id]||'Unknown',
+              goals:0,assists:0,appearances:0,honours:[],clubs:[teamId],
+              mostGoalsSeason:0,mostGoalsSeasonNumber:null,
+              mostAssistsSeason:0,mostAssistsSeasonNumber:null,
+              mostGoalsGame:0,mostAssistsGame:0
+            };
+
+            const row=map[id];
+            if(Number(stats.playerGoals?.[id]||0)>Number(row.mostGoalsSeason||0)){
+              row.mostGoalsSeason=Number(stats.playerGoals?.[id]||0);
+              row.mostGoalsSeasonNumber=Number(stats.season||0);
+            }
+            if(Number(stats.playerAssists?.[id]||0)>Number(row.mostAssistsSeason||0)){
+              row.mostAssistsSeason=Number(stats.playerAssists?.[id]||0);
+              row.mostAssistsSeasonNumber=Number(stats.season||0);
+            }
+            if(stats.maxPlayerGoalsGame?.playerId===id){
+              row.mostGoalsGame=Math.max(Number(row.mostGoalsGame||0),Number(stats.maxPlayerGoalsGame.goals||0));
+            }
+            if(stats.maxPlayerAssistsGame?.playerId===id){
+              row.mostAssistsGame=Math.max(Number(row.mostAssistsGame||0),Number(stats.maxPlayerAssistsGame.assists||0));
+            }
+          });
+        });
+      });
+
+      const ballonCounts={};
+      (career.manager.ballonDorHistory||[]).forEach(a=>{
+        ballonCounts[a.playerId]=(ballonCounts[a.playerId]||0)+1;
+      });
+
+      Object.values(map).forEach(row=>{
+        row.ballonDors=Number(ballonCounts[row.playerId]||0);
+        row.trophies=row.honours.length;
+        row.championsLeagues=row.honours.filter(h=>h.category==='champions-league').length;
+        row.europaLeagues=row.honours.filter(h=>h.category==='europa-league').length;
+        row.leagues=row.honours.filter(h=>h.category==='league').length;
+        row.cups=row.honours.filter(h=>h.category==='cup').length;
+        row.superLeagues=row.honours.filter(h=>h.category==='super-league').length;
+        row.worldCups=row.honours.filter(h=>h.category==='world-cup').length;
+        row.clStreak=managerLongestHonourStreak(row.honours,'champions-league');
+        row.leagueStreak=managerLongestHonourStreak(row.honours,'league');
+
+        const active=managerPlayerById(row.playerId,career);
+        const currentClub=active?managerPlayerClub(row.playerId,career):null;
+        row.currentClubName=currentClub?.name||
+          ((career.manager.freeAgents||[]).some(p=>p.id===row.playerId)?'Free Agent':'Former / Retired');
+        row.overall=Number(active?.overall||0);
+      });
+
+      return Object.values(map);
+    }
+
+    function managerRecordWinner(rows,field){
+      return [...rows].sort((a,b)=>Number(b[field]||0)-Number(a[field]||0))[0]||null;
+    }
+
+    function managerPlayerRecordCard(label,row,value){
+      return `<div class="player-record-card"><small>${escapeHtml(label)}</small><strong>${row?`${escapeHtml(row.name)} · ${escapeHtml(String(value))}`:'—'}</strong></div>`;
+    }
+
+    function renderManagerPlayerRecords(){
+      const career=currentCareerSave(),panel=$('tab-manager-player-records');
+      if(!panel)return;
+      if(!isManagerMode(career)){panel.innerHTML='';return}
+
+      const rows=managerPlayerCareerLeaderboard(career);
+      const ranked=[...rows].sort((a,b)=>
+        b.ballonDors-a.ballonDors||
+        b.trophies-a.trophies||
+        (b.goals+b.assists)-(a.goals+a.assists)||
+        b.goals-a.goals
+      );
+
+      const mostBallon=managerRecordWinner(rows,'ballonDors');
+      const mostTrophies=managerRecordWinner(rows,'trophies');
+      const mostGoals=managerRecordWinner(rows,'goals');
+      const mostAssists=managerRecordWinner(rows,'assists');
+      const mostApps=managerRecordWinner(rows,'appearances');
+      const mostSeasonGoals=managerRecordWinner(rows,'mostGoalsSeason');
+      const mostSeasonAssists=managerRecordWinner(rows,'mostAssistsSeason');
+      const mostGameGoals=managerRecordWinner(rows,'mostGoalsGame');
+      const mostGameAssists=managerRecordWinner(rows,'mostAssistsGame');
+      const mostCL=managerRecordWinner(rows,'championsLeagues');
+      const mostEL=managerRecordWinner(rows,'europaLeagues');
+      const mostLeague=managerRecordWinner(rows,'leagues');
+      const mostCup=managerRecordWinner(rows,'cups');
+      const mostSuper=managerRecordWinner(rows,'superLeagues');
+      const clStreak=managerRecordWinner(rows,'clStreak');
+      const leagueStreak=managerRecordWinner(rows,'leagueStreak');
+
+      const history=[...(career.manager.ballonDorHistory||[])].sort((a,b)=>b.season-a.season);
+
+      panel.innerHTML=`
+        <div class="card">
+          <div class="player-record-hero">
+            <div>
+              <div class="startup-kicker">🏅 PLAYER HISTORY & RECORDS</div>
+              <h1 style="margin:5px 0">Every player leaves a legacy.</h1>
+              <p class="muted" style="margin:0">Goals, assists, appearances, trophies, Ballon d'Ors and single-season records remain here even after a player transfers, becomes a free agent or retires.</p>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Tracked Players</div>
+              <div class="career-overall">${rows.length}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="player-record-grid">
+          ${managerPlayerRecordCard("Most Ballon d'Ors",mostBallon,`${mostBallon?.ballonDors||0}`)}
+          ${managerPlayerRecordCard("Most Career Trophies",mostTrophies,`${mostTrophies?.trophies||0}`)}
+          ${managerPlayerRecordCard("All-Time Top Scorer",mostGoals,`${mostGoals?.goals||0} goals`)}
+          ${managerPlayerRecordCard("All-Time Top Assister",mostAssists,`${mostAssists?.assists||0} assists`)}
+          ${managerPlayerRecordCard("Most Appearances",mostApps,`${mostApps?.appearances||0}`)}
+          ${managerPlayerRecordCard("Most Goals in a Season",mostSeasonGoals,`${mostSeasonGoals?.mostGoalsSeason||0}${mostSeasonGoals?.mostGoalsSeasonNumber?` · ${seasonDisplay(mostSeasonGoals.mostGoalsSeasonNumber)}`:''}`)}
+          ${managerPlayerRecordCard("Most Assists in a Season",mostSeasonAssists,`${mostSeasonAssists?.mostAssistsSeason||0}${mostSeasonAssists?.mostAssistsSeasonNumber?` · ${seasonDisplay(mostSeasonAssists.mostAssistsSeasonNumber)}`:''}`)}
+          ${managerPlayerRecordCard("Most Goals in One Game",mostGameGoals,`${mostGameGoals?.mostGoalsGame||0}`)}
+          ${managerPlayerRecordCard("Most Assists in One Game",mostGameAssists,`${mostGameAssists?.mostAssistsGame||0}`)}
+          ${managerPlayerRecordCard("Most Champions Leagues",mostCL,`${mostCL?.championsLeagues||0}`)}
+          ${managerPlayerRecordCard("Most Europa Leagues",mostEL,`${mostEL?.europaLeagues||0}`)}
+          ${managerPlayerRecordCard("Most League Titles",mostLeague,`${mostLeague?.leagues||0}`)}
+          ${managerPlayerRecordCard("Most Cup Titles",mostCup,`${mostCup?.cups||0}`)}
+          ${managerPlayerRecordCard("Most Super Leagues",mostSuper,`${mostSuper?.superLeagues||0}`)}
+          ${managerPlayerRecordCard("Longest Champions League Streak",clStreak,`${clStreak?.clStreak||0} in a row`)}
+          ${managerPlayerRecordCard("Longest League Title Streak",leagueStreak,`${leagueStreak?.leagueStreak||0} in a row`)}
+        </div>
+
+        <article class="card" style="margin-top:16px">
+          <h2>🏆 Ballon d'Or History</h2>
+          ${history.length?`
+            <div class="ballon-nominee-list">
+              ${history.map(a=>`
+                <div class="ballon-nominee-row">
+                  <div class="ballon-rank">🏆</div>
+                  <div class="ballon-face">${managerBallonPlayerFace({playerId:a.playerId,name:a.playerName,overall:a.overall},'bench')}</div>
+                  <div>
+                    <div class="ballon-player-name">${escapeHtml(a.playerName)}</div>
+                    <div class="ballon-player-meta">${escapeHtml(a.clubName)} · ${escapeHtml(seasonDisplay(a.season))}</div>
+                    <div class="ballon-reason">${escapeHtml(a.reason||`${a.goals||0} goals · ${a.assists||0} assists`)}</div>
+                  </div>
+                  <div class="ballon-stat-line">${a.goals||0} G · ${a.assists||0} A<small>${a.overall||'—'} OVR</small></div>
+                </div>`).join('')}
+            </div>`
+            :`<p class="muted">No Ballon d'Or has been awarded yet.</p>`}
+        </article>
+
+        <article class="card" style="margin-top:16px">
+          <h2>All-Time Player Leaderboard</h2>
+          <p class="muted">This list survives transfers and retirements.</p>
+          <div class="player-leaderboard">
+            ${ranked.map((row,index)=>`
+              <div class="player-leader-row">
+                <div class="player-leader-num">#${index+1}</div>
+                <div class="player-leader-face">${managerBallonPlayerFace(row,'bench')}</div>
+                <div>
+                  <strong>${escapeHtml(row.name)}</strong>
+                  <small class="muted" style="display:block">${escapeHtml(row.currentClubName)}</small>
+                </div>
+                <div class="player-leader-cell">${row.goals}<small>Goals</small></div>
+                <div class="player-leader-cell">${row.assists}<small>Assists</small></div>
+                <div class="player-leader-cell">${row.appearances}<small>Apps</small></div>
+                <div class="player-leader-cell">${row.trophies}<small>Trophies</small></div>
+                <div class="player-leader-cell">${row.ballonDors}<small>Ballon d'Or</small></div>
+                <div class="player-leader-cell">${row.championsLeagues}<small>UCL</small></div>
+              </div>`).join('')||`<p class="muted">Player records will build as matches are played.</p>`}
+          </div>
+        </article>`;
+    }
+
+    function managerClubPlayerLegacyHtml(career,teamId){
+      if(!isManagerMode(career))return '';
+      const totals=Object.values(career.manager.clubPlayerTotals?.[teamId]||{})
+        .map(item=>({
+          ...item,
+          goals:Number(item.goals||0),
+          assists:Number(item.assists||0),
+          appearances:Number(item.appearances||0),
+          honours:Array.isArray(item.honours)?item.honours:[]
+        }))
+        .sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists)||b.goals-a.goals);
+
+      if(!totals.length)return '';
+
+      const awardCounts={};
+      (career.manager.ballonDorHistory||[])
+        .filter(a=>a.clubId===teamId)
+        .forEach(a=>awardCounts[a.playerId]=(awardCounts[a.playerId]||0)+1);
+
+      return `
+        <div class="club-player-legacy">
+          <div class="club-player-legacy-row header">
+            <span>Player</span><span>Goals</span><span>Assists</span><span>Apps</span><span>Trophies</span><span>Ballon d'Or</span>
+          </div>
+          ${totals.map(row=>`
+            <div class="club-player-legacy-row">
+              <strong>${escapeHtml(row.name)}</strong>
+              <span>${row.goals}</span>
+              <span>${row.assists}</span>
+              <span>${row.appearances}</span>
+              <span>${row.honours.length}</span>
+              <span>${awardCounts[row.playerId]||0}</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function managerEndSeason(career){
+      if(!isManagerMode(career))return;
+
+      const season=Number(career.worldSeason||1),
+        team=controlledCareerTeam(career),
+        fin=managerControlledFinance(career);
+
+      // If this world has no usable Super League, the award is still guaranteed at season end.
+      if(!(career.manager.ballonDorHistory||[]).some(a=>Number(a.season)===season)){
+        managerFinalizeBallonDor(career,false);
+      }
+
+      const leaguePos=careerLeaguePosition(career)||career.teams.length;
+      const bonus=Math.round((25_000_000+Math.max(0,career.teams.length-leaguePos)*2_500_000)/5_000_000)*5_000_000;
+      fin.budget+=bonus;
+      managerAddLedger(career,team.id,bonus,'Board & commercial season payment','income');
+      managerNotify(career,'Season Revenue',`${money(bonus)} in board and commercial revenue has been added to your budget.`,'finance');
+
+      (career.teams||[]).forEach(club=>{
+        (club.managerSquad||[]).forEach(p=>{
+          p.age=Number(p.age||25)+1;
+
+          if(p.age<=23&&p.overall<p.potential&&Math.random()<.72)p.overall+=Math.random()<.22?2:1;
+          else if(p.age<=28&&p.overall<p.potential&&Math.random()<.36)p.overall+=1;
+          else if(p.age>=32&&Math.random()<.55)p.overall=Math.max(55,p.overall-1-(p.age>=35&&Math.random()<.35?1:0));
+
+          p.contractYears=Math.max(0,Number(p.contractYears||0)-1);
+          p.marketValue=managerPlayerValue(p);
+          p.wage=Math.max(20000,Number(p.wage||managerExpectedWage(p)));
+          p.morale=clamp(Number(p.morale||70)+(Math.random()*12-6),20,100);
+        });
+      });
+
       managerMoveExpiredContractsToFreeAgency(career,true);
 
       (career.teams||[]).forEach(club=>{
@@ -12376,6 +13621,7 @@ body.manager-mode{--manager-money:#86efac}
 
       (career.teams||[]).forEach(club=>(club.managerSquad||[]).forEach(p=>{
         p.goalsSeason=0;
+        p.assistsSeason=0;
         p.appearancesSeason=0;
         p.marketValue=managerPlayerValue(p);
       }));
@@ -12425,7 +13671,7 @@ body.manager-mode{--manager-money:#86efac}
       });
     }
 
-    function managerDashboardHtml(career){if(!isManagerMode(career))return '';const team=controlledCareerTeam(career),fin=managerControlledFinance(career),unread=(career.manager.inbox||[]).filter(n=>n.unread).length,form=managerFormStatus(team.id);return `<article class="card" style="margin:12px 0"><div class="manager-transfer-toolbar"><div><div class="startup-kicker">💼 MANAGER MODE</div><h2 style="margin:4px 0">${escapeHtml(managerWindowLabel(career))}</h2><p class="muted" style="margin:0">${form.label} form · Squad strength ${team.strength} · ${unread} unread message${unread===1?'':'s'}</p></div><div style="text-align:right"><div class="muted">Transfer Budget</div><div class="manager-money" style="font-size:30px">${money(fin.budget)}</div></div></div><div class="toolbar"><button class="btn" data-manager-dashboard-tab="manager-squad">👥 Squad</button><button class="btn secondary" data-manager-dashboard-tab="manager-transfers">🔄 Transfers</button><button class="btn secondary" data-manager-dashboard-tab="manager-inbox">📩 Inbox ${unread?`(${unread})`:''}</button><button class="btn secondary" data-manager-dashboard-tab="manager-finances">💵 Finances</button></div></article>`}
+    function managerDashboardHtml(career){if(!isManagerMode(career))return '';const team=controlledCareerTeam(career),fin=managerControlledFinance(career),unread=(career.manager.inbox||[]).filter(n=>n.unread).length,form=managerFormStatus(team.id);return `<article class="card" style="margin:12px 0"><div class="manager-transfer-toolbar"><div><div class="startup-kicker">💼 MANAGER MODE</div><h2 style="margin:4px 0">${escapeHtml(managerWindowLabel(career))}</h2><p class="muted" style="margin:0">${form.label} form · Squad strength ${team.strength} · ${unread} unread message${unread===1?'':'s'}</p></div><div style="text-align:right"><div class="muted">Transfer Budget</div><div class="manager-money" style="font-size:30px">${money(fin.budget)}</div></div></div><div class="toolbar"><button class="btn" data-manager-dashboard-tab="manager-squad">👥 Squad</button><button class="btn secondary" data-manager-dashboard-tab="manager-transfers">🔄 Transfers</button><button class="btn secondary" data-manager-dashboard-tab="manager-inbox">📩 Inbox ${unread?`(${unread})`:''}</button><button class="btn secondary" data-manager-dashboard-tab="manager-finances">💵 Finances</button><button class="btn secondary" data-manager-dashboard-tab="manager-player-records">🏅 Player Records</button></div></article>`}
 
 
     function switchTab(name) {
@@ -12453,6 +13699,7 @@ body.manager-mode{--manager-money:#86efac}
       if (name === "manager-transfers") renderManagerTransfers();
       if (name === "manager-inbox") renderManagerInbox();
       if (name === "manager-finances") renderManagerFinances();
+      if (name === "manager-player-records") renderManagerPlayerRecords();
       if (name === "club-development") renderClubDevelopment();
       if (name === "club-legacy") renderClubLegacy();
     }
@@ -16686,6 +17933,9 @@ body.manager-mode{--manager-money:#86efac}
       });
       if (champion) {
         champion.trophies = (champion.trophies || 0) + 1;
+        if(currentGameMode==="club-career"&&isManagerMode(currentWorld())){
+          managerCreditPlayerTrophy(currentWorld(),comp,champion.id);
+        }
 
         // V51 applies every permanent rating change once at the world-season boundary.
         // Winning a competition contributes to that transparent performance calculation.
@@ -16696,6 +17946,14 @@ body.manager-mode{--manager-money:#86efac}
 
       if (currentGameMode === "club-career") {
         processCareerCompetitionCompletion(comp, runnerUpId);
+      }
+
+      if(
+        currentGameMode==="club-career" &&
+        isManagerMode(world) &&
+        comp.category==="super-league"
+      ){
+        managerFinalizeBallonDor(world,true);
       }
 
       if (champion) {
@@ -16719,7 +17977,14 @@ body.manager-mode{--manager-money:#86efac}
         calculateWorldCupQualification(world);
         const sameSeasonResult = processSameSeasonQualificationFromSource(world,comp);
         if (!sameSeasonResult.ok) showToast(sameSeasonResult.error,true);
-        prepareSuperLeagueFinals(world);
+        const superLeaguePrepared=prepareSuperLeagueFinals(world);
+        if(
+          superLeaguePrepared &&
+          currentGameMode==="club-career" &&
+          isManagerMode(world)
+        ){
+          managerPrepareBallonDorNominees(world,true);
+        }
       }
 
       if (comp.isWorldCup) {
@@ -16772,7 +18037,7 @@ body.manager-mode{--manager-money:#86efac}
       if (!wasFinished && comp.finished && !comp.isWorldCup) {
         if (worldCupDue(currentWorld())) {
           showWorldCupLockIfNeeded();
-        } else {
+        } else if (!(comp.category==="super-league" && isManagerMode(currentCareerSave()))) {
           showSeasonCompletePopup(comp);
         }
       }
@@ -17643,8 +18908,30 @@ body.manager-mode{--manager-money:#86efac}
 
 
 
-    function managerTeamHistoryRecordsHtml(career,teamId){const r=managerClubRecordsFor(teamId,career);if(!r)return '';const awards=(career.manager.awards||[]).filter(a=>a.clubId===teamId);return `<div class="manager-record-grid"><div class="manager-record"><span class="muted">All-Time Top Scorer</span><strong>${escapeHtml(r.topScorer.name)} · ${r.topScorer.goals} goals</strong></div><div class="manager-record"><span class="muted">Most Goals in a Season</span><strong>${escapeHtml(r.mostSeason.playerName)} · ${r.mostSeason.goals}${r.mostSeason.season?` · ${escapeHtml(seasonDisplay(r.mostSeason.season))}`:''}</strong></div><div class="manager-record"><span class="muted">Most Goals in One Game</span><strong>${escapeHtml(r.mostGame.playerName)} · ${r.mostGame.goals} vs ${escapeHtml(r.mostGame.opponent)}</strong></div><div class="manager-record"><span class="muted">Club Goals in One Season</span><strong>${r.teamSeason.goals}${r.teamSeason.season?` · ${escapeHtml(seasonDisplay(r.teamSeason.season))}`:''}</strong></div><div class="manager-record"><span class="muted">Most Team Goals in One Game</span><strong>${r.teamGame.goals} vs ${escapeHtml(r.teamGame.opponent)}</strong></div><div class="manager-record"><span class="muted">Most Club Appearances</span><strong>${escapeHtml(r.appear.name)} · ${r.appear.appearances}</strong></div><div class="manager-record"><span class="muted">Record Signing</span><strong>${r.buy?`${escapeHtml(r.buy.playerName)} · ${money(r.buy.fee)}`:'—'}</strong></div><div class="manager-record"><span class="muted">Record Sale</span><strong>${r.sale?`${escapeHtml(r.sale.playerName)} · ${money(r.sale.fee)}`:'—'}</strong></div><div class="manager-record"><span class="muted">Player of the Year Winners</span><strong>${awards.length}</strong></div></div>`}
+    function managerTeamHistoryRecordsHtml(career,teamId){
+      const r=managerClubRecordsFor(teamId,career);
+      if(!r)return '';
 
+      return `
+        <div class="manager-record-grid">
+          <div class="manager-record"><span class="muted">All-Time Top Scorer</span><strong>${escapeHtml(r.topScorer.name)} · ${r.topScorer.goals} goals</strong></div>
+          <div class="manager-record"><span class="muted">All-Time Top Assister</span><strong>${escapeHtml(r.topAssister.name)} · ${r.topAssister.assists} assists</strong></div>
+          <div class="manager-record"><span class="muted">Most Goals in a Season</span><strong>${escapeHtml(r.mostSeason.playerName)} · ${r.mostSeason.goals}${r.mostSeason.season?` · ${escapeHtml(seasonDisplay(r.mostSeason.season))}`:''}</strong></div>
+          <div class="manager-record"><span class="muted">Most Assists in a Season</span><strong>${escapeHtml(r.mostAssistSeason.playerName)} · ${r.mostAssistSeason.assists}${r.mostAssistSeason.season?` · ${escapeHtml(seasonDisplay(r.mostAssistSeason.season))}`:''}</strong></div>
+          <div class="manager-record"><span class="muted">Most Goals in One Game</span><strong>${escapeHtml(r.mostGame.playerName)} · ${r.mostGame.goals} vs ${escapeHtml(r.mostGame.opponent)}</strong></div>
+          <div class="manager-record"><span class="muted">Most Assists in One Game</span><strong>${escapeHtml(r.mostAssistGame.playerName)} · ${r.mostAssistGame.assists} vs ${escapeHtml(r.mostAssistGame.opponent)}</strong></div>
+          <div class="manager-record"><span class="muted">Most Club Appearances</span><strong>${escapeHtml(r.appear.name)} · ${r.appear.appearances}</strong></div>
+          <div class="manager-record"><span class="muted">Most Trophies as a Player</span><strong>${escapeHtml(r.trophies.name)} · ${r.trophies.honours.length}</strong></div>
+          <div class="manager-record"><span class="muted">Club Goals in One Season</span><strong>${r.teamSeason.goals}${r.teamSeason.season?` · ${escapeHtml(seasonDisplay(r.teamSeason.season))}`:''}</strong></div>
+          <div class="manager-record"><span class="muted">Most Team Goals in One Game</span><strong>${r.teamGame.goals} vs ${escapeHtml(r.teamGame.opponent)}</strong></div>
+          <div class="manager-record"><span class="muted">Record Signing</span><strong>${r.buy?`${escapeHtml(r.buy.playerName)} · ${money(r.buy.fee)}`:'—'}</strong></div>
+          <div class="manager-record"><span class="muted">Record Sale</span><strong>${r.sale?`${escapeHtml(r.sale.playerName)} · ${money(r.sale.fee)}`:'—'}</strong></div>
+          <div class="manager-record"><span class="muted">Ballon d'Ors Won at Club</span><strong>${r.ballonDors.length}</strong></div>
+        </div>
+        <h3 style="margin-top:20px">Player Legacy at This Club</h3>
+        <p class="muted">Players stay in this table forever even if they transfer away or retire.</p>
+        ${managerClubPlayerLegacyHtml(career,teamId)}`;
+    }
     function renderTeamHistory(){
       const world=currentWorld(),panel=$("tab-team-history");if(!panel)return;if(!world.teams.length){panel.innerHTML=`<div class="card"><p class="muted">Create a team first.</p></div>`;return}
       const selectedId=panel.dataset.selectedTeamId||world.teams[0].id,team=world.teams.find(t=>t.id===selectedId)||world.teams[0];panel.dataset.selectedTeamId=team.id;
