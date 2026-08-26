@@ -11467,6 +11467,31 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(!isPlayerMode(career))return;
       career.managerMode=true;
       managerRepairCareer(career);
+
+      // Player Career uses manager data internally for squads/transfers, but
+      // Manager Mode contract alerts must never leak into the Player Career UI.
+      if(career.manager){
+        career.manager.inbox=(career.manager.inbox||[]).filter(note=>{
+          const kind=String(note?.actions?.kind||"");
+          const title=String(note?.title||"").toLowerCase();
+          return !(
+            kind==="contract-warning" ||
+            kind==="contract-expiry" ||
+            title.includes("contract expiring") ||
+            title.includes("contract expired") ||
+            title.includes("left on a free")
+          );
+        });
+      }
+      if(typeof managerImportantPopupQueue!=="undefined"){
+        for(let i=managerImportantPopupQueue.length-1;i>=0;i--){
+          if(managerImportantPopupQueue[i]?.careerId===career.id)managerImportantPopupQueue.splice(i,1);
+        }
+      }
+      const urgentDialog=$("managerUrgentDialog");
+      if(urgentDialog?.open)urgentDialog.close();
+      if(typeof managerImportantPopupOpen!=="undefined")managerImportantPopupOpen=false;
+
       const pm=career.playerCareer=career.playerCareer||{};
       playerModeEnsureCompetitionPack(career);
       const player=managerPlayerById(pm.playerId,career);
@@ -13585,6 +13610,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
     function managerQueueImportantPopup(career,note){
       if(!career||!note||!managerImportantNoteKind(note))return;
+      if(isPlayerMode(career))return;
       if(note.popupShown || managerImportantPopupQueue.some(item=>item.noteId===note.id))return;
 
       note.popupShown=true;
@@ -13715,7 +13741,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(currentGameMode!=="club-career")return;
 
       const career=currentCareerSave();
-      if(!isManagerMode(career))return;
+      if(!isManagerMode(career)||isPlayerMode(career))return;
 
       while(managerImportantPopupQueue.length){
         const item=managerImportantPopupQueue.shift();
@@ -13795,7 +13821,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
     }
 
     function managerGenerateContractWarnings(career=currentCareerSave()){
-      if(!isManagerMode(career))return;
+      if(!isManagerMode(career)||isPlayerMode(career))return;
       const team=controlledCareerTeam(career);
       if(!team)return;
 
@@ -13821,7 +13847,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
     }
 
     function managerQueueCurrentUrgentState(career=currentCareerSave()){
-      if(!isManagerMode(career))return;
+      if(!isManagerMode(career)||isPlayerMode(career))return;
 
       managerGenerateContractWarnings(career);
 
