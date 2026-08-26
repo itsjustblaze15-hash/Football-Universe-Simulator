@@ -11437,6 +11437,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
         loan:null,
         injury:null,
         suspensionMatches:0,
+        suspension:null,
+        discipline:{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0},
+        calendarScheduleVersion:"v61.9",
         matchSelection:"",
         matchPlan:null,
         requestedSubMinute:null,
@@ -11476,6 +11479,28 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.stats=pm.stats||{appearances:0,starts:0,subApps:0,goals:0,assists:0,motm:0,cleanSheets:0,tackles:0,saves:0,ratingTotal:0,ratedMatches:0};
       pm.seasonStats=pm.seasonStats||{};pm.matchHistory=Array.isArray(pm.matchHistory)?pm.matchHistory:[];pm.milestones=Array.isArray(pm.milestones)?pm.milestones:[];pm.trophyCabinet=Array.isArray(pm.trophyCabinet)?pm.trophyCabinet:[];pm.awards=Array.isArray(pm.awards)?pm.awards:[];pm.careerTimeline=Array.isArray(pm.careerTimeline)?pm.careerTimeline:[];pm.monthlyReviews=Array.isArray(pm.monthlyReviews)?pm.monthlyReviews:[];pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];pm.rivals=pm.rivals||{};pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];pm.calendarAssignments=pm.calendarAssignments||{};pm.trainingDates=Array.isArray(pm.trainingDates)?pm.trainingDates:[];pm.international=pm.international||{status:"Not called up",appearances:0,goals:0,captain:false};
       pm.currentDate=pm.currentDate||`${SEASON_START_YEAR+Number(career.worldSeason||1)-1}-08-01`;pm.calendarView=pm.calendarView||pm.currentDate.slice(0,7);pm.roadCap=Number(pm.roadCap||playerModeStartingRoadCap(player.overall));pm.skillMoves=Number(pm.skillMoves||positionSkillBase(player.position));pm.weakFoot=Number(pm.weakFoot||3);pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,playerModeClub(career)?.strength||70);pm.setPieceDuty=pm.setPieceDuty||"None";
+      pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
+      pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
+      pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0);
+      pm.discipline.careerRedCards=Number(pm.discipline.careerRedCards||0);
+      pm.suspensionMatches=Number(pm.suspensionMatches||0);
+      if(pm.suspensionMatches>0&&!pm.suspension){
+        pm.suspension={
+          reason:"Previous disciplinary suspension",
+          detail:"This suspension came from an older save version that did not record the exact card reason.",
+          matchesRemaining:pm.suspensionMatches,
+          legacy:true
+        };
+      }
+      if(pm.suspension){
+        pm.suspension.matchesRemaining=Number(pm.suspensionMatches||pm.suspension.matchesRemaining||0);
+      }
+      if(pm.calendarScheduleVersion!=="v61.9"){
+        // Reassign only future Player Career fixtures to the corrected season order.
+        // Completed match history keeps its original dates and scores.
+        pm.calendarAssignments={};
+        pm.calendarScheduleVersion="v61.9";
+      }
       pm.agentIntent=pm.agentIntent||"Stay and develop";
       pm.agentStatus=pm.agentStatus||"Your agent is following your current career instruction.";
       pm.playingTimePromiseMatches=Number(pm.playingTimePromiseMatches||0);
@@ -11760,25 +11785,100 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(logoData)return `<span class="player-calendar-mini-logo"><img src="${logoData}" alt="${escapeHtml(team.name)}"></span>`;
       return `<span class="player-calendar-mini-logo" style="--player-club-color:${escapeHtml(team.color||'#315d9a')}">${escapeHtml(initials(team.name))}</span>`;
     }
+    function playerModeDomesticLeagueCompetitions(career=currentCareerSave()){
+      return (career?.competitions||[]).filter(comp=>
+        comp.category==="league" &&
+        comp.playerModeDomestic===true &&
+        !comp.finished && !comp.recoveredFromHistory && comp.archived!==true
+      );
+    }
+    function playerModeAllDomesticLeaguesFinished(career=currentCareerSave()){
+      const leagues=(career?.competitions||[]).filter(comp=>
+        comp.category==="league" &&
+        comp.playerModeDomestic===true &&
+        !comp.recoveredFromHistory && comp.archived!==true
+      );
+      return leagues.length>0&&leagues.every(comp=>comp.finished);
+    }
+    function playerModeControlledDomesticLeague(career=currentCareerSave()){
+      return (career?.competitions||[]).find(comp=>
+        comp.category==="league" &&
+        comp.playerModeDomestic===true &&
+        (comp.originalTeamIds||comp.teamIds||[]).includes(career?.controlledTeamId)
+      )||null;
+    }
+    function playerModeCurrentCompetitionStage(comp){
+      return comp?.stages?.[Number(comp.currentStageIndex||0)]||"Match";
+    }
+    function playerModeSeasonOrderBlocked(career,comp){
+      if(!isPlayerMode(career)||!comp||comp.finished)return false;
+      const stage=playerModeCurrentCompetitionStage(comp);
+
+      // All domestic leagues must be finished before either European final.
+      if(comp.category==="europa-league"&&stage==="Final"){
+        return !playerModeAllDomesticLeaguesFinished(career);
+      }
+
+      // Champions League Final is always after the Europa League Final.
+      if(comp.category==="champions-league"&&stage==="Final"){
+        if(!playerModeAllDomesticLeaguesFinished(career))return true;
+        const europa=(career.competitions||[]).find(c=>c.category==="europa-league"&&!c.recoveredFromHistory&&c.archived!==true);
+        return !!europa&&!europa.finished;
+      }
+
+      // Super League is the final club match of the season.
+      if(comp.category==="super-league"){
+        if(!playerModeAllDomesticLeaguesFinished(career))return true;
+        const europa=(career.competitions||[]).find(c=>c.category==="europa-league"&&!c.recoveredFromHistory&&c.archived!==true);
+        const champions=(career.competitions||[]).find(c=>c.category==="champions-league"&&!c.recoveredFromHistory&&c.archived!==true);
+        return !europa?.finished||!champions?.finished;
+      }
+
+      // The World Cup belongs to the summer and cannot overlap the club season.
+      if(comp.category==="world-cup"||comp.isWorldCup){
+        return !allRegularCompetitionsFinished(career);
+      }
+      return false;
+    }
     function playerModePreferredFixtureDate(career,row){
       const seasonStartYear=SEASON_START_YEAR+Number(career.worldSeason||1)-1;
       const stage=row.comp.stages?.[row.comp.currentStageIndex]||"Match";
       let date;
+
       if(row.comp.category==="league"){
-        date=new Date(seasonStartYear,7,10+Number(row.roundIndex||0)*12);
-      }else if(["champions-league","europa-league"].includes(row.comp.category)){
-        if(stage==="League")date=new Date(seasonStartYear,7,20+Number(row.roundIndex||0)*19);
-        else if(stage==="Quarterfinals")date=new Date(seasonStartYear+1,2,6);
-        else if(stage==="Semifinals")date=new Date(seasonStartYear+1,3,10);
-        else date=new Date(seasonStartYear+1,4,14);
+        // Domestic leagues run from August into May.
+        // With the Player Career six-club leagues this puts the final round in May.
+        date=new Date(seasonStartYear,7,17+Number(row.roundIndex||0)*14);
+      }else if(row.comp.category==="europa-league"){
+        if(stage==="League")date=new Date(seasonStartYear,8,17+Number(row.roundIndex||0)*21);
+        else if(stage==="Quarterfinals")date=new Date(seasonStartYear+1,2,18);
+        else if(stage==="Semifinals")date=new Date(seasonStartYear+1,3,22);
+        else date=new Date(seasonStartYear+1,4,23); // Europa final first
+      }else if(row.comp.category==="champions-league"){
+        if(stage==="League")date=new Date(seasonStartYear,8,18+Number(row.roundIndex||0)*21);
+        else if(stage==="Quarterfinals")date=new Date(seasonStartYear+1,2,19);
+        else if(stage==="Semifinals")date=new Date(seasonStartYear+1,3,23);
+        else date=new Date(seasonStartYear+1,4,28); // Champions final second
       }else if(row.comp.category==="cup"){
-        const stageDates={"Round of 16":[seasonStartYear,9,8],"Quarterfinals":[seasonStartYear,10,12],"Semifinals":[seasonStartYear+1,1,18],"Final":[seasonStartYear+1,3,22]};
+        const stageDates={
+          "Round of 16":[seasonStartYear,9,8],
+          "Quarterfinals":[seasonStartYear,10,12],
+          "Semifinals":[seasonStartYear+1,1,18],
+          "Final":[seasonStartYear+1,3,30]
+        };
         const parts=stageDates[stage]||[seasonStartYear+1,1,18];
         date=new Date(parts[0],parts[1],parts[2]);
       }else if(row.comp.category==="super-league"){
-        date=new Date(seasonStartYear+1,4,24);
-      }else if(row.comp.category==="world-cup"){
-        date=new Date(seasonStartYear+1,5,10+Number(row.roundIndex||0)*5);
+        date=new Date(seasonStartYear+1,5,2); // final club game
+      }else if(row.comp.category==="world-cup"||row.comp.isWorldCup){
+        const worldCupDates={
+          "Round of 16":[seasonStartYear+1,5,15],
+          "Quarterfinals":[seasonStartYear+1,5,21],
+          "Semifinals":[seasonStartYear+1,5,27],
+          "Final":[seasonStartYear+1,6,4]
+        };
+        const parts=worldCupDates[stage]||[seasonStartYear+1,5,15+Number(row.roundIndex||0)*5];
+        date=new Date(parts[0],parts[1],parts[2]);
       }else{
         date=new Date(seasonStartYear,7,15+Number(row.roundIndex||0)*10);
       }
@@ -11788,32 +11888,127 @@ body.player-calendar-advancing #playerNextMatchBtn{
     function playerModeAdvanceBackgroundWorld(career=currentCareerSave(),playedCompId=null){
       if(!isPlayerMode(career))return;
       const club=playerModeClub(career);if(!club)return;
-      prepareSuperLeagueFinals(career);
-      let guard=0;
-      for(const comp of regularCompetitions(career)){
-        if(guard++>60)break;
-        if(comp.finished||comp.id===playedCompId)continue;
-        if((comp.teamIds||[]).length<2){prepareSuperLeagueFinals(career);continue}
-        const round=comp.fixtures?.[comp.currentMatchday]||[];
-        const userHasGame=round.some(game=>!game.played&&(game.homeId===club.id||game.awayId===club.id));
-        if(userHasGame)continue;
+
+      const userHasUnplayedGame=comp=>{
+        const round=comp?.fixtures?.[comp.currentMatchday]||[];
+        return round.some(game=>!game.played&&(game.homeId===club.id||game.awayId===club.id));
+      };
+      const safeSim=comp=>{
+        if(!comp||comp.finished||comp.id===playedCompId)return false;
+        if((comp.teamIds||[]).length<2)return false;
+        if(userHasUnplayedGame(comp))return false;
         simulateMatchday(comp.id,true);
-      }
+        return true;
+      };
+      const fastForwardBackgroundToFinal=comp=>{
+        let safety=0;
+        while(comp&&!comp.finished&&playerModeCurrentCompetitionStage(comp)!=="Final"&&safety<80){
+          if(userHasUnplayedGame(comp))break;
+          if(!safeSim(comp))break;
+          safety++;
+        }
+      };
+
       prepareSuperLeagueFinals(career);
 
-      // If the player's own schedule is over, finish any competitions that no
-      // longer contain a playable fixture for the controlled club.
+      // Normal background progression. European finals and the Super League
+      // are deliberately excluded here so they cannot finish too early.
+      for(const comp of regularCompetitions(career)){
+        if(comp.finished||comp.id===playedCompId)continue;
+        const stage=playerModeCurrentCompetitionStage(comp);
+        if(["europa-league","champions-league"].includes(comp.category)&&stage==="Final")continue;
+        if(comp.category==="super-league")continue;
+        if(playerModeSeasonOrderBlocked(career,comp))continue;
+        safeSim(comp);
+      }
+
+      // As soon as the player's own league is finished, complete the other
+      // domestic leagues in the background. This prevents a European final
+      // from being completed while another domestic league is still running.
+      const controlledLeague=playerModeControlledDomesticLeague(career);
+      if(controlledLeague?.finished){
+        for(const league of (career.competitions||[]).filter(comp=>
+          comp.category==="league"&&comp.playerModeDomestic===true&&!comp.finished
+        )){
+          let safety=0;
+          while(!league.finished&&safety<120){
+            if(userHasUnplayedGame(league))break;
+            if(!safeSim(league))break;
+            safety++;
+          }
+        }
+      }
+
+      if(playerModeAllDomesticLeaguesFinished(career)){
+        const europa=(career.competitions||[]).find(comp=>
+          comp.category==="europa-league"&&!comp.recoveredFromHistory&&comp.archived!==true
+        );
+        const champions=(career.competitions||[]).find(comp=>
+          comp.category==="champions-league"&&!comp.recoveredFromHistory&&comp.archived!==true
+        );
+
+        // Bring both European tournaments to their finals if the player is
+        // not personally involved in an outstanding earlier round.
+        fastForwardBackgroundToFinal(europa);
+        fastForwardBackgroundToFinal(champions);
+
+        // 1) Europa League Final.
+        if(europa&&!europa.finished&&playerModeCurrentCompetitionStage(europa)==="Final"){
+          safeSim(europa);
+        }
+
+        // 2) Champions League Final, only after Europa is completely done.
+        if((!europa||europa.finished)&&champions&&!champions.finished&&playerModeCurrentCompetitionStage(champions)==="Final"){
+          safeSim(champions);
+        }
+
+        // 3) Super League, only after both European champions are known.
+        prepareSuperLeagueFinals(career);
+        const superLeague=(career.competitions||[]).find(comp=>
+          comp.category==="super-league"&&!comp.finished&&!comp.recoveredFromHistory&&comp.archived!==true
+        );
+        if((!europa||europa.finished)&&(!champions||champions.finished)&&superLeague){
+          prepareSuperLeagueFinals(career);
+          safeSim(superLeague);
+        }
+      }
+
+      prepareSuperLeagueFinals(career);
+
+      // If there are genuinely no Player Career fixtures left, finish only
+      // background competitions that are legal under the new season order.
       if(!playerModeUpcomingFixtures(career).length){
         let safety=0;
         while(!allRegularCompetitionsFinished(career)&&safety<300){
           let progressed=false;
-          for(const comp of regularCompetitions(career)){
-            if(comp.finished)continue;
-            const round=comp.fixtures?.[comp.currentMatchday]||[];
-            const userHasGame=round.some(game=>!game.played&&(game.homeId===club.id||game.awayId===club.id));
-            if(userHasGame)continue;
-            simulateMatchday(comp.id,true);progressed=true;
+
+          const controlledLeagueNow=playerModeControlledDomesticLeague(career);
+          if(controlledLeagueNow?.finished){
+            for(const league of (career.competitions||[]).filter(comp=>
+              comp.category==="league"&&comp.playerModeDomestic===true&&!comp.finished
+            )){
+              if(safeSim(league))progressed=true;
+            }
           }
+
+          if(playerModeAllDomesticLeaguesFinished(career)){
+            const europa=(career.competitions||[]).find(comp=>comp.category==="europa-league"&&!comp.recoveredFromHistory&&comp.archived!==true);
+            const champions=(career.competitions||[]).find(comp=>comp.category==="champions-league"&&!comp.recoveredFromHistory&&comp.archived!==true);
+
+            fastForwardBackgroundToFinal(europa);
+            fastForwardBackgroundToFinal(champions);
+
+            if(europa&&!europa.finished&&playerModeCurrentCompetitionStage(europa)==="Final"){
+              if(safeSim(europa))progressed=true;
+            }else if((!europa||europa.finished)&&champions&&!champions.finished&&playerModeCurrentCompetitionStage(champions)==="Final"){
+              if(safeSim(champions))progressed=true;
+            }else if((!europa||europa.finished)&&(!champions||champions.finished)){
+              prepareSuperLeagueFinals(career);
+              const superLeague=(career.competitions||[]).find(comp=>comp.category==="super-league"&&!comp.finished&&!comp.recoveredFromHistory&&comp.archived!==true);
+              if(superLeague&&safeSim(superLeague))progressed=true;
+            }
+          }
+
           prepareSuperLeagueFinals(career);
           if(!progressed)break;
           safety++;
@@ -11837,6 +12032,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       prepareSuperLeagueFinals(career);
       const rows=[];
       (career.competitions||[]).filter(comp=>!comp.finished).forEach(comp=>{
+        if(playerModeSeasonOrderBlocked(career,comp))return;
         const rounds=comp.fixtures||[];
         for(let r=Number(comp.currentMatchday||0);r<rounds.length;r++){
           (rounds[r]||[]).forEach((game,gIndex)=>{
@@ -12102,7 +12298,12 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(selection==="starter")return "You are in the starting XI and will begin the match on the pitch.";
       if(selection==="bench")return "You are a substitute. If the manager brings you on, the exact minute will appear during the match.";
       if(selection==="injured")return "You are unavailable for this match because of injury.";
-      if(selection==="suspended")return "You are unavailable for this match because of suspension.";
+      if(selection==="suspended"){
+        const ban=pm?.suspension;
+        const reason=ban?.reason||"Disciplinary suspension";
+        const detail=ban?.detail?` ${ban.detail}`:"";
+        return `You are suspended for this match. Reason: ${reason}.${detail}`;
+      }
       return "Your manager has not selected your match role yet.";
     }
     function playerModeHistoryStatus(row){
@@ -12111,7 +12312,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(row.sub&&row.subOnMinute&&row.subOffMinute)return `Subbed on ${row.subOnMinute}' · Subbed off ${row.subOffMinute}' · ${row.minutesPlayed||0} min`;
       if(row.sub&&row.subOnMinute)return `Subbed on ${row.subOnMinute}' · ${row.minutesPlayed||Math.max(0,90-row.subOnMinute)} min`;
       if(row.sub)return "Substitute appearance";
-      return row.selection==="injured"?"Not available · Injured":row.selection==="suspended"?"Not available · Suspended":"Unused substitute";
+      return row.selection==="injured"?"Not available · Injured":row.selection==="suspended"?`Suspended · ${row.suspensionReason||"Disciplinary suspension"}`:"Unused substitute";
     }
     function playerModeSeasonStats(career=currentCareerSave(),season=Number(career?.worldSeason||1)){
       const pm=playerModeData(career);if(!pm)return null;
@@ -12160,6 +12361,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         rating=clamp(Number(rating.toFixed(1)),4.5,10);
       }
       const season=playerModeSeasonStats(career);
+      let disciplineEvent=null;
       if(appeared){
         pm.stats.appearances++;season.appearances++;if(started){pm.stats.starts++;season.starts++}else{pm.stats.subApps++;season.subApps++}
         pm.stats.goals+=goals;season.goals+=goals;pm.stats.assists+=assists;season.assists+=assists;pm.stats.cleanSheets+=metrics.cleanSheet;season.cleanSheets+=metrics.cleanSheet;pm.stats.tackles+=metrics.tackles;season.tackles+=metrics.tackles;pm.stats.saves+=metrics.saves;season.saves+=metrics.saves;pm.stats.ratingTotal+=rating;pm.stats.ratedMatches++;season.ratingTotal+=rating;season.ratedMatches++;
@@ -12169,13 +12371,74 @@ body.player-calendar-advancing #playerNextMatchBtn{
         const fitnessCost=Math.max(4,Math.round(4+10*(minutesPlayed/90)));
         pm.morale=clamp(pm.morale+(won?3:draw?0:-2)+(rating>=8?2:rating<6?-3:0),0,100);pm.sharpness=clamp(pm.sharpness+4,0,100);pm.fitness=clamp(pm.fitness-fitnessCost,0,100);pm.reputation=clamp(pm.reputation+(rating>=8.5?2:rating>=7.5?1:0),0,100);pm.pressure=clamp(pm.pressure+(rating<5.8?7:rating>=8.3?-4:1),0,100);pm.chemistry=clamp(pm.chemistry+1,0,100);
         if(Math.random()<.018+(100-pm.fitness)/2200){const days=7+Math.floor(Math.random()*25);pm.injury={type:days>20?"Muscle injury":"Knock",days};playerModeMilestone(career,`injury-${Date.now()}`,`${player.name} suffered a ${pm.injury.type.toLowerCase()} and will miss about ${days} days.`)}
-        if(Math.random()<.035)pm.suspensionMatches=Math.max(pm.suspensionMatches,1);
-      }else if(selection==="suspended"){pm.suspensionMatches=Math.max(0,Number(pm.suspensionMatches||0)-1)}
+
+        pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
+        const positionCardRisk=["CB","LB","RB","CDM"].includes(player.position)?.13:["CM","CAM"].includes(player.position)?.10:["ST","LW","RW"].includes(player.position)?.075:.035;
+        const disciplineRoll=Math.random();
+        const eventDate=pm.pendingMatchDate||plan.date||pm.currentDate;
+
+        if(disciplineRoll<.009){
+          pm.discipline.careerRedCards=Number(pm.discipline.careerRedCards||0)+1;
+          pm.suspensionMatches=Math.max(Number(pm.suspensionMatches||0),2);
+          pm.suspension={
+            reason:"Straight red card for serious foul play",
+            detail:"Two-match disciplinary ban.",
+            matchesRemaining:pm.suspensionMatches,
+            issuedDate:eventDate,
+            competition:comp.name
+          };
+          disciplineEvent={type:"red",label:"Straight red card",reason:pm.suspension.reason};
+          playerModeMilestone(career,`red-${Date.now()}`,`${player.name} was sent off for serious foul play and received a two-match suspension.`);
+        }else if(disciplineRoll<.016){
+          pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0)+2;
+          pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0)+2;
+          pm.discipline.careerRedCards=Number(pm.discipline.careerRedCards||0)+1;
+          pm.suspensionMatches=Math.max(Number(pm.suspensionMatches||0),1);
+          pm.suspension={
+            reason:"Second yellow card in the previous match",
+            detail:"One-match suspension after being sent off for two bookings.",
+            matchesRemaining:pm.suspensionMatches,
+            issuedDate:eventDate,
+            competition:comp.name
+          };
+          disciplineEvent={type:"second-yellow",label:"Second yellow / red",reason:pm.suspension.reason};
+          playerModeMilestone(career,`second-yellow-${Date.now()}`,`${player.name} was sent off after a second yellow card and will miss the next match.`);
+        }else if(disciplineRoll<positionCardRisk){
+          pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0)+1;
+          pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0)+1;
+          disciplineEvent={type:"yellow",label:"Yellow card",reason:"Booked during the match"};
+
+          if(pm.discipline.seasonYellowCards>0&&pm.discipline.seasonYellowCards%5===0){
+            pm.suspensionMatches=Math.max(Number(pm.suspensionMatches||0),1);
+            pm.suspension={
+              reason:`Yellow-card accumulation (${pm.discipline.seasonYellowCards} this season)`,
+              detail:"One-match suspension for reaching the booking limit.",
+              matchesRemaining:pm.suspensionMatches,
+              issuedDate:eventDate,
+              competition:comp.name
+            };
+            playerModeMilestone(career,`yellow-ban-${Date.now()}`,`${player.name} reached the yellow-card limit and will miss the next match.`);
+          }
+        }
+      }
+
+      const suspensionReasonAtKickoff=selection==="suspended"
+        ?(pm.suspension?.reason||"Disciplinary suspension")
+        :"";
+
+      if(selection==="suspended"){
+        pm.suspensionMatches=Math.max(0,Number(pm.suspensionMatches||0)-1);
+        if(pm.suspension)pm.suspension.matchesRemaining=pm.suspensionMatches;
+      }
+
       const opponentId=isHome?game.awayId:game.homeId;
       const date=pm.pendingMatchDate||plan.date||pm.currentDate;
-      const historyRow={id:uid(),season:Number(career.worldSeason||1),date,competitionId:comp.id,competition:comp.name,opponentId,home:isHome,forGoals,against,appeared,started,sub,selection,subOnMinute,subOffMinute,minutesPlayed,goals,assists,rating,cleanSheet:metrics.cleanSheet,tackles:metrics.tackles,saves:metrics.saves};
+      const historyRow={id:uid(),season:Number(career.worldSeason||1),date,competitionId:comp.id,competition:comp.name,opponentId,home:isHome,forGoals,against,appeared,started,sub,selection,subOnMinute,subOffMinute,minutesPlayed,goals,assists,rating,cleanSheet:metrics.cleanSheet,tackles:metrics.tackles,saves:metrics.saves,disciplineEvent,suspensionReason:suspensionReasonAtKickoff};
       pm.matchHistory.unshift(historyRow);
       pm.lastMatchStatus={...historyRow};
+      if(selection==="suspended"&&Number(pm.suspensionMatches||0)<=0){
+        pm.suspension=null;
+      }
       if(pm.pendingMatchDate){pm.currentDate=playerModeAddDays(pm.pendingMatchDate,1);pm.calendarView=pm.currentDate.slice(0,7);pm.pendingMatchDate=null}
       pm.matchPlan=null;pm.requestedSubMinute=null;pm.matchSelection="";
       playerModeUpdateRivalry(career,opponentId,comp,won);playerModeCheckMilestones(career);playerModeCheckRoadUnlocks(career);playerModeUpdateInternational(career);playerModeRefreshTransferInterest(career,false);
@@ -12728,7 +12991,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(player.age>=32){["Acceleration","Sprint Speed","Stamina","Agility","Reactions"].forEach(key=>{if(pm.attributes[key]!=null)pm.attributes[key]=Math.max(35,Number(pm.attributes[key])-1)});player.overall=playerModeCalculateOverallFromAttributes(player.position,pm.attributes)}
       if(player.age>=35)pm.retirementEligible=true;
       if(pm.loan&&Number(career.worldSeason||1)>=Number(pm.loan.returnSeason||999)){const parent=managerTeam(pm.loan.fromClubId,career);if(parent){playerModeMovePlayer(career,parent,{loan:false,fee:0,wage:player.wage});pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:"loan-return",clubId:parent.id,text:`Returned to ${parent.name} after loan.`})}pm.loan=null}
-      pm.currentDate=`${SEASON_START_YEAR+Number(career.worldSeason||1)}-08-01`;pm.calendarView=pm.currentDate.slice(0,7);pm.calendarAssignments={};pm.trainingDates=[];pm.fitness=100;pm.sharpness=68;pm.pressure=Math.max(10,pm.pressure-8);playerModeCheckRoadUnlocks(career);playerModeRefreshTransferInterest(career,true);
+      pm.currentDate=`${SEASON_START_YEAR+Number(career.worldSeason||1)}-08-01`;pm.calendarView=pm.currentDate.slice(0,7);pm.calendarAssignments={};pm.calendarScheduleVersion="v61.9";pm.trainingDates=[];pm.fitness=100;pm.sharpness=68;pm.pressure=Math.max(10,pm.pressure-8);pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};pm.discipline.seasonYellowCards=0;playerModeCheckRoadUnlocks(career);playerModeRefreshTransferInterest(career,true);
     }
     function playerModeRetire(){
       const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career);if(!pm||!player)return;if(!pm.retirementEligible&&player.age<35)return showToast("Retirement becomes available from age 35.",true);if(!confirm(`Retire ${player.name} now and finish this Player Mode career?`))return;pm.retired=true;pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:"retirement",clubId:playerModeClub(career)?.id||null,text:`Retired at age ${player.age}.`});saveData("Player retired");playerModeShowCeremony("CAREER COMPLETE",player.name,`${pm.stats.appearances} appearances · ${pm.stats.goals} goals · ${pm.trophyCabinet.length} trophies`);renderPlayerCareer();renderPlayerHub()
@@ -12773,7 +13036,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
     function renderPlayerHub(){
       const career=currentCareerSave(),panel=$("tab-player-hub");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!player||pm.retired){panel.innerHTML=`<div class="card"><div class="startup-kicker">PLAYER MODE</div><h1>Career Complete</h1><p class="muted">Open Career History for the full summary.</p></div>`;return}const season=playerModeSeasonStats(career),avg=playerModeAverageRating(season),rep=playerModeReputationLabel(pm.reputation);panel.innerHTML=`<section class="player-hero">${playerModeFaceHtml(career)}<div><div class="startup-kicker">⭐ PLAYER MODE · ${escapeHtml(seasonDisplay(career.worldSeason||1))}</div><h1 class="player-hero-name">${escapeHtml(player.name)}</h1><div class="toolbar"><span class="player-role-pill">${escapeHtml(pm.squadRole)}</span><span class="badge">${escapeHtml(player.position)}</span><span class="badge">Age ${player.age}</span><span class="badge">${escapeHtml(player.nationality)}</span><span class="badge">${escapeHtml(rep)}</span>${pm.captaincy!=="None"?`<span class="badge">© ${escapeHtml(pm.captaincy)}</span>`:""}</div><p class="muted">${escapeHtml(club?.name||"Free Agent")} · #${pm.shirtNumber} · ${escapeHtml(pm.preferredFoot)} foot · ${pm.height} cm</p></div><div class="player-ovr-orb"><div><strong>${player.overall}</strong><small>OVR</small></div></div></section>
       <div class="player-kpi-grid">${[["Manager Trust",pm.managerTrust],["Fitness",pm.fitness],["Sharpness",pm.sharpness],["Morale",pm.morale],["Reputation",pm.reputation],["Chemistry",pm.chemistry]].map(([label,value])=>`<div class="player-kpi"><small>${label}</small><strong>${Math.round(value)}</strong><div class="player-bar"><span style="width:${clamp(value,0,100)}%"></span></div></div>`).join("")}</div>
-      <div class="player-dashboard-grid"><article class="card"><div class="startup-kicker">NEXT MATCH</div>${playerModeNextMatchHtml(career,true)}<div class="toolbar" style="margin-top:10px"><button class="btn secondary small" id="playerHubCalendarBtn">Open Calendar</button><button class="btn secondary small" id="playerHubAdvanceBtn">Advance to Match</button></div></article><article class="card"><div class="startup-kicker">CURRENT SEASON</div><div class="manager-summary-grid"><div class="manager-summary-card"><small>Apps</small><strong>${season.appearances}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${season.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${season.assists}</strong></div><div class="manager-summary-card"><small>Avg Rating</small><strong>${avg?avg.toFixed(2):"—"}</strong></div></div><p class="muted" style="margin-top:10px">Development Points: <strong>${pm.developmentPoints}</strong> · Current Road-to-99 ceiling: <strong>${pm.roadCap}</strong></p><button class="btn secondary small" id="playerHubDevelopmentBtn">Open Development</button></article><article class="card"><div class="startup-kicker">STATUS</div><h2>${pm.injury?`🩹 ${escapeHtml(pm.injury.type)} · ${pm.injury.days} days`:pm.suspensionMatches?`🟥 Suspended · ${pm.suspensionMatches} match`:`✅ Available`}</h2><p><strong>International:</strong> ${escapeHtml(pm.international.status)}</p><p><strong>Pressure:</strong> ${Math.round(pm.pressure)}/100</p><p><strong>Agent plan:</strong> ${escapeHtml(pm.agentIntent)}</p></article><article class="card"><div class="startup-kicker">CAREER TARGETS</div>${playerModePositionObjectivesHtml(career)}<button class="btn secondary small" id="playerHubAgentBtn" style="margin-top:10px">Agent & Transfers</button></article></div>`;
+      <div class="player-dashboard-grid"><article class="card"><div class="startup-kicker">NEXT MATCH</div>${playerModeNextMatchHtml(career,true)}<div class="toolbar" style="margin-top:10px"><button class="btn secondary small" id="playerHubCalendarBtn">Open Calendar</button><button class="btn secondary small" id="playerHubAdvanceBtn">Advance to Match</button></div></article><article class="card"><div class="startup-kicker">CURRENT SEASON</div><div class="manager-summary-grid"><div class="manager-summary-card"><small>Apps</small><strong>${season.appearances}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${season.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${season.assists}</strong></div><div class="manager-summary-card"><small>Avg Rating</small><strong>${avg?avg.toFixed(2):"—"}</strong></div></div><p class="muted" style="margin-top:10px">Development Points: <strong>${pm.developmentPoints}</strong> · Current Road-to-99 ceiling: <strong>${pm.roadCap}</strong></p><button class="btn secondary small" id="playerHubDevelopmentBtn">Open Development</button></article><article class="card"><div class="startup-kicker">STATUS</div><h2>${pm.injury?`🩹 ${escapeHtml(pm.injury.type)} · ${pm.injury.days} days`:pm.suspensionMatches?`🟥 Suspended · ${pm.suspensionMatches} match${Number(pm.suspensionMatches)===1?"":"es"}`:`✅ Available`}</h2>${pm.suspensionMatches?`<div class="notice" style="margin-bottom:10px"><strong>Reason:</strong> ${escapeHtml(pm.suspension?.reason||"Disciplinary suspension")}<br><span class="muted">${escapeHtml(pm.suspension?.detail||"")}</span></div>`:""}<p><strong>Discipline:</strong> ${Number(pm.discipline?.seasonYellowCards||0)} yellow${Number(pm.discipline?.seasonYellowCards||0)===1?"":"s"} this season · ${Number(pm.discipline?.careerRedCards||0)} career red${Number(pm.discipline?.careerRedCards||0)===1?"":"s"}</p><p><strong>International:</strong> ${escapeHtml(pm.international.status)}</p><p><strong>Pressure:</strong> ${Math.round(pm.pressure)}/100</p><p><strong>Agent plan:</strong> ${escapeHtml(pm.agentIntent)}</p></article><article class="card"><div class="startup-kicker">CAREER TARGETS</div>${playerModePositionObjectivesHtml(career)}<button class="btn secondary small" id="playerHubAgentBtn" style="margin-top:10px">Agent & Transfers</button></article></div>`;
       $("playerHubCalendarBtn")?.addEventListener("click",()=>switchTab("player-calendar"));$("playerHubAdvanceBtn")?.addEventListener("click",playerModeAdvanceToNextMatch);$("playerHubDevelopmentBtn")?.addEventListener("click",()=>switchTab("player-development"));$("playerHubAgentBtn")?.addEventListener("click",()=>switchTab("player-agent"));bindPlayerMatchButtons(panel);
     }
     function playerModePositionObjectives(career=currentCareerSave()){
@@ -12936,7 +13199,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
           const last=playerModeData(active)?.lastMatchStatus;
           if(last){
             const status=playerModeHistoryStatus(last);
-            showToast(`${status}${last.appeared&&last.rating?` · Rating ${Number(last.rating).toFixed(1)}`:""}`);
+            const pmNow=playerModeData(active);
+            const freshBan=pmNow?.suspension&&pmNow.suspension.issuedDate===last.date
+              ?` · 🟥 Suspended: ${pmNow.suspension.reason}`
+              :"";
+            showToast(`${status}${last.appeared&&last.rating?` · Rating ${Number(last.rating).toFixed(1)}`:""}${freshBan}`);
           }
           playerModeAdvanceBackgroundWorld(active,compId);
           saveData("");
@@ -21951,7 +22218,15 @@ body.player-calendar-advancing #playerNextMatchBtn{
         deferWorldCupFinalization:true
       });
       if(isPlayerMode(currentCareerSave())){
-        playerModeAdvanceBackgroundWorld(currentCareerSave(),state.compId);
+        const playerCareerNow=currentCareerSave();
+        const pmNow=playerModeData(playerCareerNow);
+        const last=pmNow?.lastMatchStatus;
+        if(pmNow?.suspension&&last&&pmNow.suspension.issuedDate===last.date){
+          addLiveMatchFeed("FT",`🟥 DISCIPLINARY REPORT — ${pmNow.suspension.reason}. ${pmNow.suspension.detail||""}`,"major");
+        }else if(last?.disciplineEvent?.type==="yellow"){
+          addLiveMatchFeed("FT","🟨 DISCIPLINARY REPORT — Yellow card recorded.","major");
+        }
+        playerModeAdvanceBackgroundWorld(playerCareerNow,state.compId);
         saveData("");
       }
 
