@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V61.6";
+  content:"V61.8";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V61.6" !important;
+  content:"V61.8" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7973,6 +7973,410 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
   accent-color:#dc2626;
 }
 
+
+
+/* =========================================================
+   V61.7 — PLAYER MODE PURPLE THEME
+   Purple applies only to Player Career presentation.
+   Competition cards / competition-specific colors stay untouched.
+   ========================================================= */
+body.player-mode{
+  --player-purple:#6848e8;
+  --player-purple-bright:#7c5cff;
+  --player-purple-soft:#8b6cff;
+  --player-purple-dark:#2d1a63;
+  --player-purple-deep:#17102f;
+  --player-purple-panel:#20164a;
+}
+
+/* Player Career shell */
+body.player-mode .app-nav{
+  background:
+    linear-gradient(180deg,#120d28 0%,#1b123d 50%,#261650 100%) !important;
+}
+body.player-mode .topbar{
+  background:
+    linear-gradient(90deg,#120d28 0%,#24154f 55%,#321b68 100%) !important;
+  border-color:rgba(139,92,246,.22);
+}
+body.player-mode .app{
+  background:
+    radial-gradient(circle at 16% 0%,rgba(104,72,232,.13),transparent 28%),
+    linear-gradient(180deg,#081225 0%,#0c1226 100%);
+}
+
+/* Player-only sidebar buttons */
+body.player-mode .app-nav .tab.player-only{
+  border-color:transparent;
+}
+body.player-mode .app-nav .tab.player-only:hover{
+  background:rgba(104,72,232,.13) !important;
+  border-color:rgba(139,92,246,.18) !important;
+}
+body.player-mode .app-nav .tab.player-only.active{
+  background:linear-gradient(90deg,#5d3fe2,#7654f2) !important;
+  border-color:#9277ff !important;
+  box-shadow:0 9px 22px rgba(104,72,232,.25);
+}
+
+/* Player pages only — leave World/Teams/Competitions/Records UI alone */
+body.player-mode #tab-player-hub .btn:not(.danger):not(.success),
+body.player-mode #tab-player-calendar .btn:not(.danger):not(.success),
+body.player-mode #tab-player-development .btn:not(.danger):not(.success),
+body.player-mode #tab-player-stats .btn:not(.danger):not(.success),
+body.player-mode #tab-player-club .btn:not(.danger):not(.success),
+body.player-mode #tab-player-agent .btn:not(.danger):not(.success),
+body.player-mode #tab-player-contract .btn:not(.danger):not(.success),
+body.player-mode #tab-player-awards .btn:not(.danger):not(.success),
+body.player-mode #tab-player-history .btn:not(.danger):not(.success),
+body.player-mode #tab-player-world .btn:not(.danger):not(.success){
+  background:linear-gradient(180deg,#7654f2,#5d3fe2) !important;
+  border-color:#8d72ff !important;
+  color:#fff !important;
+}
+body.player-mode #tab-player-hub .btn.secondary,
+body.player-mode #tab-player-calendar .btn.secondary,
+body.player-mode #tab-player-development .btn.secondary,
+body.player-mode #tab-player-stats .btn.secondary,
+body.player-mode #tab-player-club .btn.secondary,
+body.player-mode #tab-player-agent .btn.secondary,
+body.player-mode #tab-player-contract .btn.secondary,
+body.player-mode #tab-player-awards .btn.secondary,
+body.player-mode #tab-player-history .btn.secondary,
+body.player-mode #tab-player-world .btn.secondary{
+  background:rgba(104,72,232,.14) !important;
+  border-color:rgba(139,92,246,.35) !important;
+}
+
+/* Player-specific surfaces */
+body.player-mode .player-hero{
+  border-color:rgba(139,92,246,.35) !important;
+  background:
+    radial-gradient(circle at 92% 8%,rgba(124,58,237,.34),transparent 31%),
+    linear-gradient(135deg,#11152f 0%,#1f1746 58%,#321b68 100%) !important;
+}
+body.player-mode .player-ovr-orb{
+  background:linear-gradient(145deg,#8b5cf6,#6045e5) !important;
+  box-shadow:0 16px 36px rgba(104,72,232,.32) !important;
+}
+body.player-mode .player-bar>span{
+  background:linear-gradient(90deg,#6246e8,#a078ff) !important;
+}
+body.player-mode .player-role-pill{
+  background:rgba(104,72,232,.16) !important;
+  border-color:rgba(139,92,246,.42) !important;
+}
+body.player-mode .player-real-choice:hover,
+body.player-mode .player-real-choice.selected{
+  border-color:#8b6cff !important;
+  background:rgba(104,72,232,.13) !important;
+}
+body.player-mode .player-real-choice.selected{
+  box-shadow:0 0 0 2px rgba(104,72,232,.24) !important;
+}
+body.player-mode .player-day.today{
+  border-color:#8b6cff !important;
+  box-shadow:0 0 0 1px rgba(104,72,232,.3) !important;
+}
+/* Match days keep their competition identity tag/content; only the neutral tile gets purple tint. */
+body.player-mode .player-day.has-match{
+  background:linear-gradient(160deg,rgba(104,72,232,.17),rgba(61,35,122,.09)) !important;
+}
+body.player-mode .player-attribute-row button{
+  border-color:rgba(139,92,246,.42) !important;
+  background:rgba(104,72,232,.16) !important;
+}
+body.player-mode .player-rating:not(.elite):not(.bad){
+  background:rgba(104,72,232,.17) !important;
+  border-color:rgba(139,92,246,.32) !important;
+}
+
+/* Player dialogs / ceremonies */
+body.player-mode .player-mode-dialog,
+body.player-mode .player-match-dialog{
+  border-color:rgba(139,92,246,.28);
+}
+body.player-mode .player-ceremony-dialog{
+  border-color:rgba(139,92,246,.45) !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(124,58,237,.34),transparent 40%),
+    #100d24 !important;
+}
+body.player-mode .player-ceremony-big{
+  background:linear-gradient(90deg,#8b6cff,#c084fc,#fbbf24) !important;
+  -webkit-background-clip:text !important;
+  color:transparent !important;
+}
+
+/* Purple focus/accent only inside Player Career forms */
+body.player-mode #tab-player-hub input:focus,
+body.player-mode #tab-player-calendar input:focus,
+body.player-mode #tab-player-development input:focus,
+body.player-mode #tab-player-agent input:focus,
+body.player-mode #tab-player-contract input:focus,
+body.player-mode .player-mode-dialog input:focus,
+body.player-mode .player-mode-dialog select:focus{
+  border-color:#8b6cff !important;
+  box-shadow:0 0 0 3px rgba(104,72,232,.16) !important;
+}
+
+/* Do NOT recolor competition-specific surfaces */
+body.player-mode #tab-competitions .competition-card,
+body.player-mode #tab-competitions .competition-detail,
+body.player-mode #tab-competitions [data-competition-id],
+body.player-mode #tab-competitions .competition-badge,
+body.player-mode #tab-competitions .stage{
+  /* Intentionally inherits each competition's own colors */
+}
+
+
+
+/* =========================================================
+   V61.8 — PLAYER MODE FULL PURPLE + COMPETITION BACKGROUND FIX
+   ========================================================= */
+
+/* Every neutral blue layer becomes an equivalent purple layer in Player Mode.
+   Competition-specific and World Cup themes override this block. */
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme){
+  --bg:#0e081c;
+  --bg-2:#160b2c;
+  --panel:rgba(24,13,46,.96);
+  --panel-2:rgba(34,18,65,.97);
+  --panel-3:rgba(48,25,88,.96);
+  --text:#fbf9ff;
+  --muted:#b9a9d8;
+  --accent:#8b6cff;
+  --accent-2:#6848e8;
+  --accent-soft:rgba(139,108,255,.16);
+  --success:#7c5cff;
+  --success-dark:#5b37d7;
+  --border:rgba(161,132,255,.19);
+  --border-strong:rgba(174,147,255,.34);
+  --line:rgba(152,121,255,.25);
+  background:
+    radial-gradient(circle at 15% 8%,rgba(109,65,232,.22),transparent 30%),
+    radial-gradient(circle at 86% 4%,rgba(130,77,255,.16),transparent 27%),
+    linear-gradient(180deg,#0c0719 0%,#160b2c 48%,#0d071c 100%) !important;
+  background-attachment:fixed !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .app{
+  background:
+    radial-gradient(circle at 17% 0%,rgba(124,92,255,.09),transparent 29%),
+    linear-gradient(180deg,rgba(17,9,34,.34),rgba(14,7,29,.20)) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) #appScreen .topbar{
+  background:linear-gradient(90deg,#1b1038 0%,#2c185d 56%,#3a2075 100%) !important;
+  border-color:rgba(151,119,255,.28) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .app-nav{
+  background:linear-gradient(180deg,#160d2d 0%,#211040 54%,#2b1552 100%) !important;
+  border-color:rgba(151,119,255,.22) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .app-nav .tab:hover{
+  color:#fff !important;
+  background:rgba(139,108,255,.10) !important;
+  border-color:rgba(139,108,255,.16) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .app-nav .tab.active{
+  color:#fff !important;
+  background:linear-gradient(90deg,#6743e4,#8a5df4) !important;
+  border-color:#9a7bff !important;
+  box-shadow:inset 3px 0 0 #c1afff,0 9px 22px rgba(83,45,190,.24) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-summary-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-record,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-player-row,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-market-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-inbox-item,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-transfer-summary,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .team-row,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .world-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .stage,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .result-row,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .archive-season-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .hall-entry,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .history-point-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .team-history-button,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .table-wrap,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .strength-chart-wrap{
+  background:
+    linear-gradient(180deg,rgba(164,130,255,.025),transparent 46%),
+    rgba(26,14,49,.96) !important;
+  border-color:rgba(150,119,246,.18) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .manager-summary-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-kpi,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-attribute-card,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-road-gate,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-history-row,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-match-row,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-interest-row,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-teammate,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-next-match{
+  background:rgba(47,25,87,.56) !important;
+  border-color:rgba(155,124,255,.17) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-real-face,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-profile-face{
+  background:#241448 !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-custom-photo-preview{
+  background:#21113f !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-day-event{
+  background:rgba(39,20,75,.88);
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-day.has-match{
+  background:linear-gradient(160deg,rgba(139,92,246,.23),rgba(77,39,153,.16)) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) .player-rating:not(.elite):not(.bad){
+  background:rgba(124,92,255,.18) !important;
+  border-color:rgba(151,119,255,.32) !important;
+}
+
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) input,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) select,
+body.player-mode:not(.competition-custom-theme):not(.world-cup-theme) textarea{
+  background:rgba(31,16,59,.96) !important;
+  border-color:rgba(151,119,255,.20) !important;
+}
+
+/* When a competition is opened, its selected color owns the WHOLE page.
+   This fixes the dark-blue gap/background that was left behind in Player Mode. */
+body.player-mode.competition-custom-theme:not(.world-cup-theme) .app{
+  background:
+    radial-gradient(circle at 14% 6%,rgba(var(--competition-rgb),.24),transparent 30%),
+    radial-gradient(circle at 88% 0%,rgba(var(--competition-rgb),.16),transparent 27%),
+    linear-gradient(
+      180deg,
+      rgb(var(--competition-deep-rgb)) 0%,
+      rgb(var(--competition-page-rgb)) 48%,
+      rgb(var(--competition-deep-rgb)) 100%
+    ) !important;
+}
+
+body.player-mode.competition-custom-theme:not(.world-cup-theme) .app-content{
+  background:
+    linear-gradient(180deg,rgba(var(--competition-rgb),.045),transparent 34%),
+    rgba(var(--competition-deep-rgb),.18) !important;
+  border-radius:16px;
+}
+
+body.player-mode.competition-custom-theme:not(.world-cup-theme) .page-shell{
+  background:transparent !important;
+}
+
+/* Calendar day-by-day travel */
+@keyframes playerCalendarStep{
+  0%{transform:scale(.90);box-shadow:0 0 0 0 rgba(164,126,255,0)}
+  55%{transform:scale(1.055);box-shadow:0 0 0 6px rgba(164,126,255,.12)}
+  100%{transform:scale(1);box-shadow:0 0 0 1px rgba(164,126,255,.32)}
+}
+body.player-calendar-advancing .player-day.today{
+  animation:playerCalendarStep .20s ease both;
+  z-index:2;
+}
+body.player-calendar-advancing #playerNextMatchBtn{
+  pointer-events:none;
+  opacity:.75;
+}
+
+/* Signing presentation */
+.player-signing-paper{
+  position:relative;
+  max-width:460px;
+  margin:18px auto;
+  padding:24px 26px 30px;
+  color:#251735;
+  background:#f8f4ff;
+  border:1px solid #d8caff;
+  border-radius:8px;
+  box-shadow:0 24px 60px rgba(0,0,0,.34);
+  transform:translateY(24px) rotate(-1.5deg);
+  opacity:0;
+  animation:playerPaperRise .55s cubic-bezier(.2,.8,.2,1) forwards;
+  overflow:hidden;
+}
+.player-signing-paper::before{
+  content:"PLAYER CONTRACT";
+  display:block;
+  letter-spacing:.16em;
+  font-size:10px;
+  font-weight:1000;
+  color:#7654c4;
+  margin-bottom:18px;
+}
+.player-signing-line{
+  height:1px;
+  background:#baa9df;
+  margin:20px 0 7px;
+}
+.player-signature{
+  display:inline-block;
+  max-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  font-family:"Brush Script MT","Segoe Script",cursive;
+  font-size:34px;
+  line-height:1.15;
+  color:#4b2d91;
+  transform:rotate(-4deg);
+  animation:playerWriteSignature 1.05s .48s ease forwards;
+}
+.player-official-stamp{
+  position:absolute;
+  right:20px;
+  bottom:18px;
+  padding:6px 10px;
+  border:3px solid #7447d7;
+  border-radius:6px;
+  color:#7447d7;
+  font-size:17px;
+  font-weight:1000;
+  letter-spacing:.1em;
+  transform:rotate(-9deg) scale(1.8);
+  opacity:0;
+  animation:playerStamp .28s 1.48s cubic-bezier(.2,.9,.3,1.4) forwards;
+}
+@keyframes playerPaperRise{to{opacity:1;transform:translateY(0) rotate(-1deg)}}
+@keyframes playerWriteSignature{to{max-width:100%}}
+@keyframes playerStamp{to{opacity:.88;transform:rotate(-9deg) scale(1)}}
+
+.player-transfer-steps{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:12px 0;
+}
+.player-transfer-step{
+  padding:9px 10px;
+  border-radius:11px;
+  border:1px solid rgba(151,119,255,.20);
+  background:rgba(124,92,255,.08);
+  text-align:center;
+  font-size:11px;
+  font-weight:850;
+}
+.player-transfer-step.done{
+  border-color:rgba(34,197,94,.30);
+  background:rgba(34,197,94,.08);
+  color:#a7f3d0;
+}
+@media(max-width:700px){.player-transfer-steps{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -7995,7 +8399,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.6</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.8</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -8064,7 +8468,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V61.6</p>
+          <p id="saveStatus">V61.8</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -11001,8 +11405,12 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
         captaincy:"None",
         setPieceDuty:"None",
         agentIntent:"Stay and develop",
+        agentStatus:"Your agent is keeping transfer talks quiet while you develop at your current club.",
         transferInterest:[],
         pendingOffer:null,
+        transferSystemVersion:"v61.8",
+        playingTimePromiseMatches:0,
+        lastAgentCheckDate:"",
         loan:null,
         injury:null,
         suspensionMatches:0,
@@ -11043,6 +11451,17 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       pm.stats=pm.stats||{appearances:0,starts:0,subApps:0,goals:0,assists:0,motm:0,cleanSheets:0,tackles:0,saves:0,ratingTotal:0,ratedMatches:0};
       pm.seasonStats=pm.seasonStats||{};pm.matchHistory=Array.isArray(pm.matchHistory)?pm.matchHistory:[];pm.milestones=Array.isArray(pm.milestones)?pm.milestones:[];pm.trophyCabinet=Array.isArray(pm.trophyCabinet)?pm.trophyCabinet:[];pm.awards=Array.isArray(pm.awards)?pm.awards:[];pm.careerTimeline=Array.isArray(pm.careerTimeline)?pm.careerTimeline:[];pm.monthlyReviews=Array.isArray(pm.monthlyReviews)?pm.monthlyReviews:[];pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];pm.rivals=pm.rivals||{};pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];pm.calendarAssignments=pm.calendarAssignments||{};pm.trainingDates=Array.isArray(pm.trainingDates)?pm.trainingDates:[];pm.international=pm.international||{status:"Not called up",appearances:0,goals:0,captain:false};
       pm.currentDate=pm.currentDate||`${SEASON_START_YEAR+Number(career.worldSeason||1)-1}-08-01`;pm.calendarView=pm.calendarView||pm.currentDate.slice(0,7);pm.roadCap=Number(pm.roadCap||playerModeStartingRoadCap(player.overall));pm.skillMoves=Number(pm.skillMoves||positionSkillBase(player.position));pm.weakFoot=Number(pm.weakFoot||3);pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,playerModeClub(career)?.strength||70);pm.setPieceDuty=pm.setPieceDuty||"None";
+      pm.agentIntent=pm.agentIntent||"Stay and develop";
+      pm.agentStatus=pm.agentStatus||"Your agent is following your current career instruction.";
+      pm.playingTimePromiseMatches=Number(pm.playingTimePromiseMatches||0);
+      pm.lastAgentCheckDate=pm.lastAgentCheckDate||"";
+      if(pm.transferSystemVersion!=="v61.8"){
+        // Expire old one-click offers created by the previous unrealistic system.
+        pm.pendingOffer=null;
+        pm.transferInterest=[];
+        pm.transferSystemVersion="v61.8";
+        pm.agentStatus="Transfer market upgraded: clubs now evaluate you before any deal reaches personal terms.";
+      }
       playerModeSyncControlledClub(career);
       player.overall=playerModeCalculateOverallFromAttributes(player.position,pm.attributes);
       player.potential=Math.max(Number(player.potential||player.overall),99);
@@ -11423,30 +11842,147 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       const pm=playerModeData(career);if(!pm)return null;
       return playerModeUpcomingFixtures(career).find(row=>String(row.date)>=String(pm.currentDate))||playerModeUpcomingFixtures(career)[0]||null;
     }
-    function playerModeAdvanceDays(days){
-      const career=currentCareerSave(),pm=playerModeData(career);if(!pm||pm.retired)return;
-      const oldMonth=String(pm.currentDate).slice(0,7),nextFixture=playerModeNextFixture(career);
-      let target=playerModeAddDays(pm.currentDate,days);
-      if(nextFixture&&nextFixture.date>pm.currentDate&&target>nextFixture.date)target=nextFixture.date;
-      const elapsed=Math.max(0,Math.round((playerModeDate(target)-playerModeDate(pm.currentDate))/86400000));
-      pm.currentDate=target;pm.calendarView=target.slice(0,7);
-      pm.fitness=clamp(Number(pm.fitness||0)+elapsed*2,0,100);
-      if(pm.injury){pm.injury.days=Math.max(0,Number(pm.injury.days||0)-elapsed);if(pm.injury.days<=0){pm.injury=null;playerModeMilestone(career,"return-injury","Returned from injury.")}}
-      if(oldMonth!==target.slice(0,7))playerModeCreateMonthlyReview(career,oldMonth);
-      saveData("Player calendar advanced");renderPlayerCalendar();renderPlayerHub();
+    function playerModeCalendarHasMatchOnDate(career,date){
+      return playerModeUpcomingFixtures(career).some(row=>row.date===date);
     }
-    function playerModeAdvanceToNextMatch(){
-      const career=currentCareerSave(),pm=playerModeData(career),next=playerModeNextFixture(career);if(!pm)return;
+
+    function playerModeProcessCalendarDate(career,targetDate){
+      const pm=playerModeData(career);
+      if(!pm)return [];
+
+      const updates=[];
+      const previousDate=pm.currentDate;
+      const oldMonth=String(previousDate).slice(0,7);
+      const newMonth=String(targetDate).slice(0,7);
+
+      pm.currentDate=targetDate;
+      pm.calendarView=newMonth;
+      pm.fitness=clamp(Number(pm.fitness||0)+2,0,100);
+
+      if(pm.injury){
+        pm.injury.days=Math.max(0,Number(pm.injury.days||0)-1);
+        if(pm.injury.days<=0){
+          const injuryName=pm.injury.type||"injury";
+          pm.injury=null;
+          playerModeMilestone(career,"return-injury-"+targetDate,`Returned from ${injuryName.toLowerCase()}.`);
+          updates.push({type:"fitness",text:"You have been cleared to return from injury."});
+        }
+      }
+
+      if(oldMonth!==newMonth){
+        const before=pm.monthlyReviews.length;
+        playerModeCreateMonthlyReview(career,oldMonth);
+        if(pm.monthlyReviews.length>before){
+          const review=pm.monthlyReviews[0];
+          updates.push({
+            type:"monthly",
+            text:`Monthly review: ${review.matches} apps · ${review.goals} goals · ${review.assists} assists${review.reward?` · +${review.reward} Development Point`:""}.`
+          });
+        }
+      }
+
+      const d=playerModeDate(targetDate);
+      const agentDay=d.getDate()===15 && !playerModeCalendarHasMatchOnDate(career,targetDate);
+
+      if(agentDay && pm.lastAgentCheckDate!==targetDate){
+        pm.lastAgentCheckDate=targetDate;
+        playerModeRefreshTransferInterest(career,true);
+
+        if(pm.agentIntent==="Stay and develop"){
+          pm.managerTrust=clamp(Number(pm.managerTrust||0)+1,0,100);
+          pm.agentStatus="Agent check-in complete: no clubs were contacted. Focus remains on development and your current team.";
+        }else{
+          pm.agentStatus=`Agent check-in complete: ${pm.transferInterest.length} realistic club${pm.transferInterest.length===1?" is":"s are"} currently on your radar.`;
+        }
+
+        updates.push({type:"agent",text:pm.agentStatus});
+      }
+
+      return updates;
+    }
+
+    function playerModeCalendarDelay(ms){
+      return new Promise(resolve=>setTimeout(resolve,ms));
+    }
+
+    function playerModeAdvanceDays(days){
+      const career=currentCareerSave(),pm=playerModeData(career);
+      if(!pm||pm.retired||pm.calendarAnimating)return;
+
+      const nextFixture=playerModeNextFixture(career);
+      let total=Math.max(0,Math.round(Number(days||0)));
+
+      while(total>0){
+        const tomorrow=playerModeAddDays(pm.currentDate,1);
+        if(nextFixture && tomorrow>nextFixture.date)break;
+        playerModeProcessCalendarDate(career,tomorrow);
+        total--;
+        if(nextFixture && tomorrow===nextFixture.date)break;
+      }
+
+      saveData("Player calendar advanced");
+      renderPlayerCalendar();
+      renderPlayerHub();
+    }
+    async function playerModeAdvanceToNextMatch(){
+      const career=currentCareerSave(),pm=playerModeData(career);
+      if(!pm||pm.retired||pm.calendarAnimating)return;
+
+      let next=playerModeNextFixture(career);
+
       if(!next){
         if(playerModeSeasonReadyForNext(career))return startGlobalNextSeason();
         return showToast("No upcoming match is currently scheduled.",true);
       }
-      const oldMonth=String(pm.currentDate).slice(0,7);
-      const elapsed=Math.max(0,Math.round((playerModeDate(next.date)-playerModeDate(pm.currentDate))/86400000));
-      pm.currentDate=next.date;pm.calendarView=next.date.slice(0,7);pm.fitness=clamp(Number(pm.fitness||0)+elapsed*2,0,100);
-      if(pm.injury){pm.injury.days=Math.max(0,Number(pm.injury.days||0)-elapsed);if(pm.injury.days<=0)pm.injury=null}
-      if(oldMonth!==next.date.slice(0,7))playerModeCreateMonthlyReview(career,oldMonth);
-      saveData("");renderPlayerCalendar();playerModeOpenMatch(next.comp.id,next.key,next.date);
+
+      // If it is already match day, this button becomes Play Match.
+      if(next.date===pm.currentDate){
+        return playerModeOpenMatch(next.comp.id,next.key,next.date);
+      }
+
+      // Always show the calendar while time moves instead of teleporting.
+      switchTab("player-calendar");
+      pm.calendarAnimating=true;
+      document.body.classList.add("player-calendar-advancing");
+      renderPlayerCalendar();
+
+      let interrupted=null;
+      let safety=0;
+
+      while(pm.currentDate<next.date && safety<400){
+        const tomorrow=playerModeAddDays(pm.currentDate,1);
+        const updates=playerModeProcessCalendarDate(career,tomorrow);
+
+        renderPlayerCalendar();
+        await playerModeCalendarDelay(115);
+
+        // Re-read the next fixture because a calendar/world update can alter it.
+        next=playerModeNextFixture(career)||next;
+
+        if(pm.currentDate===next.date)break;
+
+        if(updates.length){
+          interrupted=updates[0];
+          break;
+        }
+
+        safety++;
+      }
+
+      pm.calendarAnimating=false;
+      document.body.classList.remove("player-calendar-advancing");
+      saveData("");
+      renderPlayerCalendar();
+      renderPlayerHub();
+
+      if(interrupted){
+        showToast(interrupted.text);
+        return;
+      }
+
+      if(next && pm.currentDate===next.date){
+        showToast("Match day reached — press Play Match.");
+      }
     }
     function playerModeCreateMonthlyReview(career,month){
       const pm=playerModeData(career);if(!pm||pm.monthlyReviews.some(r=>r.month===month))return;
@@ -11474,7 +12010,10 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       if(Number(pm.suspensionMatches||0)>0){player.isStarter=false;pm.matchSelection="suspended";managerRecalculateTeam(club);return pm.matchSelection}
       pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,club.strength);
       playerModeUpdateSetPieceDuty(career);
-      const base={"Star Player":.97,"Important Player":.90,"Starter":.77,"Rotation":.48,"Prospect":.28}[pm.squadRole]||.5;
+      let base={"Star Player":.97,"Important Player":.90,"Starter":.77,"Rotation":.48,"Prospect":.28}[pm.squadRole]||.5;
+      if(Number(pm.playingTimePromiseMatches||0)>0){
+        base+=.12;
+      }
       const chance=clamp(base+(Number(pm.fitness||70)-65)/180+(Number(pm.sharpness||60)-60)/240,0.08,.99);
       const start=force?Number(pm.fitness||100)>=35:Math.random()<chance&&Number(pm.fitness||100)>=38;
       player.isStarter=start;
@@ -11533,6 +12072,9 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       pm.matchHistory=pm.matchHistory.slice(0,250);
       if(pm.pendingMatchDate){pm.currentDate=playerModeAddDays(pm.pendingMatchDate,1);pm.calendarView=pm.currentDate.slice(0,7);pm.pendingMatchDate=null}
       playerModeUpdateRivalry(career,opponentId,comp,won);playerModeCheckMilestones(career);playerModeCheckRoadUnlocks(career);playerModeUpdateInternational(career);playerModeRefreshTransferInterest(career,false);
+      if(Number(pm.playingTimePromiseMatches||0)>0){
+        pm.playingTimePromiseMatches=Math.max(0,Number(pm.playingTimePromiseMatches)-1);
+      }
       pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,club.strength);pm.captaincy=pm.stats.appearances>=100&&pm.managerTrust>=88&&pm.reputation>=75?"Captain":pm.stats.appearances>=60&&pm.managerTrust>=78?"Vice-Captain":"None";
       if(rating>=8.5)pm.mediaNotes.unshift({date,text:`Headlines praise ${player.name} after a ${rating.toFixed(1)} performance against ${teamName(opponentId)}.`});
       else if(appeared&&rating<5.8)pm.mediaNotes.unshift({date,text:`Pressure rises after a ${rating.toFixed(1)} rating against ${teamName(opponentId)}.`});
@@ -11595,30 +12137,469 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career);if(!pm||!player)return;if(pm.trainingDates.includes(pm.currentDate))return showToast("You already trained today.",true);if(pm.fitness<28)return showToast("Fitness is too low. Take a recovery day.",true);pm.trainingDates.push(pm.currentDate);pm.fitness=clamp(pm.fitness-7,0,100);pm.sharpness=clamp(pm.sharpness+9,0,100);pm.developmentPoints+=1;pm.managerTrust=clamp(pm.managerTrust+1,0,100);const group=PLAYER_MODE_ATTRIBUTE_GROUPS[focus]||[];if(group.length&&Math.random()<.28){const key=group[Math.floor(Math.random()*group.length)];pm.attributes[key]=Math.min(99,Number(pm.attributes[key]||50)+1);player.overall=Math.min(pm.roadCap,playerModeCalculateOverallFromAttributes(player.position,pm.attributes))}saveData(`${focus} training complete`);showToast(`${focus} session complete · +1 Development Point`);renderPlayerDevelopment();renderPlayerCalendar();
     }
 
+    function playerModeDomesticLeagueForClub(career,clubId){
+      return (career.competitions||[]).find(comp=>
+        comp.category==="league" &&
+        !isWorldCupCompetition(comp) &&
+        (comp.teamIds||comp.originalTeamIds||[]).includes(clubId)
+      )||null;
+    }
+
+    function playerModeProjectedRole(player,team){
+      if(!player||!team)return "Unknown";
+      const gap=Number(player.overall||0)-Number(team.strength||70);
+
+      if(gap>=3)return "Important Player";
+      if(gap>=-2)return "Starter";
+      if(gap>=-6)return "Rotation";
+      if(Number(player.age||25)<=21 && gap>=-10)return "Prospect";
+      return "Long-term project";
+    }
+
+    function playerModeStableClubNoise(clubId,season=1){
+      const text=`${clubId}:${season}`;
+      let hash=2166136261;
+      for(let i=0;i<text.length;i++){
+        hash^=text.charCodeAt(i);
+        hash=Math.imul(hash,16777619);
+      }
+      return ((hash>>>0)%1000)/1000;
+    }
+
+    function playerModeClubInterestScore(career,team){
+      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      if(!pm||!player||!team||team.id===current?.id)return 0;
+
+      const teamOvr=Number(team.strength||70);
+      const playerOvr=Number(player.overall||0);
+      const clubRep=managerClubReputation(career,team);
+      const playerRep=Number(pm.reputation||30);
+      const season=playerModeSeasonStats(career);
+      const avg=playerModeAverageRating(season);
+      const formBonus=avg>=8?7:avg>=7.4?4:avg>=6.9?1:avg&&avg<6.2?-6:0;
+      const potentialBonus=Number(player.age||25)<=21&&Number(player.potential||0)>=86?4:0;
+      const qualityGap=playerOvr-teamOvr;
+      const repGap=playerRep-clubRep;
+
+      let score=60 + qualityGap*4.3 + repGap*.72 + formBonus + potentialBonus;
+
+      // Elite clubs do not chase clearly under-level players just because the
+      // user clicked a button. They may notice a prospect, but not offer.
+      if(qualityGap<=-14)score=Math.min(score,20);
+      else if(qualityGap<=-11)score=Math.min(score,34);
+      else if(qualityGap<=-8)score=Math.min(score,49);
+
+      if(teamOvr>=82 && playerOvr<73)score=Math.min(score,24);
+      if(teamOvr>=86 && playerOvr<77)score=Math.min(score,20);
+
+      const currentLeague=playerModeDomesticLeagueForClub(career,current?.id);
+      const targetLeague=playerModeDomesticLeagueForClub(career,team);
+
+      if(pm.agentIntent==="Find a bigger club"){
+        const biggerGap=teamOvr-Number(current?.strength||playerOvr);
+        if(biggerGap<2)score-=22;
+        else if(biggerGap<=8)score+=8;
+        else score-=Math.max(0,(biggerGap-8)*3);
+      }else if(pm.agentIntent==="I need more playing time"){
+        const role=playerModeProjectedRole(player,team);
+        if(["Starter","Important Player"].includes(role))score+=14;
+        else if(role==="Rotation")score+=4;
+        else score-=18;
+      }else if(pm.agentIntent==="Try another league"){
+        if(currentLeague&&targetLeague&&currentLeague.id===targetLeague.id)score-=35;
+        else score+=10;
+      }else if(pm.agentIntent==="Stay and develop"){
+        score-=40;
+      }
+
+      score+=(playerModeStableClubNoise(team.id,career.worldSeason||1)-.5)*7;
+
+      return clamp(Math.round(score),0,98);
+    }
+
+    function playerModeAgentIntentDescription(career=currentCareerSave()){
+      const pm=playerModeData(career);
+      if(!pm)return "";
+      if(pm.agentIntent==="Stay and develop")return "Your agent will not shop you around. Training and manager trust are the priority.";
+      if(pm.agentIntent==="Find a bigger club")return "Your agent targets stronger clubs, but only clubs where your current level makes a move realistic.";
+      if(pm.agentIntent==="I need more playing time")return "Your agent targets clubs where you project as a Starter or Important Player. Young players are also considered for loans.";
+      return "Your agent prioritizes realistic clubs outside your current domestic league.";
+    }
+
+    function playerModeTransferAgreement(career,target,interest,loan=false){
+      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      if(!pm||!player||!target)return {ok:false,reason:"Transfer data is unavailable."};
+
+      const targetRole=playerModeProjectedRole(player,target);
+      const targetThreshold=loan?44:58;
+
+      if(interest<targetThreshold){
+        return {
+          ok:false,
+          side:"target",
+          reason:`${target.name} likes the profile, but their sporting department is not ready to make a ${loan?"loan":"transfer"} offer yet.`
+        };
+      }
+
+      const targetFin=career.manager?.clubFinances?.[target.id];
+      const expectedValue=Number(player.marketValue||managerPlayerValue(player));
+      const fee=loan?0:Math.round(expectedValue*(.90+interest/260)/1_000_000)*1_000_000;
+
+      if(!loan && targetFin && Number(targetFin.budget||0)<fee){
+        return {
+          ok:false,
+          side:"target",
+          reason:`${target.name} cannot fund the club-to-club fee required for this move.`
+        };
+      }
+
+      if(current){
+        if(loan){
+          const loanApproved=
+            Number(player.age||25)<=23 ||
+            pm.agentIntent==="I need more playing time" ||
+            !["Star Player","Important Player"].includes(pm.squadRole);
+
+          if(!loanApproved){
+            return {
+              ok:false,
+              side:"current",
+              reason:`${current.name} rejected the loan because you are too important to the first team right now.`
+            };
+          }
+        }else{
+          const contractYears=Number(player.contractYears||1);
+          const rolePremium=pm.squadRole==="Star Player"?.16:pm.squadRole==="Important Player"?.09:0;
+          const asking=expectedValue*(1.00+Math.min(.18,contractYears*.035)+rolePremium);
+          const wantsMove=pm.agentIntent!=="Stay and develop";
+
+          if(fee<asking && !(wantsMove && fee>=asking*.91)){
+            return {
+              ok:false,
+              side:"current",
+              reason:`${current.name} rejected ${target.name}'s ${money(fee)} approach. They value you at about ${money(Math.round(asking/1_000_000)*1_000_000)}.`
+            };
+          }
+        }
+      }
+
+      const contractYears=loan?1:(interest>=82?5:4);
+      const wage=Math.round(
+        managerExpectedWage(player)*
+        (1.02+Math.max(0,Number(target.strength||70)-Number(current?.strength||70))/80+interest/650)
+        /5000
+      )*5000;
+
+      return {
+        ok:true,
+        fee,
+        wage,
+        contractYears,
+        targetRole,
+        currentApproved:true,
+        targetApproved:true
+      };
+    }
+
     function playerModeRefreshTransferInterest(career=currentCareerSave(),force=false){
       if(!isPlayerMode(career))return;
-      const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!pm||!player)return;
-      if(!force&&Math.random()>.28)return;
-      const desiredRep=Math.max(35,pm.reputation+6+(pm.agentIntent.includes("bigger")?8:0));
-      const options=(career.teams||[]).filter(t=>t.id!==club?.id).map(team=>{const rep=managerClubReputation(career,team),fit=100-Math.abs(rep-desiredRep)*1.5+Math.max(0,player.overall-team.strength)*2+Math.random()*20;return {clubId:team.id,interest:clamp(Math.round(fit),18,98)}}).sort((a,b)=>b.interest-a.interest).slice(0,4);
-      pm.transferInterest=options;
-      if(managerWindowOpen(career)&&options[0]?.interest>=78&&Math.random()<.22){pm.pendingOffer={clubId:options[0].clubId,loan:false,interest:options[0].interest,fee:Math.round(player.marketValue*(.92+Math.random()*.22)/1e6)*1e6,wage:Math.round(managerExpectedWage(player)*(1.05+Math.random()*.2)/5000)*5000}}
+
+      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      if(!pm||!player)return;
+
+      if(pm.agentIntent==="Stay and develop"){
+        pm.transferInterest=[];
+        pm.agentStatus="No clubs are being contacted. Your agent is protecting your development plan at your current club.";
+        return;
+      }
+
+      const currentLeague=playerModeDomesticLeagueForClub(career,current?.id);
+
+      let rows=(career.teams||[])
+        .filter(team=>team.id!==current?.id)
+        .map(team=>{
+          const interest=playerModeClubInterestScore(career,team);
+          const targetLeague=playerModeDomesticLeagueForClub(career,team);
+          return {
+            clubId:team.id,
+            interest,
+            projectedRole:playerModeProjectedRole(player,team),
+            leagueName:targetLeague?.name||"",
+            differentLeague:!!(currentLeague&&targetLeague&&currentLeague.id!==targetLeague.id)
+          };
+        });
+
+      if(pm.agentIntent==="Find a bigger club"){
+        rows=rows.filter(row=>{
+          const team=managerTeam(row.clubId,career);
+          return Number(team?.strength||0)>Number(current?.strength||0)+1;
+        });
+      }else if(pm.agentIntent==="I need more playing time"){
+        rows=rows.filter(row=>["Starter","Important Player","Rotation"].includes(row.projectedRole));
+      }else if(pm.agentIntent==="Try another league" && currentLeague){
+        rows=rows.filter(row=>row.differentLeague);
+      }
+
+      pm.transferInterest=rows
+        .filter(row=>row.interest>=34)
+        .sort((a,b)=>{
+          if(b.interest!==a.interest)return b.interest-a.interest;
+          const teamA=managerTeam(a.clubId,career),teamB=managerTeam(b.clubId,career);
+          return Number(teamB?.strength||0)-Number(teamA?.strength||0) ||
+            String(teamA?.name||"").localeCompare(String(teamB?.name||""));
+        })
+        .slice(0,6);
+
+      pm.agentStatus=pm.transferInterest.length
+        ?`${pm.transferInterest.length} realistic club${pm.transferInterest.length===1?" is":"s are"} on your agent's current radar.`
+        :"No realistic club matches your instruction right now. Keep performing and developing.";
     }
-    function playerModeSetAgentIntent(intent){const career=currentCareerSave(),pm=playerModeData(career);if(!pm)return;pm.agentIntent=intent;playerModeRefreshTransferInterest(career,true);saveData("Agent instructions updated");renderPlayerAgent()}
+    function playerModeSetAgentIntent(intent){
+      const career=currentCareerSave(),pm=playerModeData(career);
+      if(!pm)return;
+
+      pm.agentIntent=intent;
+
+      if(intent==="Stay and develop"){
+        pm.transferInterest=[];
+        pm.agentStatus="Your agent will not contact clubs. Development, training and manager trust are now the priority.";
+        showToast("Agent plan: stay and develop.");
+      }else if(intent==="I need more playing time"){
+        // This is now a real instruction, not just a list reorder.
+        if(pm.managerTrust>=38){
+          pm.playingTimePromiseMatches=Math.max(Number(pm.playingTimePromiseMatches||0),5);
+          pm.managerTrust=clamp(Number(pm.managerTrust||0)+2,0,100);
+          pm.agentStatus="Your agent spoke with the manager. You have a 5-match opportunity window for extra selection consideration while the agent also looks for better playing-time fits.";
+          showToast("Manager discussion complete — 5-match playing-time opportunity.");
+        }else{
+          pm.agentStatus="The manager would not promise minutes yet. Your agent is looking for clubs where you project to play more.";
+        }
+        playerModeRefreshTransferInterest(career,true);
+      }else{
+        playerModeRefreshTransferInterest(career,true);
+        pm.agentStatus=playerModeAgentIntentDescription(career);
+      }
+
+      saveData("Agent instructions updated");
+      renderPlayerAgent();
+      renderPlayerHub();
+    }
     function playerModeConsiderMove(clubId,loan=false){
-      const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career),club=managerTeam(clubId,career);if(!pm||!player||!club)return;if(!managerWindowOpen(career))return showToast("The transfer window is closed.",true);const interest=pm.transferInterest.find(x=>x.clubId===clubId)?.interest||50;if(interest<48)return showToast(`${club.name} is not ready to make an offer yet.`,true);pm.pendingOffer={clubId,loan:!!loan,interest,fee:loan?0:Math.round(player.marketValue*(.9+interest/500)/1e6)*1e6,wage:Math.round(managerExpectedWage(player)*(1+interest/500)/5000)*5000};saveData("Player offer received");renderPlayerAgent();playerModeShowCeremony("TRANSFER OFFER",club.name,loan?"A season-long loan opportunity has arrived.":`${money(pm.pendingOffer.fee)} club agreement · ${money(pm.pendingOffer.wage)}/week personal terms.`)}
-    function playerModeMovePlayer(career,toClub,offer){
-      const pm=playerModeData(career),player=playerModePlayer(career),from=playerModeClub(career);if(!pm||!player||!toClub)return false;
-      if(from){
-        const index=from.managerSquad.findIndex(p=>p.id===player.id);if(index<0)return false;from.managerSquad.splice(index,1);managerRecalculateTeam(from);
-      }else career.manager.freeAgents=(career.manager.freeAgents||[]).filter(p=>p.id!==player.id);
-      toClub.managerSquad=toClub.managerSquad||[];if(!toClub.managerSquad.some(p=>p.id===player.id))toClub.managerSquad.push(player);player.clubId=toClub.id;player.isStarter=false;player.contractYears=offer.loan?Math.max(1,player.contractYears):4;player.wage=offer.wage||managerExpectedWage(player);player.releaseClause=managerReleaseClause(player);player.transferListed=false;player.wantsOut=false;managerRecalculateTeam(toClub);career.controlledTeamId=toClub.id;pm.managerTrust=48;pm.chemistry=42;pm.calendarAssignments={};pm.pendingOffer=null;pm.transferInterest=[];pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,toClub.strength);
-      if(offer.loan&&from)pm.loan={fromClubId:from.id,toClubId:toClub.id,returnSeason:Number(career.worldSeason||1)+1};else pm.loan=null;
-      career.manager.transferHistory.unshift({id:uid(),season:Number(career.worldSeason||1),playerId:player.id,playerName:player.name,fromId:from?.id||null,toId:toClub.id,fee:Number(offer.fee||0),timestamp:Date.now(),reason:offer.loan?"Player Mode loan":"Player Mode transfer"});
-      pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:offer.loan?"loan":"transfer",clubId:toClub.id,text:offer.loan?`Joined ${toClub.name} on loan.`:`Transferred to ${toClub.name} for ${money(offer.fee||0)}.`});managerUpdateWageBills(career);return true;
+      const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career),club=managerTeam(clubId,career);
+      if(!pm||!player||!club)return;
+
+      if(!managerWindowOpen(career)){
+        return showToast("The transfer window is closed.",true);
+      }
+
+      const interestRow=pm.transferInterest.find(row=>row.clubId===clubId);
+      const interest=Number(interestRow?.interest||playerModeClubInterestScore(career,club));
+
+      const agreement=playerModeTransferAgreement(career,club,interest,!!loan);
+
+      if(!agreement.ok){
+        pm.agentStatus=agreement.reason;
+        saveData("");
+        playerModeShowCeremony(
+          agreement.side==="current"?"CURRENT CLUB RESPONSE":"CLUB RESPONSE",
+          agreement.side==="current"?"MOVE BLOCKED":"NO AGREEMENT",
+          agreement.reason
+        );
+        renderPlayerAgent();
+        return;
+      }
+
+      pm.pendingOffer={
+        clubId:club.id,
+        loan:!!loan,
+        interest,
+        fee:agreement.fee,
+        wage:agreement.wage,
+        contractYears:agreement.contractYears,
+        targetRole:agreement.targetRole,
+        targetApproved:true,
+        currentApproved:true,
+        stage:"personal-terms",
+        createdDate:pm.currentDate
+      };
+
+      pm.agentStatus=`Club-to-club agreement reached with ${club.name}. Personal terms are ready for your signature.`;
+      saveData("Transfer agreement reached");
+
+      playerModeShowCeremony(
+        "CLUBS AGREE",
+        club.name,
+        loan
+          ?`${playerModeClub(career)?.name||"Your club"} and ${club.name} approved a season loan. Personal terms are ready.`
+          :`${club.name} agreed a ${money(agreement.fee)} fee with ${playerModeClub(career)?.name||"your current club"}. Personal terms are ready.`
+      );
+
+      renderPlayerAgent();
     }
+    function playerModeMovePlayer(career,toClub,offer){
+      const pm=playerModeData(career),player=playerModePlayer(career),from=playerModeClub(career);
+      if(!pm||!player||!toClub)return false;
+
+      const fee=Number(offer.fee||0);
+
+      if(from){
+        const index=from.managerSquad.findIndex(p=>p.id===player.id);
+        if(index<0)return false;
+
+        const fromFin=career.manager?.clubFinances?.[from.id];
+        const toFin=career.manager?.clubFinances?.[toClub.id];
+
+        if(!offer.loan && toFin && Number(toFin.budget||0)<fee)return false;
+
+        from.managerSquad.splice(index,1);
+        managerRecalculateTeam(from);
+
+        if(!offer.loan && fee>0 && fromFin && toFin){
+          fromFin.budget=Number(fromFin.budget||0)+fee;
+          toFin.budget=Number(toFin.budget||0)-fee;
+          fromFin.totalReceived=Number(fromFin.totalReceived||0)+fee;
+          toFin.totalSpent=Number(toFin.totalSpent||0)+fee;
+          managerAddLedger(career,from.id,fee,`${player.name} sold to ${toClub.name}`,"sale");
+          managerAddLedger(career,toClub.id,-fee,`${player.name} signed from ${from.name}`,"purchase");
+        }
+      }else{
+        career.manager.freeAgents=(career.manager.freeAgents||[]).filter(p=>p.id!==player.id);
+      }
+
+      toClub.managerSquad=toClub.managerSquad||[];
+      if(!toClub.managerSquad.some(p=>p.id===player.id))toClub.managerSquad.push(player);
+
+      player.clubId=toClub.id;
+      player.isStarter=false;
+      player.contractYears=offer.loan
+        ?Math.max(1,Number(player.contractYears||1))
+        :Number(offer.contractYears||4);
+      player.wage=offer.wage||managerExpectedWage(player);
+      player.releaseClause=managerReleaseClause(player);
+      player.transferListed=false;
+      player.wantsOut=false;
+
+      managerRecalculateTeam(toClub);
+      career.controlledTeamId=toClub.id;
+
+      pm.managerTrust=48;
+      pm.chemistry=42;
+      pm.calendarAssignments={};
+      pm.pendingOffer=null;
+      pm.transferInterest=[];
+      pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,toClub.strength);
+      pm.agentStatus=`Officially joined ${toClub.name}. Your agent will reassess your career plan after you settle in.`;
+
+      if(offer.loan&&from){
+        pm.loan={fromClubId:from.id,toClubId:toClub.id,returnSeason:Number(career.worldSeason||1)+1};
+      }else{
+        pm.loan=null;
+      }
+
+      career.manager.transferHistory.unshift({
+        id:uid(),
+        season:Number(career.worldSeason||1),
+        playerId:player.id,
+        playerName:player.name,
+        fromId:from?.id||null,
+        toId:toClub.id,
+        fee,
+        timestamp:Date.now(),
+        reason:offer.loan?"Player Mode loan":"Player Mode transfer"
+      });
+
+      pm.careerTimeline.unshift({
+        season:Number(career.worldSeason||1),
+        date:pm.currentDate,
+        type:offer.loan?"loan":"transfer",
+        clubId:toClub.id,
+        text:offer.loan
+          ?`Joined ${toClub.name} on loan.`
+          :`Transferred to ${toClub.name} for ${money(fee)}.`
+      });
+
+      managerUpdateWageBills(career);
+      return true;
+    }
+    function playerModeShowSigningAnimation(career,club,offer){
+      const pm=playerModeData(career),player=playerModePlayer(career),root=$("playerCeremonyContent"),dialog=$("playerCeremonyDialog");
+      if(!pm||!player||!club||!root||!dialog)return;
+
+      root.innerHTML=`
+        <div class="player-ceremony-card">
+          <div class="startup-kicker">${offer.loan?"LOAN AGREEMENT":"TRANSFER AGREEMENT"}</div>
+          <h2>${escapeHtml(club.name)}</h2>
+          <div class="player-signing-paper">
+            <strong>${escapeHtml(player.name)}</strong>
+            <p style="font-size:12px;margin:10px 0;color:#5f5278">
+              ${offer.loan
+                ?"Season-long loan"
+                :`${offer.contractYears||4}-year player contract · ${money(offer.wage)}/week`}
+            </p>
+            <div class="player-signing-line"></div>
+            <div style="font-size:10px;color:#77698f;text-align:left">PLAYER SIGNATURE</div>
+            <div class="player-signature">${escapeHtml(player.name)}</div>
+            <div class="player-official-stamp">SIGNED</div>
+          </div>
+          <p class="muted" id="playerSigningStatus">Signing contract…</p>
+          <button type="button" class="btn hidden" id="playerSigningContinueBtn">Continue</button>
+        </div>`;
+
+      if(!dialog.open)dialog.showModal();
+
+      setTimeout(()=>{
+        const ok=playerModeMovePlayer(career,club,offer);
+        const status=$("playerSigningStatus");
+        const button=$("playerSigningContinueBtn");
+
+        if(!ok){
+          if(status)status.textContent="The transfer could not be finalized. No move was completed.";
+          if(button){
+            button.classList.remove("hidden");
+            button.textContent="Close";
+            button.onclick=()=>{dialog.close();renderPlayerAgent()};
+          }
+          return;
+        }
+
+        saveData("Player transfer completed");
+        if(status)status.innerHTML=`<strong>OFFICIAL:</strong> ${escapeHtml(player.name)} is now a ${escapeHtml(club.name)} player.`;
+
+        if(button){
+          button.classList.remove("hidden");
+          button.textContent="Enter New Club";
+          button.onclick=()=>{
+            dialog.close();
+            renderAll();
+            switchTab("player-hub");
+          };
+        }
+      },1850);
+    }
+
     function playerModeResolveOffer(accept){
-      const career=currentCareerSave(),pm=playerModeData(career);if(!pm?.pendingOffer)return;if(!accept){pm.pendingOffer=null;saveData("Transfer offer rejected");renderPlayerAgent();return}const club=managerTeam(pm.pendingOffer.clubId,career),offer={...pm.pendingOffer};if(!club)return;const ok=playerModeMovePlayer(career,club,offer);if(!ok)return showToast("The move could not be completed.",true);saveData("Player transfer completed");playerModeShowCeremony(offer.loan?"LOAN MOVE":"NEW CLUB",club.name,`${playerModePlayer(career)?.name} is officially a ${club.name} player.`);renderAll();switchTab("player-hub")
+      const career=currentCareerSave(),pm=playerModeData(career);
+      if(!pm?.pendingOffer)return;
+
+      if(!accept){
+        const club=managerTeam(pm.pendingOffer.clubId,career);
+        pm.agentStatus=`You rejected ${club?.name||"the club"}'s personal terms.`;
+        pm.pendingOffer=null;
+        saveData("Transfer offer rejected");
+        renderPlayerAgent();
+        return;
+      }
+
+      const club=managerTeam(pm.pendingOffer.clubId,career);
+      const offer={...pm.pendingOffer};
+
+      if(!club)return showToast("The club is no longer available.",true);
+
+      if(offer.stage!=="personal-terms" || !offer.targetApproved || !offer.currentApproved){
+        return showToast("The clubs have not completed their agreement yet.",true);
+      }
+
+      playerModeShowSigningAnimation(career,club,offer);
     }
     function playerModeRequestRenewal(){
       const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!pm||!player||!club)return;if(pm.managerTrust<42)return showToast("Build more manager trust before asking for a new deal.",true);const years=pm.managerTrust>=80?5:pm.managerTrust>=60?4:3;player.contractYears=years;player.wage=Math.round(managerExpectedWage(player)*(1+pm.reputation/500)/5000)*5000;player.releaseClause=managerReleaseClause(player);pm.morale=clamp(pm.morale+6,0,100);pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:"contract",clubId:club.id,text:`Signed a new ${years}-year contract with ${club.name}.`});saveData("New contract signed");playerModeShowCeremony("CONTRACT RENEWED",`${years} YEARS`,`${money(player.wage)}/week · ${club.name}`);renderPlayerContract()
@@ -11655,7 +12636,32 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     }
 
     function playerModeNextMatchHtml(career=currentCareerSave(),compact=false){
-      const next=playerModeNextFixture(career),club=playerModeClub(career);if(!next||!club)return `<p class="muted">No upcoming club match is currently scheduled.</p>`;const opponent=managerTeam(next.game.homeId===club.id?next.game.awayId:next.game.homeId,career),home=next.game.homeId===club.id;return `<div class="player-next-match">${home?teamLogo(club):teamLogo(opponent)}<div><div class="startup-kicker">${escapeHtml(next.comp.name)}</div><strong>${escapeHtml(next.date)}</strong><div class="muted">${home?"Home":"Away"} · ${escapeHtml(next.comp.stages?.[next.comp.currentStageIndex]||"Match")}</div></div>${home?teamLogo(opponent):teamLogo(club)}</div><button type="button" class="btn ${compact?'small':''}" data-player-open-match="${next.comp.id}" data-player-match-key="${escapeHtml(next.key)}" data-player-match-date="${next.date}" style="margin-top:10px;width:100%">Match Options</button>`;
+      const pm=playerModeData(career),next=playerModeNextFixture(career),club=playerModeClub(career);
+
+      if(!next||!club){
+        return `<p class="muted">No upcoming club match is currently scheduled.</p>`;
+      }
+
+      const opponent=managerTeam(
+        next.game.homeId===club.id?next.game.awayId:next.game.homeId,
+        career
+      );
+      const home=next.game.homeId===club.id;
+      const matchDay=pm?.currentDate===next.date;
+
+      return `<div class="player-next-match">
+        ${home?teamLogo(club):teamLogo(opponent)}
+        <div>
+          <div class="startup-kicker">${escapeHtml(next.comp.name)}</div>
+          <strong>${escapeHtml(next.date)}</strong>
+          <div class="muted">${home?"Home":"Away"} · ${escapeHtml(next.comp.stages?.[next.comp.currentStageIndex]||"Match")}</div>
+        </div>
+        ${home?teamLogo(opponent):teamLogo(club)}
+      </div>
+      ${matchDay
+        ?`<button type="button" class="btn ${compact?'small':''}" data-player-open-match="${next.comp.id}" data-player-match-key="${escapeHtml(next.key)}" data-player-match-date="${next.date}" style="margin-top:10px;width:100%">Play Match</button>`
+        :`<p class="muted" style="text-align:center;margin-top:8px">Advance the calendar to reach match day.</p>`
+      }`;
     }
     function renderPlayerHub(){
       const career=currentCareerSave(),panel=$("tab-player-hub");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!player||pm.retired){panel.innerHTML=`<div class="card"><div class="startup-kicker">PLAYER MODE</div><h1>Career Complete</h1><p class="muted">Open Career History for the full summary.</p></div>`;return}const season=playerModeSeasonStats(career),avg=playerModeAverageRating(season),rep=playerModeReputationLabel(pm.reputation);panel.innerHTML=`<section class="player-hero">${playerModeFaceHtml(career)}<div><div class="startup-kicker">⭐ PLAYER MODE · ${escapeHtml(seasonDisplay(career.worldSeason||1))}</div><h1 class="player-hero-name">${escapeHtml(player.name)}</h1><div class="toolbar"><span class="player-role-pill">${escapeHtml(pm.squadRole)}</span><span class="badge">${escapeHtml(player.position)}</span><span class="badge">Age ${player.age}</span><span class="badge">${escapeHtml(player.nationality)}</span><span class="badge">${escapeHtml(rep)}</span>${pm.captaincy!=="None"?`<span class="badge">© ${escapeHtml(pm.captaincy)}</span>`:""}</div><p class="muted">${escapeHtml(club?.name||"Free Agent")} · #${pm.shirtNumber} · ${escapeHtml(pm.preferredFoot)} foot · ${pm.height} cm</p></div><div class="player-ovr-orb"><div><strong>${player.overall}</strong><small>OVR</small></div></div></section>
@@ -11689,12 +12695,19 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
         </div>`);
       }
       const ready=playerModeSeasonReadyForNext(career);
-      panel.innerHTML=`<div class="player-calendar-shell"><article class="card player-calendar-card"><div class="player-calendar-head"><div><div class="startup-kicker">🗓️ PLAYER CALENDAR</div><h1>${escapeHtml(playerModeMonthLabel(pm.calendarView))}</h1></div><div class="toolbar"><button class="btn secondary small" id="playerPrevMonthBtn">←</button><button class="btn secondary small" id="playerTodayBtn">Today</button><button class="btn secondary small" id="playerNextMonthBtn">→</button></div></div><div class="player-calendar-weekdays">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>`<div>${d}</div>`).join("")}</div><div class="player-calendar-grid">${cells.join("")}</div></article><aside class="player-calendar-side"><article class="card"><div class="startup-kicker">CURRENT DATE</div><h2>${escapeHtml(pm.currentDate)}</h2><div class="toolbar"><button class="btn secondary small" id="playerAdvance3Btn">+3 Days</button><button class="btn" id="playerNextMatchBtn" ${fixtures.length?'':'disabled'}>Next Match</button></div>${ready?`<button class="btn success" id="playerStartNextSeasonBtn" style="width:100%;margin-top:10px">Start Next Season</button>`:''}</article><article class="card"><div class="startup-kicker">NEXT MATCH</div>${playerModeNextMatchHtml(career,true)}</article><article class="card"><div class="startup-kicker">WEEK PLAN</div><p><strong>Fitness:</strong> ${Math.round(pm.fitness)}/100</p><p><strong>Sharpness:</strong> ${Math.round(pm.sharpness)}/100</p><p><strong>Transfer window:</strong> ${escapeHtml(managerWindowLabel(career))}</p>${pm.monthlyReviews?.[0]?`<p><strong>Last month:</strong> ${pm.monthlyReviews[0].matches} apps · ${pm.monthlyReviews[0].goals}G · ${pm.monthlyReviews[0].assists}A · ${pm.monthlyReviews[0].avgRating||"—"} avg</p>`:""}<button class="btn secondary small" id="playerTrainingBtn">Training Session</button></article></aside></div>`;
+      panel.innerHTML=`<div class="player-calendar-shell"><article class="card player-calendar-card"><div class="player-calendar-head"><div><div class="startup-kicker">🗓️ PLAYER CALENDAR</div><h1>${escapeHtml(playerModeMonthLabel(pm.calendarView))}</h1></div><div class="toolbar"><button class="btn secondary small" id="playerPrevMonthBtn">←</button><button class="btn secondary small" id="playerTodayBtn">Today</button><button class="btn secondary small" id="playerNextMonthBtn">→</button></div></div><div class="player-calendar-weekdays">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>`<div>${d}</div>`).join("")}</div><div class="player-calendar-grid">${cells.join("")}</div></article><aside class="player-calendar-side"><article class="card"><div class="startup-kicker">CURRENT DATE</div><h2>${escapeHtml(pm.currentDate)}</h2><div class="toolbar"><button class="btn secondary small" id="playerAdvance3Btn">+3 Days</button><button class="btn" id="playerNextMatchBtn" ${fixtures.length?'':'disabled'}>${playerModeNextFixture(career)?.date===pm.currentDate?'Play Match':'Next Match'}</button></div>${ready?`<button class="btn success" id="playerStartNextSeasonBtn" style="width:100%;margin-top:10px">Start Next Season</button>`:''}</article><article class="card"><div class="startup-kicker">NEXT MATCH</div>${playerModeNextMatchHtml(career,true)}</article><article class="card"><div class="startup-kicker">WEEK PLAN</div><p><strong>Fitness:</strong> ${Math.round(pm.fitness)}/100</p><p><strong>Sharpness:</strong> ${Math.round(pm.sharpness)}/100</p><p><strong>Transfer window:</strong> ${escapeHtml(managerWindowLabel(career))}</p>${pm.monthlyReviews?.[0]?`<p><strong>Last month:</strong> ${pm.monthlyReviews[0].matches} apps · ${pm.monthlyReviews[0].goals}G · ${pm.monthlyReviews[0].assists}A · ${pm.monthlyReviews[0].avgRating||"—"} avg</p>`:""}<button class="btn secondary small" id="playerTrainingBtn">Training Session</button></article></aside></div>`;
       $("playerPrevMonthBtn").onclick=()=>{const d=playerModeDate(`${pm.calendarView}-01`);d.setMonth(d.getMonth()-1);pm.calendarView=playerModeDateKey(d).slice(0,7);renderPlayerCalendar()};
       $("playerNextMonthBtn").onclick=()=>{const d=playerModeDate(`${pm.calendarView}-01`);d.setMonth(d.getMonth()+1);pm.calendarView=playerModeDateKey(d).slice(0,7);renderPlayerCalendar()};
       $("playerTodayBtn").onclick=()=>{pm.calendarView=pm.currentDate.slice(0,7);renderPlayerCalendar()};
       $("playerAdvance3Btn").onclick=()=>playerModeAdvanceDays(3);
-      $("playerNextMatchBtn").onclick=playerModeAdvanceToNextMatch;
+      $("playerNextMatchBtn").onclick=()=>{
+        const next=playerModeNextFixture(career);
+        if(next?.date===pm.currentDate){
+          playerModeOpenMatch(next.comp.id,next.key,next.date);
+        }else{
+          playerModeAdvanceToNextMatch();
+        }
+      };
       $("playerTrainingBtn").onclick=()=>playerModeTrain("Physical");
       $("playerStartNextSeasonBtn")?.addEventListener("click",startGlobalNextSeason);
       bindPlayerMatchButtons(panel);
@@ -11728,7 +12741,127 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       const career=currentCareerSave(),panel=$("tab-player-club");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!club){panel.innerHTML=`<div class="card"><h1>Free Agent</h1><p class="muted">Use Agent & Transfers to find your next club.</p></div>`;return}const squad=[...(club.managerSquad||[])].sort((a,b)=>Number(b.isStarter)-Number(a.isStarter)||b.overall-a.overall);panel.innerHTML=`<section class="career-hero">${teamLogo(club)}<div><div class="startup-kicker">🏟️ YOUR CLUB</div><h1>${escapeHtml(club.name)}</h1><div class="toolbar"><span class="badge">Club OVR ${club.strength}</span><span class="badge">Your Role: ${escapeHtml(pm.squadRole)}</span><span class="badge">Trust ${Math.round(pm.managerTrust)}</span><span class="badge">Chemistry ${Math.round(pm.chemistry)}</span><span class="badge">Set Pieces: ${escapeHtml(pm.setPieceDuty||"None")}</span></div></div><div><div class="muted">CAPTAINCY</div><div class="career-stat-number" style="font-size:28px">${escapeHtml(pm.captaincy)}</div></div></section><article class="card" style="margin-top:14px"><h2>Squad Around You</h2><div class="player-club-roster">${squad.map(p=>`<div class="player-teammate">${managerPlayerFaceHtml(p,'bench')}<span><strong>${escapeHtml(p.name)}${p.id===player?.id?' · YOU':''}</strong><small class="muted" style="display:block">${escapeHtml(p.position)} · ${p.isStarter?'Starting XI':'Squad'}</small></span><strong>${p.overall}</strong></div>`).join("")}</div></article>`;
     }
     function renderPlayerAgent(){
-      const career=currentCareerSave(),panel=$("tab-player-agent");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);playerModeRefreshTransferInterest(career,false);const pending=pm.pendingOffer,offerClub=pending?managerTeam(pending.clubId,career):null;panel.innerHTML=`<div class="card"><div class="startup-kicker">🤝 AGENT & TRANSFERS</div><h1>Career Direction</h1><p class="muted">Tell your agent what you want. Club interest changes with OVR, reputation, performances, role and transfer windows.</p><div class="toolbar">${["Stay and develop","Find a bigger club","I need more playing time","Try another league"].map(intent=>`<button class="btn ${pm.agentIntent===intent?'':'secondary'} small" data-player-agent-intent="${escapeHtml(intent)}">${escapeHtml(intent)}</button>`).join("")}</div></div>${pending&&offerClub?`<article class="card" style="margin-top:14px;border-color:rgba(245,158,11,.35)"><div class="startup-kicker">🔥 ACTIVE OFFER</div><div class="player-next-match">${current?teamLogo(current):`<strong>FREE AGENT</strong>`}<div><h2>${pending.loan?'Loan':'Transfer'} Offer</h2><strong>${pending.loan?'Season loan':money(pending.fee)}</strong><div class="muted">${money(pending.wage)}/week</div></div>${teamLogo(offerClub)}</div><div class="toolbar" style="margin-top:12px"><button class="btn success" id="playerAcceptOfferBtn">Accept</button><button class="btn danger" id="playerRejectOfferBtn">Reject</button></div></article>`:""}<article class="card" style="margin-top:14px"><div class="archive-header"><div><div class="startup-kicker">CLUB INTEREST</div><h2>Teams Watching You</h2></div><button class="btn secondary small" id="playerRefreshInterestBtn">Ask Agent</button></div><div class="player-transfer-interest">${pm.transferInterest.map(item=>{const club=managerTeam(item.clubId,career);return club?`<div class="player-interest-row">${teamLogoForSave(club)}<div><strong>${escapeHtml(club.name)}</strong><small class="muted" style="display:block">Interest ${item.interest}% · Club rep ${managerClubReputation(career,club)}</small></div><div><button class="btn secondary small" data-player-consider-club="${club.id}">Explore Move</button>${player?.age<=23?`<button class="btn secondary small" data-player-loan-club="${club.id}" style="margin-top:5px">Loan</button>`:""}</div></div>`:""}).join("")||`<p class="muted">No serious interest right now.</p>`}</div></article>`;panel.querySelectorAll("[data-player-agent-intent]").forEach(b=>b.onclick=()=>playerModeSetAgentIntent(b.dataset.playerAgentIntent));panel.querySelectorAll("[data-player-consider-club]").forEach(b=>b.onclick=()=>playerModeConsiderMove(b.dataset.playerConsiderClub,false));panel.querySelectorAll("[data-player-loan-club]").forEach(b=>b.onclick=()=>playerModeConsiderMove(b.dataset.playerLoanClub,true));$("playerRefreshInterestBtn")?.addEventListener("click",()=>{playerModeRefreshTransferInterest(career,true);saveData("");renderPlayerAgent()});$("playerAcceptOfferBtn")?.addEventListener("click",()=>playerModeResolveOffer(true));$("playerRejectOfferBtn")?.addEventListener("click",()=>playerModeResolveOffer(false));
+      const career=currentCareerSave(),panel=$("tab-player-agent");
+      if(!panel||!isPlayerMode(career))return;
+
+      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      playerModeRefreshTransferInterest(career,false);
+
+      const pending=pm.pendingOffer;
+      const offerClub=pending?managerTeam(pending.clubId,career):null;
+      const planDescription=playerModeAgentIntentDescription(career);
+
+      panel.innerHTML=`
+        <div class="card">
+          <div class="startup-kicker">🤝 AGENT & TRANSFERS</div>
+          <h1>Career Direction</h1>
+          <p class="muted">Your instruction now changes who your agent contacts, your projected role, and whether a playing-time discussion happens with your manager.</p>
+
+          <div class="toolbar">
+            ${["Stay and develop","Find a bigger club","I need more playing time","Try another league"].map(intent=>`
+              <button class="btn ${pm.agentIntent===intent?'':'secondary'} small" data-player-agent-intent="${escapeHtml(intent)}">
+                ${escapeHtml(intent)}
+              </button>`).join("")}
+          </div>
+
+          <div class="notice" style="margin-top:12px">
+            <strong>${escapeHtml(pm.agentIntent)}</strong><br>
+            ${escapeHtml(planDescription)}
+            ${Number(pm.playingTimePromiseMatches||0)>0
+              ?`<br><strong>Manager opportunity:</strong> ${pm.playingTimePromiseMatches} match${pm.playingTimePromiseMatches===1?"":"es"} remaining.`
+              :""
+            }
+          </div>
+
+          <p class="muted" style="margin-top:10px">${escapeHtml(pm.agentStatus||"")}</p>
+        </div>
+
+        ${pending&&offerClub?`
+          <article class="card" style="margin-top:14px;border-color:rgba(139,92,246,.42)">
+            <div class="startup-kicker">📄 PERSONAL TERMS READY</div>
+
+            <div class="player-transfer-steps">
+              <div class="player-transfer-step done">✓ Target Club Approval</div>
+              <div class="player-transfer-step done">✓ Club-to-Club Agreement</div>
+              <div class="player-transfer-step">3. Your Signature</div>
+            </div>
+
+            <div class="player-next-match">
+              ${current?teamLogo(current):`<strong>FREE AGENT</strong>`}
+              <div>
+                <h2>${pending.loan?'Loan':'Transfer'} Agreement</h2>
+                <strong>${pending.loan?'Season loan':money(pending.fee)}</strong>
+                <div class="muted">${money(pending.wage)}/week · ${pending.loan?"1 season":`${pending.contractYears||4} years`}</div>
+                <div class="muted">Projected role: ${escapeHtml(pending.targetRole||"Squad player")}</div>
+              </div>
+              ${teamLogo(offerClub)}
+            </div>
+
+            <div class="toolbar" style="margin-top:12px">
+              <button class="btn success" id="playerAcceptOfferBtn">✍️ Sign Contract</button>
+              <button class="btn danger" id="playerRejectOfferBtn">Reject Terms</button>
+            </div>
+          </article>`
+          :""
+        }
+
+        <article class="card" style="margin-top:14px">
+          <div class="archive-header">
+            <div>
+              <div class="startup-kicker">CLUB INTEREST</div>
+              <h2>${pm.agentIntent==="Stay and develop"?"Transfer Activity Paused":"Realistic Clubs on Your Radar"}</h2>
+            </div>
+            <button class="btn secondary small" id="playerRefreshInterestBtn" ${pm.agentIntent==="Stay and develop"?"disabled":""}>Ask Agent</button>
+          </div>
+
+          <div class="player-transfer-interest">
+            ${pm.transferInterest.map(item=>{
+              const club=managerTeam(item.clubId,career);
+              if(!club)return "";
+              const canLoan=Number(player?.age||99)<=23 && ["Prospect","Rotation","Starter"].includes(item.projectedRole);
+
+              return `<div class="player-interest-row">
+                ${teamLogoForSave(club)}
+                <div>
+                  <strong>${escapeHtml(club.name)}</strong>
+                  <small class="muted" style="display:block">
+                    Interest ${item.interest}% · ${escapeHtml(item.projectedRole||"Squad role")}
+                    ${item.leagueName?` · ${escapeHtml(item.leagueName)}`:""}
+                  </small>
+                </div>
+                <div>
+                  <button class="btn secondary small" data-player-consider-club="${club.id}">Ask Agent to Contact</button>
+                  ${canLoan?`<button class="btn secondary small" data-player-loan-club="${club.id}" style="margin-top:5px">Ask About Loan</button>`:""}
+                </div>
+              </div>`;
+            }).join("") || `<p class="muted">${
+              pm.agentIntent==="Stay and develop"
+                ?"Your agent is not shopping you around. Change the career direction when you want to explore a move."
+                :"No realistic club matches your instruction right now. Improve your OVR, reputation and performances."
+            }</p>`}
+          </div>
+        </article>`;
+
+      panel.querySelectorAll("[data-player-agent-intent]").forEach(
+        button=>button.onclick=()=>playerModeSetAgentIntent(button.dataset.playerAgentIntent)
+      );
+
+      panel.querySelectorAll("[data-player-consider-club]").forEach(
+        button=>button.onclick=()=>playerModeConsiderMove(button.dataset.playerConsiderClub,false)
+      );
+
+      panel.querySelectorAll("[data-player-loan-club]").forEach(
+        button=>button.onclick=()=>playerModeConsiderMove(button.dataset.playerLoanClub,true)
+      );
+
+      $("playerRefreshInterestBtn")?.addEventListener("click",()=>{
+        playerModeRefreshTransferInterest(career,true);
+        saveData("");
+        renderPlayerAgent();
+      });
+
+      $("playerAcceptOfferBtn")?.addEventListener("click",()=>playerModeResolveOffer(true));
+      $("playerRejectOfferBtn")?.addEventListener("click",()=>playerModeResolveOffer(false));
     }
     function renderPlayerContract(){
       const career=currentCareerSave(),panel=$("tab-player-contract");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">📝 CONTRACT</div><h1>${club?escapeHtml(club.name):"Free Agent"}</h1>${club?`<div class="manager-summary-grid"><div class="manager-summary-card"><small>Years Remaining</small><strong>${player.contractYears}</strong></div><div class="manager-summary-card"><small>Weekly Wage</small><strong>${money(player.wage)}</strong></div><div class="manager-summary-card"><small>Release Clause</small><strong>${money(player.releaseClause)}</strong></div><div class="manager-summary-card"><small>Market Value</small><strong>${money(player.marketValue)}</strong></div></div><p class="muted" style="margin-top:12px">Renewal strength depends on manager trust and your importance to the club.</p><button class="btn" id="playerRenewContractBtn">Request New Contract</button>`:`<p class="muted">Your contract has ended. Open Agent & Transfers to choose your next club.</p><button class="btn" id="playerFreeAgentBtn">Open Agent</button>`}</div>`;$("playerRenewContractBtn")?.addEventListener("click",playerModeRequestRenewal);$("playerFreeAgentBtn")?.addEventListener("click",()=>switchTab("player-agent"));
