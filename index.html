@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V61.4";
+  content:"V61.5";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V61.4" !important;
+  content:"V61.5" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7995,7 +7995,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.4</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.5</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -8064,7 +8064,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V61.4</p>
+          <p id="saveStatus">V61.5</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -9046,17 +9046,31 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       return STARTER_TEAM_LOGOS[String(name||"").trim()]||"";
     }
 
+    function builtInLogoForTeamName(name){
+      return STARTER_TEAM_LOGOS[String(name||"").trim()]||"";
+    }
+
+    function teamCustomLogoData(team){
+      if(!team?.logoData)return "";
+      const builtIn=builtInLogoForTeamName(team.name);
+      return builtIn && team.logoData===builtIn ? "" : team.logoData;
+    }
+
+    function teamResolvedLogoData(team){
+      if(!team)return "";
+      return teamCustomLogoData(team) || builtInLogoForTeamName(team.name) || "";
+    }
+
     function applyBuiltInTeamLogos(world){
       if(!world?.teams?.length)return false;
       let changed=false;
 
+      // V61.5: built-in crests already live inside the HTML.
+      // Remove duplicate copies from save objects so browser storage stays small.
       world.teams.forEach(team=>{
-        // Never overwrite a logo the user explicitly uploaded/imported.
-        if(team.logoData)return;
-
         const builtIn=builtInLogoForTeamName(team.name);
-        if(builtIn){
-          team.logoData=builtIn;
+        if(builtIn && team.logoData===builtIn){
+          team.logoData="";
           changed=true;
         }
       });
@@ -9692,12 +9706,24 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
 
       storageWorlds(snapshot).forEach(world => {
         (world.teams || []).forEach(team => {
+          const builtIn=builtInLogoForTeamName(team.name);
+
+          // The same crest is already embedded once in the HTML, so a built-in
+          // team only needs its name in the save. This prevents ~4 MB of logos
+          // from consuming the browser's localStorage quota.
+          if(builtIn && team.logoData===builtIn){
+            delete team.logoData;
+            delete team.logoAssetId;
+            return;
+          }
+
           const id = storeAsset(team.logoData,"logos",logoIds);
           if (id) {
             team.logoAssetId = id;
             delete team.logoData;
           }
         });
+
         (world.competitions || []).forEach(comp => {
           const id = storeAsset(comp.badge,"badges",badgeIds);
           if (id) {
@@ -9834,7 +9860,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
 
       if (saved && message) showToast(message);
       if (!saved) {
-        showToast("Save cleanup was attempted, but browser storage is still full. Export a backup, then delete an unused world.", true);
+        showToast("Browser storage is still full after asset cleanup. Export a backup or remove an unused save.", true);
       }
 
       return saved;
@@ -9899,13 +9925,13 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       if (!team) return `<div class="logo-stack"><div class="world-cup-star-row"></div><div class="logo">?</div></div>`;
       const wins = permanentWorldCupWinCount(team);
       const stars = worldCupStars(team);
-      const logo = team.logoData
-        ? `<div class="logo"><img src="${team.logoData}" alt="${escapeHtml(team.name)} logo"></div>`
+      const logoData = teamResolvedLogoData(team);
+      const logo = logoData
+        ? `<div class="logo"><img src="${logoData}" alt="${escapeHtml(team.name)} logo"></div>`
         : `<div class="logo" style="background:${team.color}">${escapeHtml(initials(team.name))}</div>`;
       const controlled = currentGameMode === "club-career" && team.id === currentCareerSave()?.controlledTeamId;
       return `<div class="logo-stack ${controlled ? "controlled-club-logo" : ""}"><div class="world-cup-star-row" title="${wins} World Cup wins" aria-label="${wins} World Cup wins">${stars}</div>${logo}${controlled ? `<span class="your-club-badge">YOUR CLUB</span>` : ""}</div>`;
     }
-
     function savedWorldHasActiveWorldCup(world) {
       if (!world) return false;
       const activeId = world.worldCupActiveCompetitionId;
@@ -10084,7 +10110,8 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     function starterTeamObjects() {
       return STARTER_TEAMS.map(([name,shortName,strength,color],index)=>({
         id:uid(),name,shortName,strength,startingOverall:strength,color,
-        logoData:builtInLogoForTeamName(name),
+        // Built-in crest is resolved by team name at render time.
+        logoData:"",
         trophies:0,worldCupWins:0,permanentWorldCupWins:0,lastStrengthChange:0,
         developmentProfile:{baseline:strength,potential:clamp(strength+3+(index%4),70,94),momentum:0,stability:.58+((index%4)*.07)},
         strengthHistory:[{season:1,strength,competition:"Starting rating"}]
@@ -10343,7 +10370,13 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       });
     }
 
-    function teamLogoForSave(team){if(!team)return `<div class="logo">?</div>`;return team.logoData?`<div class="logo"><img src="${team.logoData}" alt=""></div>`:`<div class="logo" style="background:${team.color}">${escapeHtml(team.shortName||initials(team.name))}</div>`}
+    function teamLogoForSave(team){
+      if(!team)return `<div class="logo">?</div>`;
+      const logoData=teamResolvedLogoData(team);
+      return logoData
+        ?`<div class="logo"><img src="${logoData}" alt=""></div>`
+        :`<div class="logo" style="background:${team.color}">${escapeHtml(team.shortName||initials(team.name))}</div>`;
+    }
     function renameCareer(id){const career=data.careerSaves.find(c=>c.id===id);if(!career)return;const name=prompt("Rename career save:",career.name);if(!name?.trim())return;career.name=name.trim().slice(0,45);saveData("Career renamed");renderCareerSaveList()}
     function deleteCareer(id){const career=data.careerSaves.find(c=>c.id===id);if(!career)return;askDeleteConfirmation("Delete Career?",`${career.name} and its independent career history will be permanently deleted. Universe Mode will not be affected.`,()=>{data.careerSaves=data.careerSaves.filter(c=>c.id!==id);saveData("Career deleted");renderCareerSaveList()})}
 
@@ -11081,10 +11114,10 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     function playerModeCalendarTeamMark(career,teamId){
       const team=managerTeam(teamId,career);
       if(!team)return `<span class="player-calendar-mini-logo">?</span>`;
-      if(team.logoData)return `<span class="player-calendar-mini-logo"><img src="${team.logoData}" alt="${escapeHtml(team.name)}"></span>`;
+      const logoData=teamResolvedLogoData(team);
+      if(logoData)return `<span class="player-calendar-mini-logo"><img src="${logoData}" alt="${escapeHtml(team.name)}"></span>`;
       return `<span class="player-calendar-mini-logo" style="--player-club-color:${escapeHtml(team.color||'#315d9a')}">${escapeHtml(initials(team.name))}</span>`;
     }
-
     function playerModePreferredFixtureDate(career,row){
       const seasonStartYear=SEASON_START_YEAR+Number(career.worldSeason||1)-1;
       const stage=row.comp.stages?.[row.comp.currentStageIndex]||"Match";
@@ -12249,7 +12282,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     function managerStarterPreviewTeams(){
       return STARTER_TEAMS.map(([name,shortName,strength,color],index)=>({
         index,name,shortName,strength,color,
-        logoData:builtInLogoForTeamName(name),
+        logoData:"",
         id:`manager-starter-${index}`
       }));
     }
@@ -14663,9 +14696,11 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       }
 
       const title=escapeHtml(team.name);
-      if(team.logoData){
+      const logoData=teamResolvedLogoData(team);
+
+      if(logoData){
         return `<span class="manager-transfer-club-mark" title="${title}" aria-label="${title}">
-          <img src="${team.logoData}" alt="${title} logo">
+          <img src="${logoData}" alt="${title} logo">
         </span>`;
       }
 
@@ -14676,7 +14711,6 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
         style="--club-mark-color:${escapeHtml(team.color||'#214a78')}"
       >${escapeHtml(initials(team.name))}</span>`;
     }
-
     function managerLatestTransfersHtml(career,limit=30){
       const rows=[...(career.manager.transferHistory||[])]
         .sort((a,b)=>Number(b.timestamp||0)-Number(a.timestamp||0))
@@ -17858,7 +17892,11 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
         startingOverall:preserve?originalStartingOverall:currentStrength,
         color:source.color||source.primaryColor||randomColor(),
         secondaryColor:source.secondaryColor||"",
-        logoData:source.logoData||source.logo||"",
+        logoData:(()=>{
+          const supplied=source.logoData||source.logo||"";
+          const builtIn=builtInLogoForTeamName(nameOverride||source.name);
+          return builtIn && supplied===builtIn ? "" : supplied;
+        })(),
         identityData:clone(source.identityData||source.teamIdentity||{}),
 
         trophies:preserve?Number(source.trophies||0):0,
@@ -18009,7 +18047,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
           id:team.id,
           name:team.name,
           shortName:team.shortName||team.short||"",
-          logoData:team.logoData||"",
+          logoData:teamResolvedLogoData(team),
           color:team.color||"",
           secondaryColor:team.secondaryColor||"",
 
@@ -18148,7 +18186,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       $("teamStrengthNumber").disabled=lockStrength;
       $("teamColorInput").value = team.color;
       $("teamLogoInput").value = "";
-      pendingLogoData = team.logoData || "";
+      pendingLogoData = teamCustomLogoData(team);
       $("teamDialog").showModal();
     }
 
