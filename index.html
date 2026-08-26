@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V61.1";
+  content:"V61.2";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V61.1" !important;
+  content:"V61.2" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7988,7 +7988,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.1</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.2</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -8057,7 +8057,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V61.1</p>
+          <p id="saveStatus">V61.2</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -8451,7 +8451,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     </div>
     <input id="teamImportFileInput" type="file" accept=".json,application/json" multiple class="hidden">
     <div class="form-group" id="teamImportRecordsField">
-      <label class="check"><input id="preserveImportedTeamRecords" type="checkbox"> Explicitly preserve trophies, World Cup wins, and team history</label>
+      <label class="check"><input id="preserveImportedTeamRecords" type="checkbox" checked> Preserve current OVR, trophies, World Cup wins, development, and team history</label>
     </div>
 
     <div class="notice" style="margin-bottom:14px">
@@ -17715,7 +17715,8 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       const worlds = availableImportWorlds();
       $("teamImportSourceType").value = "save";
       $("teamImportFileInput").value = "";
-      $("preserveImportedTeamRecords").checked = false;
+      $("preserveImportedTeamRecords").checked = true;
+      $("preserveImportedTeamRecords").disabled = true;
       $("importSourceWorldSelect").innerHTML = worlds.map(save => `
         <option value="${save.id}">${escapeHtml(save.name)} · ${escapeHtml(save.mode === "club-career" ? "Career" : "World")} · ${save.teams.length} teams</option>
       `).join("");
@@ -17723,24 +17724,43 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       renderTeamImportSourceMode();
       $("importTeamsDialog").showModal();
     }
-
     function renderTeamImportSourceMode() {
       const fileMode = $("teamImportSourceType").value === "file";
       $("teamImportSaveField").classList.toggle("hidden",fileMode);
       $("teamImportFileInput").classList.toggle("hidden",!fileMode);
-      if (fileMode) { teamImportSource = null; $("importTeamPicker").innerHTML = `<div class="notice">Choose a football-universe-teams.json file.</div>`; }
-      else { teamImportSource = availableImportWorlds().find(save => save.id === $("importSourceWorldSelect").value) || null; renderImportTeamPicker(); }
-    }
 
+      const preserveBox=$("preserveImportedTeamRecords");
+
+      if (fileMode) {
+        preserveBox.disabled=false;
+        teamImportSource = null;
+        $("importTeamPicker").innerHTML = `<div class="notice">Choose a football-universe-teams.json file.</div>`;
+      } else {
+        // Imports from another saved FUS world always preserve that club's
+        // CURRENT state instead of resetting it to the original/default OVR.
+        preserveBox.checked=true;
+        preserveBox.disabled=true;
+        teamImportSource = availableImportWorlds().find(
+          save => save.id === $("importSourceWorldSelect").value
+        ) || null;
+        renderImportTeamPicker();
+      }
+    }
     function renderImportTeamPicker() {
       const sourceWorld = teamImportSource;
-      const targetWorld = currentWorld();
       if (!sourceWorld) {
         $("importTeamPicker").innerHTML = `<p class="muted">Source world not found.</p>`;
         return;
       }
 
       $("importTeamPicker").innerHTML = sourceWorld.teams.map(team => {
+        const currentOverall=Number(team.strength ?? team.startingOverall ?? 70);
+        const trophies=Number(team.trophies||0);
+        const worldCups=Math.max(
+          Number(team.worldCupWins||0),
+          Number(team.permanentWorldCupWins||0)
+        );
+
         return `
           <label class="check">
             <input
@@ -17752,12 +17772,14 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
             ${teamLogo(team)}
             <span style="min-width:0">
               <strong style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(team.name)}</strong>
-              <small class="muted">Starting overall ${Number(team.startingOverall ?? team.strength ?? 70)}</small>
+              <small class="muted">
+                Current OVR ${currentOverall} · ${trophies} trophies
+                ${worldCups?` · ${worldCups} World Cup${worldCups===1?"":"s"}`:""}
+              </small>
             </span>
           </label>`;
       }).join("");
     }
-
     function resolveTeamImportConflict(existing,incoming) {
       return new Promise(resolve => { pendingTeamImportConflict={existing,incoming,resolve}; $("teamImportConflictTitle").textContent=`A team named "${incoming.name}" already exists.`; $("teamImportConflictDialog").showModal(); });
     }
@@ -17765,10 +17787,61 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     function closeTeamImportConflict(choice) { const pending=pendingTeamImportConflict; pendingTeamImportConflict=null; $("teamImportConflictDialog").close(); pending?.resolve(choice); }
 
     function freshImportedTeam(source,nameOverride="",preserve=false) {
-      const strength=clamp(Number(source.startingOverall ?? source.strength ?? 70),0,100);
-      return {id:uid(),name:nameOverride||source.name,shortName:source.shortName||source.short||"",strength,startingOverall:strength,color:source.color||source.primaryColor||randomColor(),secondaryColor:source.secondaryColor||"",logoData:source.logoData||source.logo||"",identityData:JSON.parse(JSON.stringify(source.identityData||source.teamIdentity||{})),trophies:preserve?Number(source.trophies||0):0,worldCupWins:preserve?Number(source.worldCupWins||0):0,permanentWorldCupWins:preserve?Number(source.permanentWorldCupWins||source.worldCupWins||0):0,matchHistory:preserve?JSON.parse(JSON.stringify(source.matchHistory||[])):[],competitionHistory:preserve?JSON.parse(JSON.stringify(source.competitionHistory||[])):[],rankingHistory:preserve?JSON.parse(JSON.stringify(source.rankingHistory||source.rankings||[])):[],lastStrengthChange:0,strengthHistory:preserve&&Array.isArray(source.strengthHistory)?JSON.parse(JSON.stringify(source.strengthHistory)):[{season:1,strength,competition:"Imported starting rating"}]};
-    }
+      const currentStrength=clamp(
+        Number(
+          preserve
+            ? (source.strength ?? source.startingOverall ?? 70)
+            : (source.startingOverall ?? source.strength ?? 70)
+        ),
+        0,
+        100
+      );
 
+      const originalStartingOverall=clamp(
+        Number(source.startingOverall ?? source.strength ?? currentStrength),
+        0,
+        100
+      );
+
+      const clone=value=>JSON.parse(JSON.stringify(value));
+
+      return {
+        id:uid(),
+        name:nameOverride||source.name,
+        shortName:source.shortName||source.short||"",
+        strength:currentStrength,
+        startingOverall:preserve?originalStartingOverall:currentStrength,
+        color:source.color||source.primaryColor||randomColor(),
+        secondaryColor:source.secondaryColor||"",
+        logoData:source.logoData||source.logo||"",
+        identityData:clone(source.identityData||source.teamIdentity||{}),
+
+        trophies:preserve?Number(source.trophies||0):0,
+        worldCupWins:preserve?Number(source.worldCupWins||0):0,
+        permanentWorldCupWins:preserve
+          ?Number(source.permanentWorldCupWins??source.worldCupWins??0)
+          :0,
+
+        matchHistory:preserve?clone(source.matchHistory||[]):[],
+        competitionHistory:preserve?clone(source.competitionHistory||[]):[],
+        rankingHistory:preserve?clone(source.rankingHistory||source.rankings||[]):[],
+
+        developmentProfile:preserve && source.developmentProfile
+          ?clone(source.developmentProfile)
+          :{
+              baseline:currentStrength,
+              potential:clamp(currentStrength+4,58,94),
+              momentum:0,
+              stability:.6
+            },
+
+        lastStrengthChange:preserve?Number(source.lastStrengthChange||0):0,
+
+        strengthHistory:preserve && Array.isArray(source.strengthHistory)
+          ?clone(source.strengthHistory)
+          :[{season:1,strength:currentStrength,competition:"Imported starting rating"}]
+      };
+    }
     async function importSelectedTeams() {
       const targetWorld = currentWorld();
       const sourceWorld = teamImportSource;
@@ -17782,20 +17855,53 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       const availableSlots = MAX_TEAMS - targetWorld.teams.length;
       if (availableSlots <= 0) return showToast("This world already has 30 teams.", true);
 
-      const sourceTeams = sourceWorld.teams.filter(team => selectedIds.has(team.id)).slice(0,availableSlots);
-      const preserve=$("preserveImportedTeamRecords").checked;
+      const sourceTeams = sourceWorld.teams
+        .filter(team => selectedIds.has(team.id))
+        .slice(0,availableSlots);
+
+      const importingFromSavedWorld=$("teamImportSourceType").value==="save";
+      const preserve=importingFromSavedWorld || $("preserveImportedTeamRecords").checked;
+
       let imported=0;
+
       for (const sourceTeam of sourceTeams) {
-        const existing=targetWorld.teams.find(team=>String(team.name).trim().toLowerCase()===String(sourceTeam.name).trim().toLowerCase());
+        const existing=targetWorld.teams.find(
+          team=>String(team.name).trim().toLowerCase()===String(sourceTeam.name).trim().toLowerCase()
+        );
+
         let action="add",name=sourceTeam.name;
-        if(existing){ action=await resolveTeamImportConflict(existing,sourceTeam); if(action==="skip")continue; if(action==="rename"){const requested=prompt(`Rename imported team "${name}":`,`${name} Copy`);if(!requested?.trim())continue;name=requested.trim();if(targetWorld.teams.some(t=>t.name.trim().toLowerCase()===name.toLowerCase())){showToast(`A team named "${name}" already exists.`,true);continue;}} }
+
+        if(existing){
+          action=await resolveTeamImportConflict(existing,sourceTeam);
+          if(action==="skip")continue;
+
+          if(action==="rename"){
+            const requested=prompt(`Rename imported team "${name}":`,`${name} Copy`);
+            if(!requested?.trim())continue;
+            name=requested.trim();
+
+            if(targetWorld.teams.some(t=>t.name.trim().toLowerCase()===name.toLowerCase())){
+              showToast(`A team named "${name}" already exists.`,true);
+              continue;
+            }
+          }
+        }
+
         const fresh=freshImportedTeam(sourceTeam,name,preserve);
-        if(action==="replace"){fresh.id=existing.id;targetWorld.teams.splice(targetWorld.teams.indexOf(existing),1,fresh);}else targetWorld.teams.push(fresh);
+
+        if(action==="replace"){
+          fresh.id=existing.id;
+          targetWorld.teams.splice(targetWorld.teams.indexOf(existing),1,fresh);
+        }else{
+          targetWorld.teams.push(fresh);
+        }
+
         imported++;
       }
 
       if(!imported)return;
-      saveData(`${imported} team${imported === 1 ? "" : "s"} imported`);
+
+      saveData(`${imported} team${imported === 1 ? "" : "s"} imported with current club stats`);
       $("importTeamsDialog").close();
       renderAll();
 
@@ -17803,7 +17909,6 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
         showToast(`Only ${availableSlots} teams fit. This world now has 30 teams.`, true);
       }
     }
-
     async function readTeamImportFiles(files) {
       const teams=[];
       for(const file of files){try{if(!/\.json$/i.test(file.name)&&file.type!=="application/json")throw new Error("Incorrect file type");const parsed=JSON.parse(await file.text());if(parsed?.exportType!=="football-universe-teams"||parsed?.exportVersion!==PORTABLE_EXPORT_VERSION||!Array.isArray(parsed.teams))throw new Error("Unsupported or invalid team export");parsed.teams.forEach(team=>{if(!team||typeof team.name!=="string"||!team.name.trim())throw new Error("A required team name is missing");teams.push({...team,id:team.id||uid()});});}catch(error){showToast(`${file.name}: ${error.message}`,true);}}
@@ -17811,8 +17916,55 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     }
 
     function openExportTeamsDialog(){const world=currentWorld();$("exportTeamPicker").innerHTML=world.teams.map(team=>`<label class="check"><input type="checkbox" class="export-team-check" value="${team.id}"><span><strong>${escapeHtml(team.name)}</strong><small class="muted" style="display:block">Overall ${team.strength}</small></span></label>`).join("");$("exportTeamsDialog").showModal();}
-    function exportSelectedTeams(){const ids=new Set([...document.querySelectorAll(".export-team-check:checked")].map(box=>box.value));const teams=currentWorld().teams.filter(team=>ids.has(team.id)).map(team=>({id:team.id,name:team.name,shortName:team.shortName||team.short||"",logoData:team.logoData||"",color:team.color||"",secondaryColor:team.secondaryColor||"",startingOverall:Number(team.startingOverall??team.strength??70),identityData:team.identityData||team.teamIdentity||{}}));if(!teams.length)return showToast("Select at least one team to export.",true);downloadPortableJson({exportType:"football-universe-teams",exportVersion:PORTABLE_EXPORT_VERSION,createdAt:new Date().toISOString(),teams},"football-universe-teams.json");$("exportTeamsDialog").close();showToast(`${teams.length} team${teams.length===1?"":"s"} exported`);}
+    function exportSelectedTeams(){
+      const ids=new Set(
+        [...document.querySelectorAll(".export-team-check:checked")].map(box=>box.value)
+      );
 
+      const clone=value=>JSON.parse(JSON.stringify(value));
+
+      const teams=currentWorld().teams
+        .filter(team=>ids.has(team.id))
+        .map(team=>({
+          id:team.id,
+          name:team.name,
+          shortName:team.shortName||team.short||"",
+          logoData:team.logoData||"",
+          color:team.color||"",
+          secondaryColor:team.secondaryColor||"",
+
+          startingOverall:Number(team.startingOverall??team.strength??70),
+          strength:Number(team.strength??team.startingOverall??70),
+
+          trophies:Number(team.trophies||0),
+          worldCupWins:Number(team.worldCupWins||0),
+          permanentWorldCupWins:Number(team.permanentWorldCupWins??team.worldCupWins??0),
+
+          lastStrengthChange:Number(team.lastStrengthChange||0),
+          strengthHistory:clone(team.strengthHistory||[]),
+          developmentProfile:clone(team.developmentProfile||{}),
+
+          matchHistory:clone(team.matchHistory||[]),
+          competitionHistory:clone(team.competitionHistory||[]),
+          rankingHistory:clone(team.rankingHistory||team.rankings||[]),
+          identityData:clone(team.identityData||team.teamIdentity||{})
+        }));
+
+      if(!teams.length)return showToast("Select at least one team to export.",true);
+
+      downloadPortableJson(
+        {
+          exportType:"football-universe-teams",
+          exportVersion:PORTABLE_EXPORT_VERSION,
+          createdAt:new Date().toISOString(),
+          teams
+        },
+        "football-universe-teams.json"
+      );
+
+      $("exportTeamsDialog").close();
+      showToast(`${teams.length} team${teams.length===1?"":"s"} exported`);
+    }
     function parseBulkTeamNames(value) {
       const seen = new Set();
       return String(value || "")
