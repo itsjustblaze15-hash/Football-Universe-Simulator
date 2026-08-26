@@ -4912,7 +4912,7 @@ body.world-cup-theme .startup-kicker{
 
 /* 2) Put version next to FUS logo in top header */
 #appScreen .brand::after{
-  content:"V61.5";
+  content:"V61.6";
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5048,7 +5048,7 @@ body:not(.world-cup-theme) .competition-row:not(.world-cup-card):hover{
 
 /* V52 OFFICIAL */
 #appScreen .brand::after{
-  content:"V61.5" !important;
+  content:"V61.6" !important;
 }
 
 /* Remove old/duplicate bottom-left version displays */
@@ -7995,7 +7995,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
       <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
       <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.5</p>
+      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.6</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -8064,7 +8064,7 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
           <button class="btn secondary small" id="backToWorldsBtn">← Saves</button>
           <img id="fusHeaderLogo" class="fus-logo fus-header-logo hidden" alt="FUS logo">
           <h1 id="worldTitle" style="margin-top:10px"></h1>
-          <p id="saveStatus">V61.5</p>
+          <p id="saveStatus">V61.6</p>
         </div>
         <div class="toolbar">
           <button class="btn secondary" id="manualSaveBtn">Save</button>
@@ -9027,6 +9027,11 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
   <script>
     const STORAGE_KEY = "soccerUniverseSimulatorV1"; // Legacy key retained so existing Football Universe saves remain available.
     const STORAGE_FORMAT_PREFIX = "FUS47LZW1:";
+    const STORAGE_INDEXEDDB_POINTER = "FUS_IDB_V1";
+    const STORAGE_DB_NAME = "FootballUniverseSimulatorDB";
+    const STORAGE_DB_VERSION = 1;
+    const STORAGE_DB_STORE = "saves";
+    const STORAGE_DB_RECORD_KEY = "main";
     const MAX_TEAMS = 30;
     const SAME_COMPETITION_DESTINATION = "__same_competition__";
     const ENABLE_UNIVERSE_MODE = false;
@@ -9102,9 +9107,19 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     COMPETITION_BADGES.superLeague = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fef3c7"/><stop offset=".42" stop-color="#f59e0b"/><stop offset="1" stop-color="#92400e"/></linearGradient></defs><path fill="url(#s)" stroke="#fff7ed" stroke-width="3" d="M60 7l42 17-7 51c-3 20-19 31-35 39-16-8-32-19-35-39l-7-51z"/><path fill="#fff7ed" d="M38 35h44v9h-7c-2 14-8 23-15 26-7-3-13-12-15-26h-7zm17 36h10v11h10v8H45v-8h10z"/><path fill="#f59e0b" d="M30 41h10c1 10 4 16 9 20l-5 6c-8-5-13-14-14-26zm60 0H80c-1 10-4 16-9 20l5 6c8-5 13-14 14-26z"/></svg>`);
 
     let storageLoadFailed = false;
+    let storageWaitingForIndexedDb = false;
+    let indexedDbSaveQueue = Promise.resolve();
+    let indexedDbLastError = null;
+
     let data = loadData();
-    repairSavedData();
-    if (!storageLoadFailed) persistDataSilently();
+
+    // When localStorage contains only the V61.6 IndexedDB pointer, wait for
+    // IndexedDB before repairing/saving. Otherwise an empty bootstrap object
+    // could overwrite the real save before it finishes loading.
+    if (!storageWaitingForIndexedDb) {
+      repairSavedData();
+      if (!storageLoadFailed) persistDataSilently();
+    }
     let currentWorldId = null;
     let currentCareerId = null;
     let currentGameMode = "menu";
@@ -9365,16 +9380,24 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     function loadData() {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) return { worlds: [] };
+
+        if (stored === STORAGE_INDEXEDDB_POINTER) {
+          storageWaitingForIndexedDb = true;
+          return { worlds: [], careerSaves: [] };
+        }
+
+        if (!stored) return { worlds: [], careerSaves: [] };
+
         const json = stored.startsWith(STORAGE_FORMAT_PREFIX)
           ? decompressStorageText(stored.slice(STORAGE_FORMAT_PREFIX.length))
           : stored;
+
         const parsed = JSON.parse(json);
-        return restoreSharedStorageAssets(parsed || { worlds: [] });
+        return restoreSharedStorageAssets(parsed || { worlds: [], careerSaves: [] });
       } catch (error) {
         storageLoadFailed = true;
         console.error("Save load failed; the existing browser entry was left untouched:", error);
-        return { worlds: [] };
+        return { worlds: [], careerSaves: [] };
       }
     }
 
@@ -9826,6 +9849,159 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       return STORAGE_FORMAT_PREFIX + compressStorageText(json);
     }
 
+    function indexedDbSupported(){
+      return typeof indexedDB !== "undefined";
+    }
+
+    function openFusIndexedDb(){
+      return new Promise((resolve,reject)=>{
+        if(!indexedDbSupported())return reject(new Error("IndexedDB is not supported in this browser."));
+
+        const request=indexedDB.open(STORAGE_DB_NAME,STORAGE_DB_VERSION);
+
+        request.onupgradeneeded=()=>{
+          const db=request.result;
+          if(!db.objectStoreNames.contains(STORAGE_DB_STORE)){
+            db.createObjectStore(STORAGE_DB_STORE);
+          }
+        };
+
+        request.onsuccess=()=>resolve(request.result);
+        request.onerror=()=>reject(request.error||new Error("Could not open IndexedDB."));
+        request.onblocked=()=>reject(new Error("IndexedDB upgrade was blocked by another open FUS tab."));
+      });
+    }
+
+    async function readIndexedDbSave(){
+      const db=await openFusIndexedDb();
+
+      try{
+        return await new Promise((resolve,reject)=>{
+          const tx=db.transaction(STORAGE_DB_STORE,"readonly");
+          const request=tx.objectStore(STORAGE_DB_STORE).get(STORAGE_DB_RECORD_KEY);
+          request.onsuccess=()=>resolve(request.result||null);
+          request.onerror=()=>reject(request.error||new Error("Could not read IndexedDB save."));
+          tx.onabort=()=>reject(tx.error||new Error("IndexedDB read was aborted."));
+        });
+      }finally{
+        db.close();
+      }
+    }
+
+    async function writeIndexedDbSave(encoded){
+      const db=await openFusIndexedDb();
+      const record={
+        encoded,
+        savedAt:Date.now(),
+        format:"FUS61-IDB-1"
+      };
+
+      try{
+        await new Promise((resolve,reject)=>{
+          const tx=db.transaction(STORAGE_DB_STORE,"readwrite");
+          tx.objectStore(STORAGE_DB_STORE).put(record,STORAGE_DB_RECORD_KEY);
+          tx.oncomplete=()=>resolve();
+          tx.onerror=()=>reject(tx.error||new Error("Could not write IndexedDB save."));
+          tx.onabort=()=>reject(tx.error||new Error("IndexedDB save was aborted."));
+        });
+      }finally{
+        db.close();
+      }
+
+      return record;
+    }
+
+    function decodeStoredPayload(encoded){
+      if(typeof encoded!=="string"||!encoded)return {worlds:[],careerSaves:[]};
+
+      const json=encoded.startsWith(STORAGE_FORMAT_PREFIX)
+        ?decompressStorageText(encoded.slice(STORAGE_FORMAT_PREFIX.length))
+        :encoded;
+
+      return restoreSharedStorageAssets(JSON.parse(json)||{worlds:[],careerSaves:[]});
+    }
+
+    function markIndexedDbAsPrimary(){
+      try{
+        // Replacing the old multi-megabyte localStorage value with this tiny
+        // pointer immediately frees the localStorage quota.
+        localStorage.setItem(STORAGE_KEY,STORAGE_INDEXEDDB_POINTER);
+        localStorage.setItem(`${STORAGE_KEY}:backend`,"indexeddb");
+        return true;
+      }catch(error){
+        // The IndexedDB save is still valid even if this tiny marker fails.
+        console.warn("IndexedDB save succeeded, but the localStorage pointer could not be written:",error);
+        return false;
+      }
+    }
+
+    function reportIndexedDbSaveFailure(error){
+      indexedDbLastError=error;
+      console.error("IndexedDB save failed:",error);
+
+      const status=$("saveStatus");
+      if(status)status.textContent="Save failed. Export a backup.";
+
+      if(typeof showToast==="function"){
+        showToast("Save failed in browser storage. Export a backup before closing.",true);
+      }
+    }
+
+    function queueIndexedDbSave(encoded){
+      indexedDbSaveQueue=indexedDbSaveQueue
+        .catch(()=>{})
+        .then(async()=>{
+          await writeIndexedDbSave(encoded);
+          indexedDbLastError=null;
+          markIndexedDbAsPrimary();
+          return true;
+        })
+        .catch(error=>{
+          reportIndexedDbSaveFailure(error);
+          throw error;
+        });
+
+      return indexedDbSaveQueue;
+    }
+
+    async function hydrateDataFromIndexedDb(){
+      if(!indexedDbSupported())return false;
+
+      try{
+        const record=await readIndexedDbSave();
+        if(!record?.encoded)return false;
+
+        const loaded=decodeStoredPayload(record.encoded);
+        data=loaded;
+        storageWaitingForIndexedDb=false;
+        storageLoadFailed=false;
+
+        repairSavedData();
+
+        // Keep IndexedDB as the primary backend and remove the old large
+        // localStorage payload if the user upgraded from an older build.
+        markIndexedDbAsPrimary();
+
+        renderWorldList();
+        renderCareerSaveList();
+
+        const status=$("saveStatus");
+        if(status)status.textContent="Saved in expanded browser storage";
+
+        return true;
+      }catch(error){
+        console.error("IndexedDB load failed:",error);
+
+        if(storageWaitingForIndexedDb){
+          storageWaitingForIndexedDb=false;
+          storageLoadFailed=true;
+          showToast("Could not load the browser save. Your stored data was not deleted.",true);
+        }
+
+        return false;
+      }
+    }
+
     function writeStorageValue(encoded) {
       try {
         localStorage.setItem(STORAGE_KEY,encoded);
@@ -9839,9 +10015,18 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
     }
 
     function persistDataSilently() {
-      if (storageLoadFailed) return false;
+      if (storageLoadFailed || storageWaitingForIndexedDb) return false;
+
       try {
-        return writeStorageValue(encodeStorageData());
+        const encoded=encodeStorageData();
+
+        if(indexedDbSupported()){
+          queueIndexedDbSave(encoded);
+          return true;
+        }
+
+        // Very old browser fallback.
+        return writeStorageValue(encoded);
       } catch (error) {
         console.error("Save preparation failed:", error);
         return false;
@@ -9854,17 +10039,30 @@ body.player-mode .season-complete-dialog{animation:playerRise .32s ease both}
       const status = $("saveStatus");
       if (status) {
         status.textContent = saved
-          ? "Saved locally at " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})
-          : "Save failed: storage is full. Export a backup or delete an unused world.";
+          ? (indexedDbSupported()
+              ? "Saving in expanded browser storage…"
+              : "Saved locally at " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}))
+          : "Save failed. Export a backup.";
       }
 
       if (saved && message) showToast(message);
+
       if (!saved) {
-        showToast("Browser storage is still full after asset cleanup. Export a backup or remove an unused save.", true);
+        showToast("Save could not be queued. Export a backup before closing.", true);
+      }
+
+      if(saved && indexedDbSupported()){
+        indexedDbSaveQueue.then(()=>{
+          const liveStatus=$("saveStatus");
+          if(liveStatus)liveStatus.textContent=
+            "Saved in expanded browser storage at " +
+            new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+        }).catch(()=>{});
       }
 
       return saved;
     }
+
 
     let toastTimer = null;
     function showToast(message, danger = false) {
@@ -24937,9 +25135,26 @@ function renderWorldCupQualification() {
 
     document.querySelectorAll('[data-close="managerModeDialog"]').forEach(button=>button.addEventListener('click',()=>$("managerModeDialog").close()));
 
-    renderWorldList();
-    renderCareerSaveList();
     applyOfficialFusLogo();
+
+    if(storageWaitingForIndexedDb){
+      const status=$("saveStatus");
+      if(status)status.textContent="Loading expanded browser save…";
+
+      hydrateDataFromIndexedDb().then(loaded=>{
+        if(!loaded){
+          renderWorldList();
+          renderCareerSaveList();
+        }
+      });
+    }else{
+      renderWorldList();
+      renderCareerSaveList();
+
+      // On the first V61.6 launch, this also lets an existing IndexedDB save
+      // supersede an older localStorage copy if one is present.
+      hydrateDataFromIndexedDb();
+    }
   </script>
 </body>
 </html>
