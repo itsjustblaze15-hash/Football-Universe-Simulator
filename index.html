@@ -12775,25 +12775,61 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
     function playerModePrepareForMatch(career=currentCareerSave(),comp=null,force=false){
       if(!isPlayerMode(career))return null;
-      const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!pm||!player||!club||pm.retired)return null;
+
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        club=playerModeClub(career);
+
+      if(!pm||!player||!club||pm.retired)return null;
+
       playerModeSyncControlledClub(career);
-      if(pm.injury&&pm.injury.days>0){player.isStarter=false;pm.matchSelection="injured";managerRecalculateTeam(club);return pm.matchSelection}
-      if(Number(pm.suspensionMatches||0)>0){player.isStarter=false;pm.matchSelection="suspended";managerRecalculateTeam(club);return pm.matchSelection}
+
+      if(pm.injury&&pm.injury.days>0){
+        pm.matchSelection="injured";
+        playerModeApplyFormationXI(career,club,false);
+        return pm.matchSelection;
+      }
+
+      if(Number(pm.suspensionMatches||0)>0){
+        pm.matchSelection="suspended";
+        playerModeApplyFormationXI(career,club,false);
+        return pm.matchSelection;
+      }
+
       pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,club.strength);
       playerModeUpdateSetPieceDuty(career);
-      let base={"Star Player":.97,"Important Player":.90,"Starter":.77,"Rotation":.48,"Prospect":.28}[pm.squadRole]||.5;
-      if(Number(pm.playingTimePromiseMatches||0)>0){
-        base+=.12;
-      }
-      const chance=clamp(base+(Number(pm.fitness||70)-65)/180+(Number(pm.sharpness||60)-60)/240,0.08,.99);
-      const start=force?Number(pm.fitness||100)>=35:Math.random()<chance&&Number(pm.fitness||100)>=38;
-      player.isStarter=start;
-      if(start){
-        const otherStarters=(club.managerSquad||[]).filter(p=>p.id!==player.id&&p.isStarter).sort((a,b)=>a.overall-b.overall);
-        if(otherStarters.length>=11)otherStarters[0].isStarter=false;
-        pm.matchSelection="starter";
-      }else pm.matchSelection="bench";
-      managerRecalculateTeam(club);return pm.matchSelection;
+
+      let base={
+        "Star Player":.97,
+        "Important Player":.90,
+        "Starter":.77,
+        "Rotation":.48,
+        "Prospect":.28
+      }[pm.squadRole]||.5;
+
+      if(Number(pm.playingTimePromiseMatches||0)>0)base+=.12;
+
+      const chance=clamp(
+        base+
+        (Number(pm.fitness||70)-65)/180+
+        (Number(pm.sharpness||60)-60)/240,
+        .08,
+        .99
+      );
+
+      const requestedStart=force
+        ?Number(pm.fitness||100)>=35
+        :Math.random()<chance&&Number(pm.fitness||100)>=38;
+
+      const view=playerModeApplyFormationXI(career,club,requestedStart);
+      const actuallyStarts=view.placed.some(row=>row.player.id===player.id);
+
+      // If the manager selected you to start, the formation builder will only
+      // put you in a compatible position. If no compatible slot exists, you
+      // remain on the bench rather than being played somewhere absurd.
+      pm.matchSelection=actuallyStarts?"starter":"bench";
+
+      return pm.matchSelection;
     }
 
     function playerModeSelectionLabel(selection){
@@ -14006,29 +14042,193 @@ body.player-calendar-advancing #playerNextMatchBtn{
       }
       return managerPlayerFaceHtml(squadPlayer,context);
     }
-    function playerModeClubFormationView(career,club){
+    function playerModePositionFamily(position){
+      const pos=String(position||"").toUpperCase();
+      if(pos==="GK")return "gk";
+      if(["LB","RB","CB","LWB","RWB"].includes(pos))return "defense";
+      if(["CM","CDM","CAM","LM","RM"].includes(pos))return "midfield";
+      if(["ST","CF","LW","RW"].includes(pos))return "attack";
+      return "other";
+    }
+
+    function playerModeSlotFamily(slot){
+      const label=String(slot?.label||"").toUpperCase();
+      if(label==="GK")return "gk";
+      if(["LB","RB","CB","LWB","RWB"].includes(label))return "defense";
+      if(["CM","CDM","CAM","LM","RM"].includes(label))return "midfield";
+      return "attack";
+    }
+
+    function playerModeFormationFitScore(player,slot,phase="preferred"){
+      const position=String(player?.position||"").toUpperCase();
+      const preferred=(slot?.preferred||[]).map(pos=>String(pos).toUpperCase());
+      const overall=Number(player?.overall||0);
+      const primary=preferred[0]||String(slot?.label||"").toUpperCase();
+      const prefIndex=preferred.indexOf(position);
+
+      // Exact natural position is overwhelmingly preferred.
+      if(phase==="exact"){
+        return position===primary ? 100000+overall : -Infinity;
+      }
+
+      // A listed secondary position is allowed, but an actual natural-position
+      // player will always beat an out-of-position alternative.
+      if(prefIndex>=0){
+        return 50000-(prefIndex*5000)+overall;
+      }
+
+      if(phase!=="emergency")return -Infinity;
+
+      const playerFamily=playerModePositionFamily(position);
+      const slotFamily=playerModeSlotFamily(slot);
+
+      // Goalkeeper is never used outfield and an outfield player is never GK.
+      if(playerFamily==="gk"||slotFamily==="gk")return -Infinity;
+
+      // Never put an attacker at fullback/centre-back. This is the bug that
+      // previously produced ST -> RB.
+      if(slotFamily==="defense"&&playerFamily==="attack")return -Infinity;
+
+      // Emergency football-realistic fallbacks only.
+      if(slotFamily==="defense"&&playerFamily==="midfield")return 1200+overall;
+      if(slotFamily==="midfield"&&playerFamily==="attack")return 1500+overall;
+      if(slotFamily==="midfield"&&playerFamily==="defense")return 900+overall;
+      if(slotFamily==="attack"&&playerFamily==="midfield")return 1300+overall;
+
+      return playerFamily===slotFamily ? 2000+overall : -Infinity;
+    }
+
+    function playerModeBuildFormationXI(career,club,options={}){
       const defs=managerFormationDefinitions();
       const saved=career?.manager?.formation||"4-2-3-1";
       const formation=defs[saved]?saved:"4-2-3-1";
-      const slots=defs[formation].slots;
-      const squad=[...(club?.managerSquad||[])];
-      let starters=squad.filter(p=>p.isStarter).sort((a,b)=>Number(b.overall||0)-Number(a.overall||0)).slice(0,11);
-      if(starters.length<11){
-        const ids=new Set(starters.map(p=>p.id));
-        squad.filter(p=>!ids.has(p.id)).sort((a,b)=>Number(b.overall||0)-Number(a.overall||0)).slice(0,11-starters.length).forEach(p=>starters.push(p));
+      const slots=[...defs[formation].slots];
+      const userPlayer=playerModePlayer(career);
+      const forcePlayerId=options.forcePlayerId||null;
+      const excludePlayerId=options.excludePlayerId||null;
+
+      let pool=[...(club?.managerSquad||[])]
+        .filter(player=>player?.id!==excludePlayerId);
+
+      const placed=[];
+      const remainingSlots=[...slots];
+
+      const place=(slot,player,outOfPosition=false)=>{
+        placed.push({player,slot,outOfPosition});
+        const slotIndex=remainingSlots.indexOf(slot);
+        if(slotIndex>=0)remainingSlots.splice(slotIndex,1);
+        const playerIndex=pool.findIndex(p=>p.id===player.id);
+        if(playerIndex>=0)pool.splice(playerIndex,1);
+      };
+
+      // If Player Career says YOU are starting, force the user only into a
+      // formation slot that genuinely accepts their real position.
+      if(forcePlayerId){
+        const forced=pool.find(p=>p.id===forcePlayerId);
+        if(forced){
+          const compatible=remainingSlots
+            .map(slot=>({
+              slot,
+              index:(slot.preferred||[]).indexOf(forced.position)
+            }))
+            .filter(row=>row.index>=0)
+            .sort((a,b)=>a.index-b.index);
+
+          if(compatible.length){
+            place(compatible[0].slot,forced,compatible[0].index>0);
+          }
+        }
       }
-      const remaining=[...starters],placed=[];
-      for(const slot of slots){
-        if(!remaining.length)break;
-        let bestIndex=0,bestScore=-99999;
-        remaining.forEach((p,index)=>{const score=managerFormationFitScore(p,slot);if(score>bestScore){bestScore=score;bestIndex=index}});
-        const chosen=remaining.splice(bestIndex,1)[0];
-        placed.push({player:chosen,slot,outOfPosition:!slot.preferred.includes(chosen.position)});
+
+      // Pass 1: fill every slot with its NATURAL position first.
+      // This protects RBs from being consumed at CB, CBs from being used at LB,
+      // STs from being used on the wing when a real winger exists, etc.
+      for(const slot of [...remainingSlots]){
+        const candidates=pool
+          .map(player=>({
+            player,
+            score:playerModeFormationFitScore(player,slot,"exact")
+          }))
+          .filter(row=>Number.isFinite(row.score))
+          .sort((a,b)=>b.score-a.score);
+
+        if(candidates.length){
+          place(slot,candidates[0].player,false);
+        }
       }
+
+      // Pass 2: use the formation's explicitly allowed secondary positions.
+      for(const slot of [...remainingSlots]){
+        const candidates=pool
+          .map(player=>({
+            player,
+            score:playerModeFormationFitScore(player,slot,"preferred"),
+            prefIndex:(slot.preferred||[]).indexOf(player.position)
+          }))
+          .filter(row=>Number.isFinite(row.score))
+          .sort((a,b)=>b.score-a.score);
+
+        if(candidates.length){
+          place(slot,candidates[0].player,candidates[0].prefIndex>0);
+        }
+      }
+
+      // Pass 3: emergency same-family options. Attackers are HARD BLOCKED from
+      // defensive slots, so an ST can never become an RB/CB/LB again.
+      for(const slot of [...remainingSlots]){
+        const candidates=pool
+          .map(player=>({
+            player,
+            score:playerModeFormationFitScore(player,slot,"emergency")
+          }))
+          .filter(row=>Number.isFinite(row.score))
+          .sort((a,b)=>b.score-a.score);
+
+        if(candidates.length){
+          place(slot,candidates[0].player,true);
+        }
+      }
+
+      // If a malformed/old squad genuinely cannot fill a slot, leave it empty
+      // rather than inventing a ridiculous position assignment.
       const used=new Set(placed.map(row=>row.player.id));
-      const bench=squad.filter(p=>!used.has(p.id)).sort((a,b)=>Number(b.overall||0)-Number(a.overall||0));
-      return {formation,placed,bench};
+      const bench=(club?.managerSquad||[])
+        .filter(player=>!used.has(player.id))
+        .sort((a,b)=>Number(b.overall||0)-Number(a.overall||0));
+
+      return {formation,placed,bench,unfilledSlots:remainingSlots};
     }
+
+    function playerModeApplyFormationXI(career,club,playerShouldStart=null){
+      const player=playerModePlayer(career);
+      const forcePlayerId=playerShouldStart===true?player?.id:null;
+      const excludePlayerId=playerShouldStart===false?player?.id:null;
+      const view=playerModeBuildFormationXI(career,club,{forcePlayerId,excludePlayerId});
+      const xiIds=new Set(view.placed.map(row=>row.player.id));
+
+      (club?.managerSquad||[]).forEach(squadPlayer=>{
+        squadPlayer.isStarter=xiIds.has(squadPlayer.id);
+      });
+
+      managerRecalculateTeam(club);
+      return view;
+    }
+
+    function playerModeClubFormationView(career,club){
+      const pm=playerModeData(career);
+      const player=playerModePlayer(career);
+
+      let playerShouldStart=null;
+      if(pm?.matchSelection==="starter")playerShouldStart=true;
+      else if(["bench","injured","suspended","not_selected"].includes(pm?.matchSelection))playerShouldStart=false;
+      else if(player)playerShouldStart=!!player.isStarter;
+
+      return playerModeBuildFormationXI(career,club,{
+        forcePlayerId:playerShouldStart===true?player?.id:null,
+        excludePlayerId:playerShouldStart===false?player?.id:null
+      });
+    }
+
     function renderPlayerClub(){
       const career=currentCareerSave(),panel=$("tab-player-club");
       if(!panel||!isPlayerMode(career))return;
@@ -14086,7 +14286,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
                 }).join(''):'<p class="muted">No substitutes available.</p>'}
               </div>
             </section>
-            <div class="player-club-status-strip"><span>This is a read-only squad view. You are the player, so lineup management stays with the manager.</span><span><strong>You:</strong> ${escapeHtml(squadStatus)} · <strong>Captaincy:</strong> ${escapeHtml(pm.captaincy)} · <strong>Set Pieces:</strong> ${escapeHtml(pm.setPieceDuty||'None')}</span></div>
+            <div class="player-club-status-strip"><span>This is a read-only squad view. The manager now selects the XI by natural position first${view.unfilledSlots?.length?` · ${view.unfilledSlots.length} formation slot${view.unfilledSlots.length===1?' is':'s are'} currently unfilled because the squad has no sensible positional option.`:'.'}</span><span><strong>You:</strong> ${escapeHtml(squadStatus)} · <strong>Captaincy:</strong> ${escapeHtml(pm.captaincy)} · <strong>Set Pieces:</strong> ${escapeHtml(pm.setPieceDuty||'None')}</span></div>
           </section>
         </div>`;
     }
