@@ -5881,6 +5881,26 @@ body.world-cup-theme .app-nav .tab.active{
   }
 }
 
+
+/* V61.15 — persistent Player Career offers + restored news */
+body.player-mode [data-tab="player-latest-transfers"]{
+  display:flex!important;
+}
+.player-interest-row:has([data-player-review-offer]){
+  border-color:rgba(139,92,246,.28);
+  background:linear-gradient(90deg,rgba(124,58,237,.10),transparent),var(--panel-2);
+}
+#tab-news .news-feed{
+  display:grid;
+  gap:10px;
+}
+#tab-news .news-card{
+  min-height:90px;
+}
+#tab-player-latest-transfers .manager-global-transfers-card{
+  margin:0;
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -9042,6 +9062,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <button class="tab" data-tab="world-timeline">🌍 World Timeline</button>
           <button class="tab" data-tab="world-cup-winners">🏆 World Cup Winners</button>
           <button class="tab" data-tab="rivalries">⚔️ Head-to-Head</button>
+          <button class="tab" data-tab="news">📰 News</button>
+          <button class="tab player-only" data-tab="player-latest-transfers">🌍 Latest Transfers</button>
           <button class="tab" data-tab="news-history">★ News History</button>
           <button class="tab manager-only" data-tab="manager-squad">👥 Squad</button>
           <button class="tab manager-only" data-tab="manager-transfers">🔄 Transfers</button>
@@ -9072,6 +9094,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <section id="tab-world-timeline" class="tab-panel hidden"></section>
           <section id="tab-world-cup-winners" class="tab-panel hidden"></section>
           <section id="tab-rivalries" class="tab-panel hidden"></section>
+          <section id="tab-news" class="tab-panel hidden"></section>
+          <section id="tab-player-latest-transfers" class="tab-panel hidden"></section>
           <section id="tab-news-history" class="tab-panel hidden"></section>
           <section id="tab-manager-squad" class="tab-panel hidden"></section>
           <section id="tab-manager-transfers" class="tab-panel hidden"></section>
@@ -11955,8 +11979,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
         agentIntent:"Stay and develop",
         agentStatus:"Your agent is keeping transfer talks quiet while you develop at your current club.",
         transferInterest:[],
+        transferOffers:[],
         pendingOffer:null,
-        transferSystemVersion:"v61.8",
+        transferSystemVersion:"v61.15",
         playingTimePromiseMatches:0,
         lastAgentCheckDate:"",
         loan:null,
@@ -12027,7 +12052,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.managerTrust=Number(pm.managerTrust??50);
       pm.fitness=Number(pm.fitness??100);pm.sharpness=Number(pm.sharpness??70);pm.morale=Number(pm.morale??75);pm.pressure=Number(pm.pressure??20);pm.reputation=Number(pm.reputation??35);pm.chemistry=Number(pm.chemistry??50);
       pm.stats=pm.stats||{appearances:0,starts:0,subApps:0,goals:0,assists:0,motm:0,cleanSheets:0,tackles:0,saves:0,ratingTotal:0,ratedMatches:0};
-      pm.seasonStats=pm.seasonStats||{};pm.matchHistory=Array.isArray(pm.matchHistory)?pm.matchHistory:[];pm.milestones=Array.isArray(pm.milestones)?pm.milestones:[];pm.trophyCabinet=Array.isArray(pm.trophyCabinet)?pm.trophyCabinet:[];pm.awards=Array.isArray(pm.awards)?pm.awards:[];pm.careerTimeline=Array.isArray(pm.careerTimeline)?pm.careerTimeline:[];pm.monthlyReviews=Array.isArray(pm.monthlyReviews)?pm.monthlyReviews:[];pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];pm.rivals=pm.rivals||{};pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];pm.calendarAssignments=pm.calendarAssignments||{};pm.trainingDates=Array.isArray(pm.trainingDates)?pm.trainingDates:[];pm.international=pm.international||{status:"Not called up",appearances:0,goals:0,captain:false};
+      pm.seasonStats=pm.seasonStats||{};pm.matchHistory=Array.isArray(pm.matchHistory)?pm.matchHistory:[];pm.milestones=Array.isArray(pm.milestones)?pm.milestones:[];pm.trophyCabinet=Array.isArray(pm.trophyCabinet)?pm.trophyCabinet:[];pm.awards=Array.isArray(pm.awards)?pm.awards:[];pm.careerTimeline=Array.isArray(pm.careerTimeline)?pm.careerTimeline:[];pm.monthlyReviews=Array.isArray(pm.monthlyReviews)?pm.monthlyReviews:[];pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];pm.rivals=pm.rivals||{};pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];pm.calendarAssignments=pm.calendarAssignments||{};pm.trainingDates=Array.isArray(pm.trainingDates)?pm.trainingDates:[];pm.international=pm.international||{status:"Not called up",appearances:0,goals:0,captain:false};
       pm.currentDate=pm.currentDate||`${SEASON_START_YEAR+Number(career.worldSeason||1)-1}-08-01`;pm.calendarView=pm.calendarView||pm.currentDate.slice(0,7);pm.roadCap=Number(pm.roadCap||playerModeStartingRoadCap(player.overall));pm.skillMoves=Number(pm.skillMoves||positionSkillBase(player.position));pm.weakFoot=Number(pm.weakFoot||3);pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,playerModeClub(career)?.strength||70);pm.setPieceDuty=pm.setPieceDuty||"None";
       pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
       pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
@@ -12055,12 +12080,26 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.agentStatus=pm.agentStatus||"Your agent is following your current career instruction.";
       pm.playingTimePromiseMatches=Number(pm.playingTimePromiseMatches||0);
       pm.lastAgentCheckDate=pm.lastAgentCheckDate||"";
-      if(pm.transferSystemVersion!=="v61.8"){
-        // Expire old one-click offers created by the previous unrealistic system.
-        pm.pendingOffer=null;
-        pm.transferInterest=[];
-        pm.transferSystemVersion="v61.8";
-        pm.agentStatus="Transfer market upgraded: clubs now evaluate you before any deal reaches personal terms.";
+      if(pm.transferSystemVersion!=="v61.15"){
+        // V61.15 keeps existing interest instead of wiping it during the upgrade.
+        // If an older build already had personal terms waiting, preserve them as
+        // a formal offer so the user can still act on it when the window opens.
+        if(pm.pendingOffer?.clubId){
+          const existing=pm.transferOffers.find(row=>row.clubId===pm.pendingOffer.clubId);
+          if(!existing){
+            pm.transferOffers.unshift({
+              id:pm.pendingOffer.id||uid(),
+              ...pm.pendingOffer,
+              status:managerWindowOpen(career)?"ready":"waiting-window",
+              createdSeason:Number(career.worldSeason||1),
+              validThroughSeason:Number(career.worldSeason||1)+1
+            });
+          }
+        }
+        pm.transferSystemVersion="v61.15";
+        pm.agentStatus=pm.transferOffers.length
+          ?"Your existing transfer offer was preserved. It will remain available into the next summer window."
+          :"Transfer system upgraded: serious interest and formal offers now survive the season change.";
       }
       playerModeSyncControlledClub(career);
       player.overall=playerModeCalculateOverallFromAttributes(player.position,pm.attributes);
@@ -13467,6 +13506,79 @@ body.player-calendar-advancing #playerNextMatchBtn{
       };
     }
 
+    function playerModeFormalOfferStatus(career,offer){
+      if(!offer)return "Unknown";
+      if(offer.status==="accepted-waiting-window")return "Move Agreed · Waiting for Window";
+      if(offer.status==="waiting-window")return "Formal Offer · Window Closed";
+      if(offer.status==="ready")return "Formal Offer · Ready";
+      return "Formal Offer";
+    }
+
+    function playerModeFindFormalOffer(career,clubId){
+      const pm=playerModeData(career);
+      return (pm?.transferOffers||[]).find(row=>row.clubId===clubId)||null;
+    }
+
+    function playerModeUpsertFormalOffer(career,offer){
+      const pm=playerModeData(career);
+      if(!pm||!offer?.clubId)return null;
+      pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];
+      const index=pm.transferOffers.findIndex(row=>row.clubId===offer.clubId);
+      const row={
+        id:offer.id||pm.transferOffers[index]?.id||uid(),
+        createdSeason:Number(offer.createdSeason||career.worldSeason||1),
+        validThroughSeason:Number(offer.validThroughSeason||Number(career.worldSeason||1)+1),
+        ...pm.transferOffers[index],
+        ...offer
+      };
+      if(index>=0)pm.transferOffers.splice(index,1);
+      pm.transferOffers.unshift(row);
+      return row;
+    }
+
+    function playerModePruneTransferOffers(career=currentCareerSave()){
+      const pm=playerModeData(career);
+      if(!pm)return;
+      const season=Number(career.worldSeason||1);
+      pm.transferOffers=(pm.transferOffers||[]).filter(offer=>{
+        if(!offer?.clubId)return false;
+        if(offer.status==="accepted-waiting-window")return true;
+        if(Number(offer.validThroughSeason||season)>=season)return true;
+        return false;
+      });
+    }
+
+    function playerModeActivateSummerOffers(career=currentCareerSave()){
+      if(!isPlayerMode(career))return;
+      const pm=playerModeData(career);
+      if(!pm)return;
+      playerModePruneTransferOffers(career);
+      (pm.transferOffers||[]).forEach(offer=>{
+        if(["waiting-window","accepted-waiting-window"].includes(offer.status)){
+          offer.status=offer.status==="accepted-waiting-window"
+            ?"accepted-waiting-window"
+            :"ready";
+          offer.validThroughSeason=Math.max(
+            Number(offer.validThroughSeason||0),
+            Number(career.worldSeason||1)
+          );
+        }
+      });
+      if(pm.transferOffers.length){
+        pm.agentStatus="The summer transfer window is open. Your carried-over offers are still available.";
+      }
+    }
+
+    function playerModeReviewFormalOffer(offerId){
+      const career=currentCareerSave(),pm=playerModeData(career);
+      if(!pm)return;
+      const offer=(pm.transferOffers||[]).find(row=>row.id===offerId);
+      if(!offer)return showToast("That offer is no longer available.",true);
+      pm.pendingOffer={...offer};
+      saveData("");
+      renderPlayerAgent();
+    }
+
     function playerModeRefreshTransferInterest(career=currentCareerSave(),force=false){
       if(!isPlayerMode(career))return;
 
@@ -13476,13 +13588,28 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
       if(!pm||!player)return;
 
+      playerModePruneTransferOffers(career);
+
+      const previous=(pm.transferInterest||[])
+        .filter(row=>row?.clubId&&row.clubId!==current?.id)
+        .map(row=>({...row}));
+
       if(pm.agentIntent==="Stay and develop"){
-        pm.transferInterest=[];
-        pm.agentStatus="No clubs are being contacted. Your agent is protecting your development plan at your current club.";
+        // Do NOT erase existing serious interest. Clubs that already contacted
+        // the player can remain interested even if the agent stops seeking new
+        // moves.
+        pm.transferInterest=previous.filter(row=>
+          Number(row.interest||0)>=62 ||
+          !!playerModeFindFormalOffer(career,row.clubId)
+        );
+        pm.agentStatus=pm.transferOffers.length
+          ?"Your agent is not seeking new clubs, but existing formal offers remain available."
+          :"No new clubs are being contacted. Existing serious interest will not be erased.";
         return;
       }
 
       const currentLeague=playerModeDomesticLeagueForClub(career,current?.id);
+      const season=Number(career.worldSeason||1);
 
       let rows=(career.teams||[])
         .filter(team=>team.id!==current?.id)
@@ -13498,7 +13625,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
             leagueName:targetLeague?.name||"",
             differentLeague:fit.differentLeague,
             affordable:fit.affordable,
-            targetRep:fit.targetRep
+            targetRep:fit.targetRep,
+            savedSeason:season,
+            lastSeenDate:pm.currentDate
           };
         });
 
@@ -13515,24 +13644,56 @@ body.player-calendar-advancing #playerNextMatchBtn{
         rows=rows.filter(row=>row.differentLeague);
       }
 
-      // Clubs below monitoring level are not shown. A maximum of 7 keeps the
-      // page believable rather than pretending half of Europe wants the player.
-      pm.transferInterest=rows
+      const merged=new Map();
+
+      // Current scouting result.
+      rows
         .filter(row=>row.interest>=46)
+        .forEach(row=>merged.set(row.clubId,row));
+
+      // Carry serious late-season interest into the next window. This is what
+      // stops May offers disappearing the second a new season starts.
+      previous.forEach(old=>{
+        const formal=playerModeFindFormalOffer(career,old.clubId);
+        const shouldCarry=Number(old.interest||0)>=62||!!formal;
+        if(!shouldCarry)return;
+
+        const currentRow=merged.get(old.clubId);
+        if(!currentRow||Number(old.interest||0)>Number(currentRow.interest||0)){
+          merged.set(old.clubId,{
+            ...old,
+            carried:true,
+            interestLabel:formal
+              ?"Formal Offer"
+              :(old.interestLabel||playerModeTransferInterestLabel(old.interest)),
+            reason:formal
+              ?"This club already submitted a formal offer. It remains on file."
+              :(old.reason||"The club's previous interest is being carried into the next transfer window.")
+          });
+        }
+      });
+
+      pm.transferInterest=[...merged.values()]
         .sort((a,b)=>{
-          if(b.interest!==a.interest)return b.interest-a.interest;
+          const aFormal=playerModeFindFormalOffer(career,a.clubId)?1:0;
+          const bFormal=playerModeFindFormalOffer(career,b.clubId)?1:0;
+          if(bFormal!==aFormal)return bFormal-aFormal;
+          if(Number(b.interest||0)!==Number(a.interest||0))return Number(b.interest||0)-Number(a.interest||0);
           const teamA=managerTeam(a.clubId,career),teamB=managerTeam(b.clubId,career);
           return Number(teamB?.strength||0)-Number(teamA?.strength||0) ||
             String(teamA?.name||"").localeCompare(String(teamB?.name||""));
         })
-        .slice(0,7);
+        .slice(0,10);
 
-      const serious=pm.transferInterest.filter(r=>r.interest>=74).length;
+      const serious=pm.transferInterest.filter(r=>Number(r.interest||0)>=74).length;
+      const formal=(pm.transferOffers||[]).length;
       const monitoring=pm.transferInterest.length-serious;
 
-      pm.agentStatus=pm.transferInterest.length
-        ?`${serious?`${serious} club${serious===1?" has":"s have"} serious interest`: "No club is ready to bid yet"}${monitoring?` · ${monitoring} monitoring`:""}.`
-        :"No realistic club matches your instruction right now. Keep performing, developing and building your reputation.";
+      pm.agentStatus=formal
+        ?`${formal} formal offer${formal===1?" is":"s are"} on file. ${managerWindowOpen(career)?"You can complete a deal now.":"They will stay available for the upcoming window."}`
+        :pm.transferInterest.length
+          ?`${serious?`${serious} club${serious===1?" has":"s have"} serious interest`:"No club is ready to bid yet"}${monitoring?` · ${monitoring} monitoring`:""}.`
+          :"No realistic club matches your instruction right now. Keep performing, developing and building your reputation.";
     }
 
     function playerModeSetAgentIntent(intent){
@@ -13566,16 +13727,23 @@ body.player-calendar-advancing #playerNextMatchBtn{
       renderPlayerHub();
     }
     function playerModeConsiderMove(clubId,loan=false){
-      const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career),club=managerTeam(clubId,career);
+      const career=currentCareerSave(),
+        pm=playerModeData(career),
+        player=playerModePlayer(career),
+        club=managerTeam(clubId,career);
+
       if(!pm||!player||!club)return;
 
-      if(!managerWindowOpen(career)){
-        return showToast("The transfer window is closed.",true);
+      const existing=playerModeFindFormalOffer(career,club.id);
+      if(existing){
+        pm.pendingOffer={...existing};
+        saveData("");
+        renderPlayerAgent();
+        return;
       }
 
       const interestRow=pm.transferInterest.find(row=>row.clubId===clubId);
       const interest=Number(interestRow?.interest||playerModeClubInterestScore(career,club));
-
       const agreement=playerModeTransferAgreement(career,club,interest,!!loan);
 
       if(!agreement.ok){
@@ -13590,7 +13758,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
         return;
       }
 
-      pm.pendingOffer={
+      const open=managerWindowOpen(career);
+      const offer=playerModeUpsertFormalOffer(career,{
+        id:uid(),
         clubId:club.id,
         loan:!!loan,
         interest,
@@ -13604,22 +13774,31 @@ body.player-calendar-advancing #playerNextMatchBtn{
         targetApproved:true,
         currentApproved:true,
         stage:"personal-terms",
-        createdDate:pm.currentDate
-      };
+        status:open?"ready":"waiting-window",
+        createdDate:pm.currentDate,
+        createdSeason:Number(career.worldSeason||1),
+        validThroughSeason:Number(career.worldSeason||1)+1
+      });
 
-      pm.agentStatus=`Club-to-club agreement reached with ${club.name}. Personal terms are ready for your signature.`;
-      saveData("Transfer agreement reached");
+      pm.pendingOffer={...offer};
+
+      pm.agentStatus=open
+        ?`Formal terms from ${club.name} are ready for your decision.`
+        :`${club.name}'s offer is saved. You can agree the move now and complete it when the summer window opens.`;
+
+      saveData("Transfer offer saved");
 
       playerModeShowCeremony(
-        "CLUBS AGREE",
+        open?"FORMAL OFFER":"PRE-WINDOW AGREEMENT",
         club.name,
         loan
-          ?`${playerModeClub(career)?.name||"Your club"} and ${club.name} approved a season loan. Personal terms are ready.`
-          :`${club.name} agreed a ${money(agreement.fee)} fee with ${playerModeClub(career)?.name||"your current club"}. Personal terms are ready.`
+          ?`${club.name} approved a season loan. ${open?"You can complete it now.":"The agreement will remain valid for the next transfer window."}`
+          :`${club.name} and ${playerModeClub(career)?.name||"your current club"} reached terms around ${money(agreement.fee)}. ${open?"You can sign now.":"The deal can be agreed now and registered when the window opens."}`
       );
 
       renderPlayerAgent();
     }
+
     function playerModeMovePlayer(career,toClub,offer){
       const pm=playerModeData(career),player=playerModePlayer(career),from=playerModeClub(career);
       if(!pm||!player||!toClub)return false;
@@ -13670,6 +13849,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.chemistry=42;
       pm.calendarAssignments={};
       pm.pendingOffer=null;
+      pm.transferOffers=[];
       pm.transferInterest=[];
       pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,toClub.strength);
       pm.agentStatus=`Officially joined ${toClub.name}. Your agent will reassess your career plan after you settle in.`;
@@ -13690,6 +13870,17 @@ body.player-calendar-advancing #playerNextMatchBtn{
         fee,
         timestamp:Date.now(),
         reason:offer.loan?"Player Mode loan":"Player Mode transfer"
+      });
+
+      addFootballNews({
+        key:`transfer-${player.id}-${career.worldSeason}-${toClub.id}-${Date.now()}`,
+        type:"transfer",
+        icon:"🔄",
+        teamIds:[from?.id,toClub.id].filter(Boolean),
+        headline:offer.loan
+          ?`${player.name} joins ${toClub.name} on loan.`
+          :`${player.name} completes a ${money(fee)} move to ${toClub.name}.`,
+        competitionName:"Transfer News"
       });
 
       pm.careerTimeline.unshift({
@@ -13765,24 +13956,61 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const career=currentCareerSave(),pm=playerModeData(career);
       if(!pm?.pendingOffer)return;
 
+      const club=managerTeam(pm.pendingOffer.clubId,career);
+      const offerId=pm.pendingOffer.id;
+      const stored=(pm.transferOffers||[]).find(row=>row.id===offerId||row.clubId===pm.pendingOffer.clubId);
+
       if(!accept){
-        const club=managerTeam(pm.pendingOffer.clubId,career);
-        pm.agentStatus=`You rejected ${club?.name||"the club"}'s personal terms.`;
+        pm.agentStatus=`You rejected ${club?.name||"the club"}'s offer.`;
+        pm.transferOffers=(pm.transferOffers||[]).filter(row=>
+          row.id!==offerId && row.clubId!==pm.pendingOffer.clubId
+        );
         pm.pendingOffer=null;
         saveData("Transfer offer rejected");
         renderPlayerAgent();
         return;
       }
 
-      const club=managerTeam(pm.pendingOffer.clubId,career);
-      const offer={...pm.pendingOffer};
-
       if(!club)return showToast("The club is no longer available.",true);
 
-      if(offer.stage!=="personal-terms" || !offer.targetApproved || !offer.currentApproved){
+      if(pm.pendingOffer.stage!=="personal-terms" || !pm.pendingOffer.targetApproved || !pm.pendingOffer.currentApproved){
         return showToast("The clubs have not completed their agreement yet.",true);
       }
 
+      // Real-life style: agreements can be reached outside a registration
+      // window. The transfer itself completes once the window opens.
+      if(!managerWindowOpen(career)){
+        if(stored){
+          stored.status="accepted-waiting-window";
+          stored.acceptedDate=pm.currentDate;
+          stored.acceptedSeason=Number(career.worldSeason||1);
+          stored.validThroughSeason=Math.max(
+            Number(stored.validThroughSeason||0),
+            Number(career.worldSeason||1)+1
+          );
+        }else{
+          playerModeUpsertFormalOffer(career,{
+            ...pm.pendingOffer,
+            status:"accepted-waiting-window",
+            acceptedDate:pm.currentDate,
+            acceptedSeason:Number(career.worldSeason||1),
+            validThroughSeason:Number(career.worldSeason||1)+1
+          });
+        }
+
+        pm.agentStatus=`You agreed to join ${club.name}. The deal is locked in and will remain available when the next transfer window opens.`;
+        pm.pendingOffer=null;
+        saveData("Move agreed for next transfer window");
+        playerModeShowCeremony(
+          "MOVE AGREED",
+          club.name,
+          "Personal terms are agreed. The transfer will remain on file until the window opens, then you can complete the move."
+        );
+        renderPlayerAgent();
+        return;
+      }
+
+      const offer={...pm.pendingOffer};
       playerModeShowSigningAnimation(career,club,offer);
     }
     function playerModeRequestRenewal(){
@@ -13805,7 +14033,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(player.age>=32){["Acceleration","Sprint Speed","Stamina","Agility","Reactions"].forEach(key=>{if(pm.attributes[key]!=null)pm.attributes[key]=Math.max(35,Number(pm.attributes[key])-1)});player.overall=playerModeCalculateOverallFromAttributes(player.position,pm.attributes)}
       if(player.age>=35)pm.retirementEligible=true;
       if(pm.loan&&Number(career.worldSeason||1)>=Number(pm.loan.returnSeason||999)){const parent=managerTeam(pm.loan.fromClubId,career);if(parent){playerModeMovePlayer(career,parent,{loan:false,fee:0,wage:player.wage});pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:"loan-return",clubId:parent.id,text:`Returned to ${parent.name} after loan.`})}pm.loan=null}
-      pm.currentDate=`${SEASON_START_YEAR+Number(career.worldSeason||1)}-08-01`;pm.calendarView=pm.currentDate.slice(0,7);pm.calendarAssignments={};pm.calendarScheduleVersion="v61.9";pm.trainingDates=[];pm.fitness=100;pm.sharpness=68;pm.pressure=Math.max(10,pm.pressure-8);pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};pm.discipline.seasonYellowCards=0;playerModeCheckRoadUnlocks(career);playerModeRefreshTransferInterest(career,true);
+      pm.currentDate=`${SEASON_START_YEAR+Number(career.worldSeason||1)}-08-01`;pm.calendarView=pm.currentDate.slice(0,7);pm.calendarAssignments={};pm.calendarScheduleVersion="v61.9";pm.trainingDates=[];pm.fitness=100;pm.sharpness=68;pm.pressure=Math.max(10,pm.pressure-8);pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};pm.discipline.seasonYellowCards=0;playerModeCheckRoadUnlocks(career);
+      // Keep May/June transfer interest and formal offers intact. The new
+      // season refresh will merge new scouting with carried-over interest.
+      playerModePruneTransferOffers(career);
     }
     function playerModeRetire(){
       const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career);if(!pm||!player)return;if(!pm.retirementEligible&&player.age<35)return showToast("Retirement becomes available from age 35.",true);if(!confirm(`Retire ${player.name} now and finish this Player Mode career?`))return;pm.retired=true;pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:"retirement",clubId:playerModeClub(career)?.id||null,text:`Retired at age ${player.age}.`});saveData("Player retired");playerModeShowCeremony("CAREER COMPLETE",player.name,`${pm.stats.appearances} appearances · ${pm.stats.goals} goals · ${pm.trophyCabinet.length} trophies`);renderPlayerCareer();renderPlayerHub()
@@ -14325,6 +14556,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           </div>
 
           <p class="muted" style="margin-top:10px">${escapeHtml(pm.agentStatus||"")}</p>
+          <div style="margin-top:12px">${managerTransferWindowBanner(career)}</div>
         </div>
 
         ${pending&&offerClub?`
@@ -14350,13 +14582,56 @@ body.player-calendar-advancing #playerNextMatchBtn{
               ${teamLogo(offerClub)}
             </div>
 
+            <div class="notice" style="margin-top:12px">
+              <strong>${managerWindowOpen(career)?"Transfer window open":"Transfer window closed"}</strong><br>
+              ${managerWindowOpen(career)
+                ?"You can complete this move immediately."
+                :"You can agree the move now. It will stay saved and can be completed when the next window opens."}
+            </div>
             <div class="toolbar" style="margin-top:12px">
-              <button class="btn success" id="playerAcceptOfferBtn">✍️ Sign Contract</button>
-              <button class="btn danger" id="playerRejectOfferBtn">Reject Terms</button>
+              <button class="btn success" id="playerAcceptOfferBtn">${managerWindowOpen(career)?"✍️ Sign & Complete Transfer":"🤝 Agree Move for Summer"}</button>
+              <button class="btn danger" id="playerRejectOfferBtn">Reject Offer</button>
             </div>
           </article>`
           :""
         }
+
+        ${(pm.transferOffers||[]).length?`
+          <article class="card" style="margin-top:14px">
+            <div class="archive-header">
+              <div>
+                <div class="startup-kicker">📨 FORMAL OFFERS</div>
+                <h2>Offers That Stay on File</h2>
+                <p class="muted">These offers do not disappear just because the season changes or the window is closed.</p>
+              </div>
+              <span class="badge">${pm.transferOffers.length} offer${pm.transferOffers.length===1?"":"s"}</span>
+            </div>
+            <div class="player-transfer-interest">
+              ${pm.transferOffers.map(offer=>{
+                const club=managerTeam(offer.clubId,career);
+                if(!club)return "";
+                const accepted=offer.status==="accepted-waiting-window";
+                return `<div class="player-interest-row">
+                  ${teamLogoForSave(club)}
+                  <div>
+                    <strong>${escapeHtml(club.name)}</strong>
+                    <small class="muted" style="display:block">
+                      ${escapeHtml(playerModeFormalOfferStatus(career,offer))} ·
+                      ${offer.loan?"Season loan":money(offer.fee)}
+                    </small>
+                    <small class="muted" style="display:block;margin-top:3px">
+                      ${money(offer.wage)}/week · ${escapeHtml(offer.targetRole||"Squad role")}
+                    </small>
+                  </div>
+                  <div>
+                    <button class="btn ${accepted&&managerWindowOpen(career)?"success":"secondary"} small" data-player-review-offer="${offer.id}">
+                      ${accepted&&managerWindowOpen(career)?"Complete Move":"Review Offer"}
+                    </button>
+                  </div>
+                </div>`;
+              }).join("")}
+            </div>
+          </article>`:""}
 
         <article class="card" style="margin-top:14px">
           <div class="archive-header">
@@ -14386,7 +14661,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
                   </small>
                 </div>
                 <div>
-                  <button class="btn secondary small" data-player-consider-club="${club.id}">Ask Agent to Contact</button>
+                  <button class="btn secondary small" data-player-consider-club="${club.id}">
+                    ${playerModeFindFormalOffer(career,club.id)?"Review Formal Offer":"Request Formal Offer"}
+                  </button>
                   ${canLoan?`<button class="btn secondary small" data-player-loan-club="${club.id}" style="margin-top:5px">Ask About Loan</button>`:""}
                 </div>
               </div>`;
@@ -14410,6 +14687,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
         button=>button.onclick=()=>playerModeConsiderMove(button.dataset.playerLoanClub,true)
       );
 
+      panel.querySelectorAll("[data-player-review-offer]").forEach(
+        button=>button.onclick=()=>playerModeReviewFormalOffer(button.dataset.playerReviewOffer)
+      );
+
       $("playerRefreshInterestBtn")?.addEventListener("click",()=>{
         playerModeRefreshTransferInterest(career,true);
         saveData("");
@@ -14429,7 +14710,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const career=currentCareerSave(),panel=$("tab-player-career");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career);const rivals=Object.values(pm.rivals||{}).sort((a,b)=>b.intensity-a.intensity).slice(0,5);panel.innerHTML=`<div class="card"><div class="startup-kicker">📚 CAREER HISTORY</div><h1>${escapeHtml(player?.name||"Player")}</h1><div class="manager-summary-grid"><div class="manager-summary-card"><small>Appearances</small><strong>${pm.stats.appearances}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${pm.stats.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${pm.stats.assists}</strong></div><div class="manager-summary-card"><small>Trophies</small><strong>${pm.trophyCabinet.length}</strong></div><div class="manager-summary-card"><small>Awards</small><strong>${pm.awards.length}</strong></div><div class="manager-summary-card"><small>Highest Status</small><strong>${escapeHtml(playerModeReputationLabel(pm.reputation))}</strong></div></div></div><div class="player-dashboard-grid"><article class="card"><h2>Career Timeline</h2><div class="player-history-list">${pm.careerTimeline.slice(0,40).map(row=>`<div class="player-history-row"><span class="badge">${escapeHtml(seasonDisplay(row.season||1))}</span><span>${escapeHtml(row.text)}</span><span>${row.clubId?escapeHtml(managerTeam(row.clubId,career)?.name||''):''}</span></div>`).join("")||`<p class="muted">Career history begins here.</p>`}</div></article><article class="card"><h2>Milestones</h2><div class="player-history-list">${pm.milestones.slice(0,40).map(row=>`<div class="player-history-row"><span>⭐</span><span>${escapeHtml(row.text)}</span><span class="muted">${escapeHtml(row.date||seasonDisplay(row.season||1))}</span></div>`).join("")||`<p class="muted">No milestones yet.</p>`}</div></article><article class="card"><h2>Personal Rivalries</h2>${rivals.map(r=>{const club=managerTeam(r.clubId,career),rival=managerPlayerById(r.rivalPlayerId,career);return `<div class="stage"><strong>${escapeHtml(club?.name||'Unknown Club')}</strong><div class="muted">${r.meetings} meetings · Intensity ${r.intensity}${rival?` · Rival: ${escapeHtml(rival.name)}`:''}</div></div>`}).join("")||`<p class="muted">Rivalries build after repeated big matches.</p>`}</article><article class="card"><h2>Retirement</h2><p class="muted">Retirement becomes your choice from age 35. You can keep playing another season if you want.</p>${pm.retired?`<div class="notice"><strong>Career complete.</strong></div>`:pm.retirementEligible?`<div class="toolbar"><button class="btn danger" id="playerRetireBtn">Retire Now</button><button class="btn secondary" id="playerContinueCareerBtn">Continue Another Year</button></div>`:`<p><strong>Current age:</strong> ${player?.age||'—'}</p>`}</article></div>`;$("playerRetireBtn")?.addEventListener("click",playerModeRetire);$("playerContinueCareerBtn")?.addEventListener("click",playerModeContinueCareer);
     }
     function renderPlayerWorld(){
-      const career=currentCareerSave(),panel=$("tab-player-world");if(!panel||!isPlayerMode(career))return;const club=playerModeClub(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">🌍 FOOTBALL WORLD</div><h1>${escapeHtml(seasonDisplay(career.worldSeason||1))}</h1><p class="muted">Player Mode still lives inside the full FUS universe. Clubs, competitions, transfers, records and World Cups continue around your career.</p></div><div class="player-world-shortcuts" style="margin-top:14px"><button class="card career-option" data-player-world-tab="competitions"><div class="record-icon">🏆</div><h2>Competitions</h2><p class="muted">Open every active competition.</p></button><button class="card career-option" data-player-world-tab="teams"><div class="record-icon">🛡️</div><h2>Clubs</h2><p class="muted">View the 30-club world.</p></button><button class="card career-option" data-player-world-tab="records"><div class="record-icon">📚</div><h2>World Records</h2><p class="muted">See the history building around you.</p></button></div><article class="card" style="margin-top:14px"><h2>Your Current Club</h2>${club?`<div class="career-hero">${teamLogo(club)}<div><h2>${escapeHtml(club.name)}</h2><p class="muted">Club OVR ${club.strength} · World Rank #${Math.max(1,liveTeamRanking(career).findIndex(t=>t.id===club.id)+1)}</p></div></div>`:`<p class="muted">Free Agent</p>`}</article>`;panel.querySelectorAll("[data-player-world-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.playerWorldTab));
+      const career=currentCareerSave(),panel=$("tab-player-world");if(!panel||!isPlayerMode(career))return;const club=playerModeClub(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">🌍 FOOTBALL WORLD</div><h1>${escapeHtml(seasonDisplay(career.worldSeason||1))}</h1><p class="muted">Player Mode still lives inside the full FUS universe. Clubs, competitions, transfers, records and World Cups continue around your career.</p></div><div class="player-world-shortcuts" style="margin-top:14px"><button class="card career-option" data-player-world-tab="competitions"><div class="record-icon">🏆</div><h2>Competitions</h2><p class="muted">Open every active competition.</p></button><button class="card career-option" data-player-world-tab="teams"><div class="record-icon">🛡️</div><h2>Clubs</h2><p class="muted">View the 30-club world.</p></button><button class="card career-option" data-player-world-tab="records"><div class="record-icon">📚</div><h2>World Records</h2><p class="muted">See the history building around you.</p></button><button class="card career-option" data-player-world-tab="player-latest-transfers"><div class="record-icon">🔄</div><h2>Latest Transfers</h2><p class="muted">See completed moves across every club.</p></button><button class="card career-option" data-player-world-tab="news"><div class="record-icon">📰</div><h2>News</h2><p class="muted">Follow the football world around your career.</p></button></div><article class="card" style="margin-top:14px"><h2>Your Current Club</h2>${club?`<div class="career-hero">${teamLogo(club)}<div><h2>${escapeHtml(club.name)}</h2><p class="muted">Club OVR ${club.strength} · World Rank #${Math.max(1,liveTeamRanking(career).findIndex(t=>t.id===club.id)+1)}</p></div></div>`:`<p class="muted">Free Agent</p>`}</article>`;panel.querySelectorAll("[data-player-world-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.playerWorldTab));
     }
 
 
@@ -18497,6 +18778,15 @@ body.player-calendar-advancing #playerNextMatchBtn{
         reason:contract.reason||'Transfer'
       });
 
+      addFootballNews({
+        key:`transfer-${p.id}-${career.worldSeason}-${toId}-${Date.now()}`,
+        type:"transfer",
+        icon:"🔄",
+        teamIds:[fromId,toId].filter(Boolean),
+        headline:`${p.name} moves from ${from.name} to ${to.name} for ${Number(fee||0)>0?money(fee):"free"}.`,
+        competitionName:"Transfer News"
+      });
+
       managerRecalculateTeam(from);
       managerRecalculateTeam(to);
       managerUpdateWageBills(career);
@@ -20342,6 +20632,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       managerGenerateContractWarnings(career);
       managerRunAiTransferMarket(career,'summer',true);
       managerUpdateWageBills(career);
+
+      if(isPlayerMode(career)){
+        playerModeActivateSummerOffers(career);
+      }
     }
     function managerGeneratePlayerRequests(career){
       if(isPlayerMode(career))return;
@@ -20400,6 +20694,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if (name === "world-timeline") renderWorldTimeline();
       if (name === "world-cup-winners") renderWorldCupWinners();
       if (name === "rivalries") renderRivalries();
+      if (name === "news") renderCurrentNews();
+      if (name === "player-latest-transfers") renderPlayerLatestTransfers();
       if (name === "news-history") renderNewsHistory();
       if (name === "manager-squad") renderManagerSquad();
       if (name === "manager-transfers") renderManagerTransfers();
@@ -20425,6 +20721,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       renderWorldTimeline();
       renderWorldCupWinners();
       renderRivalries();
+      renderCurrentNews();
       renderNewsHistory();
       if (currentGameMode === "club-career") {
         if (isPlayerMode(currentCareerSave())) {
@@ -20438,6 +20735,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           renderPlayerAwards();
           renderPlayerCareer();
           renderPlayerWorld();
+          renderPlayerLatestTransfers();
         } else if (isManagerMode(currentCareerSave())) {
           renderManagerSquad();
           renderManagerTransfers();
@@ -27156,6 +27454,95 @@ function renderWorldCupQualification() {
       drawComparison();
     }
 
+
+    function currentFootballNewsRows(world=currentWorld()){
+      if(!world)return [];
+      const rows=[];
+
+      (world.currentNews||[]).forEach(story=>{
+        rows.push({
+          id:`current-${story.id}`,
+          timestamp:Number(story.createdAt||0),
+          type:"world",
+          story
+        });
+      });
+
+      // Career modes have a persistent manager inbox. Use football-relevant
+      // notices as a second source so the News page does not go blank every
+      // time current-season news is reset.
+      if(currentGameMode==="club-career"&&world.manager){
+        (world.manager.inbox||[])
+          .filter(note=>["transfer","award","retirement","news","window","squad"].includes(note.type))
+          .forEach(note=>{
+            rows.push({
+              id:`inbox-${note.id}`,
+              timestamp:Number(note.timestamp||0),
+              type:"inbox",
+              note
+            });
+          });
+      }
+
+      return rows
+        .sort((a,b)=>Number(b.timestamp||0)-Number(a.timestamp||0))
+        .slice(0,80);
+    }
+
+    function renderCurrentNews(){
+      const panel=$("tab-news");
+      const world=currentWorld();
+      if(!panel||!world)return;
+
+      const rows=currentFootballNewsRows(world);
+
+      panel.innerHTML=`
+        <div class="card">
+          <div class="startup-kicker">📰 FOOTBALL NEWS</div>
+          <h1 style="margin:5px 0 6px">Latest News</h1>
+          <p class="muted">Transfers, trophies, major club stories, awards and other events from the football world around your save.</p>
+        </div>
+
+        <div class="news-feed" style="margin-top:14px">
+          ${rows.length?rows.map(row=>{
+            if(row.type==="world"){
+              return newsCardHtml(row.story);
+            }
+
+            const note=row.note;
+            return `<article class="news-card news-${escapeHtml(note.type||"general")}">
+              <div class="news-logos"><div class="record-icon">${
+                note.type==="transfer"?"🔄":
+                note.type==="award"?"🏆":
+                note.type==="retirement"?"👋":
+                note.type==="window"?"📅":
+                note.type==="squad"?"👥":"📰"
+              }</div></div>
+              <div class="news-copy">
+                <div class="news-headline">${escapeHtml(note.title)}</div>
+                <div class="news-meta">${escapeHtml(note.message)} · ${escapeHtml(seasonDisplay(note.season||world.worldSeason||1))}</div>
+              </div>
+            </article>`;
+          }).join(""):`<div class="card"><p class="muted">No major football news yet. New results, transfers and awards will appear here.</p></div>`}
+        </div>`;
+
+      bindNewsButtons(panel);
+    }
+
+    function renderPlayerLatestTransfers(){
+      const career=currentCareerSave(),panel=$("tab-player-latest-transfers");
+      if(!panel||!isPlayerMode(career))return;
+
+      panel.innerHTML=`
+        <div class="card">
+          <div class="startup-kicker">🌍 TRANSFER MARKET</div>
+          <h1 style="margin:5px 0 6px">Latest Transfers</h1>
+          <p class="muted">Completed transfers across the entire football world, not just your club.</p>
+        </div>
+        <div style="margin-top:14px">
+          ${managerLatestTransfersHtml(career,60)}
+        </div>`;
+    }
 
     function renderNewsHistory() {
       const panel = $("tab-news-history");
