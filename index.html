@@ -13942,6 +13942,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         if(!offer.loan && toFin && Number(toFin.budget||0)<fee && !formalCommitted)return false;
 
         from.managerSquad.splice(index,1);
+        managerEnsureSquadDepth(career,from,MANAGER_EXACT_SQUAD_SIZE);
         managerRecalculateTeam(from);
 
         if(!offer.loan && fee>0 && fromFin && toFin){
@@ -13971,6 +13972,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       player.transferListed=false;
       player.wantsOut=false;
 
+      managerEnsureSquadDepth(career,toClub,MANAGER_EXACT_SQUAD_SIZE);
       managerRecalculateTeam(toClub);
       career.controlledTeamId=toClub.id;
 
@@ -14580,6 +14582,13 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const pm=playerModeData(career);
       const player=playerModePlayer(career);
 
+      const oldDepth=Number(club?.managerSquad?.length||0);
+      managerEnsureSquadDepth(career,club,MANAGER_EXACT_SQUAD_SIZE);
+      if(Number(club?.managerSquad?.length||0)!==oldDepth){
+        managerUpdateWageBills(career);
+        persistDataSilently();
+      }
+
       let playerShouldStart=null;
       if(pm?.matchSelection==="starter")playerShouldStart=true;
       else if(["bench","injured","suspended","not_selected"].includes(pm?.matchSelection))playerShouldStart=false;
@@ -14648,7 +14657,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
                 }).join(''):'<p class="muted">No substitutes available.</p>'}
               </div>
             </section>
-            <div class="player-club-status-strip"><span>This is a read-only squad view. The manager now selects the XI by natural position first${view.unfilledSlots?.length?` · ${view.unfilledSlots.length} formation slot${view.unfilledSlots.length===1?' is':'s are'} currently unfilled because the squad has no sensible positional option.`:'.'}</span><span><strong>You:</strong> ${escapeHtml(squadStatus)} · <strong>Captaincy:</strong> ${escapeHtml(pm.captaincy)} · <strong>Set Pieces:</strong> ${escapeHtml(pm.setPieceDuty||'None')}</span></div>
+            <div class="player-club-status-strip"><span>This is a read-only squad view. The manager selects the XI by natural position first${view.unfilledSlots?.length?` · ${view.unfilledSlots.length} formation slot${view.unfilledSlots.length===1?' is':'s are'} currently unfilled because the squad has no sensible positional option.`:'.'}</span><span><strong>You:</strong> ${escapeHtml(squadStatus)} · <strong>Captaincy:</strong> ${escapeHtml(pm.captaincy)} · <strong>Set Pieces:</strong> ${escapeHtml(pm.setPieceDuty||'None')}</span></div>
           </section>
         </div>`;
     }
@@ -15672,6 +15681,20 @@ body.player-calendar-advancing #playerNextMatchBtn{
       // V61.12 one-time migration: restore canonical real players to their
       // original clubs without resetting the rest of the save.
       managerResetCanonicalSquadsOnce(career);
+
+      // V61.16: repair depleted squads without removing any existing player,
+      // undoing transfers, or touching the Player Career custom player.
+      const depthRepair=managerEnsureAllSquadDepth(career,MANAGER_EXACT_SQUAD_SIZE);
+      career.manager.squadDepthRepairVersion=MANAGER_SQUAD_DEPTH_VERSION;
+
+      if(depthRepair.changes>0&&!isPlayerMode(career)){
+        managerNotify(
+          career,
+          "18-Player Squads Enforced",
+          `${depthRepair.clubs} club${depthRepair.clubs===1?" was":"s were"} normalized to exactly 18 players. Short squads were filled and surplus players were moved to free agency, not deleted.`,
+          "squad"
+        );
+      }
       Object.entries(career.manager.clubPlayerTotals||{}).forEach(([teamId,players])=>{
         Object.values(players||{}).forEach(item=>{
           item.goals=Number(item.goals||0);
@@ -18099,7 +18122,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         .filter(club=>
           club.id!==seller.id &&
           club.id!==career.controlledTeamId &&
-          (club.managerSquad||[]).length>11
+          (club.managerSquad||[]).length>MANAGER_EXACT_SQUAD_SIZE
         )
         .flatMap(club=>(club.managerSquad||[])
           .filter(player=>player?.id!==departingPlayer?.id)
@@ -18116,7 +18139,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
     }
 
     function managerAiAcquireSquadCover(career,seller,departingPlayer,incomingFee=0){
-      if((seller.managerSquad||[]).length>=11)return true;
+      if((seller.managerSquad||[]).length>=MANAGER_EXACT_SQUAD_SIZE)return true;
       if(seller.id===career.controlledTeamId)return false;
 
       const cover=managerFindAiSquadCover(career,seller,departingPlayer);
@@ -18129,7 +18152,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const donor=cover.donor;
       const player=cover.player;
       const donorIndex=(donor.managerSquad||[]).findIndex(p=>p.id===player.id);
-      if(donorIndex<0||(donor.managerSquad||[]).length<=11)return false;
+      if(donorIndex<0||(donor.managerSquad||[]).length<=MANAGER_EXACT_SQUAD_SIZE)return false;
 
       const donorFin=career.manager.clubFinances?.[donor.id];
       const sellerFin=career.manager.clubFinances?.[seller.id];
@@ -18857,12 +18880,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       }
 
       const player=from.managerSquad[index];
-      const needsCover=(from.managerSquad||[]).length<=11;
+      const needsCover=(from.managerSquad||[]).length<MANAGER_EXACT_SQUAD_SIZE;
 
-      if(needsCover&&from.id===career.controlledTeamId){
-        career.manager.lastTransferFailureReason=`${from.name} cannot sell below 11 senior players.`;
-        return false;
-      }
+      // Selling from an 18-player squad is allowed. The club is normalized
+      // back to exactly 18 immediately after the transfer.
 
       // Remove the target first. If the AI seller would drop under 11,
       // it must fill that slot using an EXISTING free agent or player from another AI club.
@@ -18919,6 +18940,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
         competitionName:"Transfer News"
       });
 
+      managerEnsureSquadDepth(career,from,MANAGER_EXACT_SQUAD_SIZE);
+      managerEnsureSquadDepth(career,to,MANAGER_EXACT_SQUAD_SIZE);
       managerRecalculateTeam(from);
       managerRecalculateTeam(to);
       managerUpdateWageBills(career);
@@ -18942,11 +18965,242 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
       return true;
     }
-    function managerEnsureSquadDepth(career,team){
-      // V60.28: player creation is retirement-only.
-      // Transfers, sales and contract expiries move existing players; they never spawn replacements.
-      return 0;
+    const MANAGER_EXACT_SQUAD_SIZE=18;
+    const MANAGER_MIN_SQUAD_SIZE=MANAGER_EXACT_SQUAD_SIZE;
+    const MANAGER_SQUAD_DEPTH_VERSION="v61.17-exact18";
+
+    function managerSquadDepthTargets(){
+      return {
+        GK:2,
+        RB:2,
+        CB:3,
+        LB:2,
+        CM:3,
+        CAM:1,
+        RW:1,
+        LW:1,
+        ST:3
+      };
     }
+
+    function managerSquadDepthPosition(team){
+      const targets=managerSquadDepthTargets();
+      const counts={};
+      Object.keys(targets).forEach(pos=>counts[pos]=0);
+
+      (team?.managerSquad||[]).forEach(player=>{
+        const pos=String(player?.position||"").toUpperCase();
+        if(pos in counts)counts[pos]++;
+      });
+
+      const deficits=Object.entries(targets)
+        .map(([pos,target])=>({
+          pos,
+          deficit:Math.max(0,target-Number(counts[pos]||0)),
+          count:Number(counts[pos]||0)
+        }))
+        .sort((a,b)=>b.deficit-a.deficit||a.count-b.count);
+
+      if(deficits[0]?.deficit>0)return deficits[0].pos;
+
+      return Object.keys(targets)
+        .sort((a,b)=>Number(counts[a]||0)-Number(counts[b]||0))[0]||"CM";
+    }
+
+    function managerTakeSquadRepairFreeAgent(career,team,position){
+      const freeAgents=career?.manager?.freeAgents||[];
+      const targetOverall=Math.max(58,Number(team?.strength||70)-5);
+
+      const candidate=freeAgents
+        .filter(player=>
+          !player?.playerModeProtected &&
+          String(player?.position||"").toUpperCase()===String(position).toUpperCase()
+        )
+        .sort((a,b)=>
+          Math.abs(Number(a.overall||0)-targetOverall)-
+          Math.abs(Number(b.overall||0)-targetOverall)
+        )[0];
+
+      if(!candidate)return null;
+
+      career.manager.freeAgents=freeAgents.filter(player=>player.id!==candidate.id);
+      candidate.clubId=team.id;
+      candidate.isStarter=false;
+      candidate.transferListed=false;
+      candidate.wantsOut=false;
+      candidate.contractExpiredPending=false;
+      candidate.freeAgentSinceSeason=null;
+      candidate.contractYears=Math.max(3,Number(candidate.contractYears||0));
+      candidate.morale=Math.max(70,Number(candidate.morale||70));
+      candidate.wage=Math.max(
+        Number(candidate.wage||0),
+        Math.round(managerExpectedWage(candidate)/5000)*5000
+      );
+      candidate.releaseClause=managerReleaseClause(candidate);
+
+      return candidate;
+    }
+
+    function managerCreateSquadRepairPlayer(career,team,position){
+      const targetOverall=Math.max(56,Number(team?.strength||70)-7);
+      const player=managerGeneratePlayer(
+        Math.max(58,Number(team?.strength||70)-5),
+        position,
+        Math.max(11,(team?.managerSquad||[]).length),
+        team.id
+      );
+
+      player.age=18+Math.floor(Math.random()*7);
+      player.overall=clamp(
+        Math.round(targetOverall+(Math.random()*5-2)),
+        55,
+        Math.max(76,Number(team?.strength||70)-1)
+      );
+      player.potential=clamp(
+        player.overall+(player.age<=21?4+Math.floor(Math.random()*6):1+Math.floor(Math.random()*4)),
+        player.overall,
+        93
+      );
+      player.realPlayer=false;
+      player.generatedSquadDepth=true;
+      player.createdSeason=Number(career?.worldSeason||1);
+      player.clubId=team.id;
+      player.isStarter=false;
+      player.contractYears=3+Math.floor(Math.random()*3);
+      player.morale=72+Math.floor(Math.random()*12);
+      player.marketValue=managerPlayerValue(player);
+      player.wage=managerExpectedWage(player);
+      player.releaseClause=managerReleaseClause(player);
+      managerAssignRetirementPlan(player);
+
+      return player;
+    }
+
+    function managerSquadTrimPriority(career,team,player){
+      const isPlayerCareerUser=
+        isPlayerMode(career)&&player?.id===career.playerCareer?.playerId;
+
+      if(isPlayerCareerUser||player?.playerModeProtected)return -100000;
+
+      let score=0;
+
+      // Keep natural first-team players first.
+      if(player?.isStarter)score-=10000;
+      if(player?.realPlayer)score-=3500;
+      if(managerPlayerHasMeaningfulHistory(career,player))score-=2000;
+
+      // Lower-rated, unhappy, transfer-listed, generated depth players are the
+      // first candidates to leave when a club temporarily reaches 19.
+      score+=Math.max(0,100-Number(player?.overall||0))*25;
+      if(player?.generatedSquadDepth)score+=1800;
+      if(player?.transferListed)score+=700;
+      if(player?.wantsOut)score+=600;
+      if(Number(player?.morale||70)<50)score+=350;
+
+      return score;
+    }
+
+    function managerMoveSquadExtraToFreeAgency(career,team,player){
+      if(!career?.manager||!team||!player)return false;
+      if(player.playerModeProtected)return false;
+      if(isPlayerMode(career)&&player.id===career.playerCareer?.playerId)return false;
+
+      team.managerSquad=(team.managerSquad||[]).filter(row=>row.id!==player.id);
+      career.manager.freeAgents=Array.isArray(career.manager.freeAgents)
+        ?career.manager.freeAgents
+        :[];
+
+      player.clubId=null;
+      player.isStarter=false;
+      player.transferListed=true;
+      player.wantsOut=false;
+      player.contractExpiredPending=false;
+      player.freeAgentSinceSeason=Number(career.worldSeason||1);
+
+      if(!career.manager.freeAgents.some(row=>row.id===player.id)){
+        career.manager.freeAgents.push(player);
+      }
+
+      return true;
+    }
+
+    function managerEnsureSquadDepth(career,team,exactSize=MANAGER_EXACT_SQUAD_SIZE){
+      if(!isManagerMode(career)||!team)return 0;
+
+      team.managerSquad=Array.isArray(team.managerSquad)?team.managerSquad:[];
+      const target=Math.max(11,Number(exactSize||MANAGER_EXACT_SQUAD_SIZE));
+      let changes=0,safety=0;
+
+      // Fill shortages.
+      while(team.managerSquad.length<target&&safety<40){
+        safety++;
+
+        const position=managerSquadDepthPosition(team);
+        const player=
+          managerTakeSquadRepairFreeAgent(career,team,position) ||
+          managerCreateSquadRepairPlayer(career,team,position);
+
+        if(!player)break;
+
+        if(!team.managerSquad.some(existing=>existing.id===player.id)){
+          team.managerSquad.push(player);
+          changes++;
+        }
+      }
+
+      // Trim surpluses without deleting anyone from the football world.
+      safety=0;
+      while(team.managerSquad.length>target&&safety<40){
+        safety++;
+
+        const removable=[...team.managerSquad]
+          .filter(player=>
+            !player?.playerModeProtected &&
+            !(isPlayerMode(career)&&player?.id===career.playerCareer?.playerId)
+          )
+          .sort((a,b)=>
+            managerSquadTrimPriority(career,team,b)-
+            managerSquadTrimPriority(career,team,a)
+          );
+
+        const extra=removable[0];
+        if(!extra)break;
+
+        if(managerMoveSquadExtraToFreeAgency(career,team,extra)){
+          changes++;
+        }else{
+          break;
+        }
+      }
+
+      if(changes){
+        managerRecalculateTeam(team);
+        career.manager.playerPopulationTarget=Math.max(
+          Number(career.manager.playerPopulationTarget||0),
+          managerLivingPlayerCount(career)
+        );
+      }
+
+      return changes;
+    }
+
+    function managerEnsureAllSquadDepth(career=currentCareerSave(),exactSize=MANAGER_EXACT_SQUAD_SIZE){
+      if(!isManagerMode(career))return {changes:0,clubs:0};
+
+      let changes=0,clubs=0;
+
+      (career.teams||[]).forEach(team=>{
+        const count=managerEnsureSquadDepth(career,team,exactSize);
+        if(count){
+          changes+=count;
+          clubs++;
+        }
+      });
+
+      if(changes)managerUpdateWageBills(career);
+      return {changes,clubs};
+    }
+
     function managerGenerateIncomingOffers(career=currentCareerSave(),count=1){
       if(isPlayerMode(career))return;
       if(!isManagerMode(career)||!managerWindowOpen(career))return;
@@ -19036,7 +19290,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
     function managerAiTransferTargetScore(career,buyer,seller,p,needPos){
       if(!buyer||!seller||!p)return -999;
       if(managerAiRecentlyMoved(career,p.id))return -999;
-      if((seller.managerSquad||[]).length<=15)return -999;
+      if((seller.managerSquad||[]).length<MANAGER_EXACT_SQUAD_SIZE)return -999;
 
       const buyerRep=managerClubReputation(career,buyer);
       const sellerRep=managerClubReputation(career,seller);
@@ -19099,7 +19353,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           const fin=career.manager.clubFinances[t.id];
           const reserved=isPlayerMode(career)?playerModeReservedTransferBudget(career,t.id):0;
           const available=Math.max(0,Number(fin?.budget||0)-reserved);
-          return fin&&available>18_000_000&&(t.managerSquad||[]).length<22;
+          return fin&&available>18_000_000&&(t.managerSquad||[]).length>=11;
         });
 
         if(!buyers.length)break;
@@ -20743,6 +20997,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         p.marketValue=managerPlayerValue(p);
       }));
 
+      managerEnsureAllSquadDepth(career,MANAGER_EXACT_SQUAD_SIZE);
       managerGenerateRetirementWarnings(career);
       managerCleanShortlist(career);
       managerUpdateWageBills(career);
@@ -20774,6 +21029,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       }
 
       managerRunAiTransferMarket(career,'summer',true);
+      managerEnsureAllSquadDepth(career,MANAGER_EXACT_SQUAD_SIZE);
       managerUpdateWageBills(career);
     }
     function managerGeneratePlayerRequests(career){
