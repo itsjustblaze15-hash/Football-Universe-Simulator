@@ -5418,6 +5418,239 @@ body.world-cup-theme .app-nav .tab.active{
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    /* V61.11 — Main menu refresh */
+    #modeScreen.mode-menu-shell{
+      max-width:1320px;
+      min-height:100vh;
+      padding:26px 18px 72px;
+      position:relative;
+    }
+    .main-menu-shell{
+      position:relative;
+      overflow:hidden;
+      padding:42px 22px 22px;
+      border-radius:34px;
+      border:1px solid rgba(96,165,250,.16);
+      background:
+        radial-gradient(circle at 15% 22%,rgba(37,99,235,.16),transparent 24%),
+        radial-gradient(circle at 85% 12%,rgba(99,102,241,.19),transparent 26%),
+        radial-gradient(circle at 50% 110%,rgba(59,130,246,.08),transparent 36%),
+        linear-gradient(90deg,rgba(8,25,55,.96),rgba(1,14,38,.98) 52%,rgba(6,22,54,.96));
+      box-shadow:
+        0 24px 70px rgba(0,0,0,.32),
+        inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .main-menu-shell::before,
+    .main-menu-shell::after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      filter:blur(40px);
+      pointer-events:none;
+      opacity:.75;
+    }
+    .main-menu-shell::before{
+      width:260px;height:260px;left:-90px;top:48px;
+      background:rgba(59,130,246,.16);
+    }
+    .main-menu-shell::after{
+      width:310px;height:310px;right:-130px;top:-40px;
+      background:rgba(124,58,237,.18);
+    }
+    .mode-menu-hero{
+      padding:42px 20px 8px;
+      position:relative;
+      z-index:1;
+    }
+    .mode-menu-hero .fus-startup-logo{
+      width:min(240px,38vw);
+      height:auto;
+      margin:0 auto 18px;
+      filter:drop-shadow(0 12px 22px rgba(0,0,0,.34));
+    }
+    .mode-menu-hero .startup-kicker{
+      color:#60a5fa;
+      letter-spacing:.22em;
+      font-size:12px;
+    }
+    .mode-menu-hero h1{
+      margin:14px auto 14px;
+      max-width:980px;
+      font-size:clamp(52px,7.4vw,92px);
+      line-height:.94;
+      letter-spacing:-.06em;
+      font-weight:950;
+      color:#f8fbff;
+      text-shadow:0 8px 26px rgba(0,0,0,.24);
+    }
+    .mode-menu-hero p{
+      max-width:760px;
+      margin:0 auto;
+      font-size:20px;
+      line-height:1.5;
+      color:#b8c7e0;
+    }
+    .main-menu-actions{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      width:min(980px,100%);
+      margin:34px auto 0;
+    }
+    .main-menu-actions .btn{
+      min-height:56px;
+      font-size:18px;
+      font-weight:900;
+      border-radius:15px;
+      box-shadow:0 10px 24px rgba(0,0,0,.14);
+    }
+    .main-menu-actions .btn.primary-hero{
+      background:linear-gradient(135deg,#4f9cff,#2f7cff);
+      border-color:rgba(147,197,253,.7);
+      color:#071421;
+    }
+    .main-menu-actions .btn.secondary{
+      background:rgba(255,255,255,.04);
+      border-color:rgba(148,163,184,.24);
+      color:#eef5ff;
+    }
+    .main-menu-actions .btn.secondary:hover{
+      border-color:rgba(96,165,250,.5);
+      background:rgba(255,255,255,.065);
+    }
+    .main-menu-strip{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      width:min(980px,100%);
+      margin:18px auto 0;
+    }
+    .main-menu-strip-card{
+      padding:14px 16px;
+      border-radius:16px;
+      text-align:left;
+      border:1px solid rgba(148,163,184,.16);
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      backdrop-filter:blur(8px);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .main-menu-strip-card strong{
+      display:block;
+      font-size:14px;
+      color:#f8fbff;
+      margin-bottom:5px;
+    }
+    .main-menu-strip-card span{
+      display:block;
+      color:#a7b9d8;
+      font-size:12px;
+      line-height:1.45;
+    }
+    .main-menu-save-section{
+      position:relative;
+      z-index:1;
+      margin-top:34px;
+      padding:18px;
+      border-radius:24px;
+      border:1px solid rgba(148,163,184,.12);
+      background:linear-gradient(180deg,rgba(6,20,46,.64),rgba(5,15,34,.42));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .main-menu-save-section .startup-section-heading{
+      margin-bottom:14px;
+      align-items:flex-end;
+    }
+    .main-menu-save-section .startup-section-heading h2{
+      margin:5px 0 0;
+      font-size:40px;
+      letter-spacing:-.04em;
+      color:#f8fbff;
+    }
+    .main-menu-save-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+    .main-menu-save-grid .career-save-card,
+    #mainCareerSaveList > .card{
+      min-height:260px;
+      padding:18px;
+      border-radius:20px;
+      border:1px solid rgba(96,165,250,.14);
+      background:
+        linear-gradient(180deg,rgba(59,130,246,.08),transparent 34%),
+        linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+      box-shadow:
+        0 16px 34px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.03);
+      transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    }
+    .main-menu-save-grid .career-save-card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(96,165,250,.34);
+      box-shadow:0 24px 38px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .main-menu-save-grid .career-save-card h3,
+    .main-menu-save-grid .career-save-card h2{
+      font-size:28px;
+      line-height:1.05;
+      margin:0;
+      color:#f8fbff;
+    }
+    .main-menu-save-grid .career-save-actions{
+      margin-top:auto;
+      gap:10px;
+    }
+    .main-menu-save-grid .badge{
+      background:rgba(59,130,246,.12);
+      border-color:rgba(96,165,250,.26);
+      color:#d7e8ff;
+    }
+    .main-menu-version{
+      text-align:center;
+      margin-top:18px;
+      color:#93a8c9;
+      font-size:13px;
+    }
+    @media(max-width:980px){
+      .main-menu-actions{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .main-menu-strip{
+        grid-template-columns:1fr;
+      }
+      .main-menu-save-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    @media(max-width:640px){
+      #modeScreen.mode-menu-shell{
+        padding:14px 10px 56px;
+      }
+      .main-menu-shell{
+        border-radius:24px;
+        padding:22px 12px 14px;
+      }
+      .mode-menu-hero{
+        padding:26px 10px 6px;
+      }
+      .mode-menu-hero h1{
+        font-size:clamp(42px,12vw,64px);
+      }
+      .mode-menu-hero p{
+        font-size:16px;
+      }
+      .main-menu-actions{
+        grid-template-columns:1fr;
+      }
+      .main-menu-save-section{
+        padding:14px;
+      }
+      .main-menu-save-section .startup-section-heading h2{
+        font-size:30px;
+      }
+    }
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -8424,23 +8657,51 @@ body.player-calendar-advancing #playerNextMatchBtn{
   <div id="toast" class="toast hidden" aria-live="polite"></div>
   <main class="app">
     <section id="modeScreen" class="mode-menu-shell">
-      <div class="mode-menu-hero">
-        <img id="fusStartupLogo" class="fus-logo fus-startup-logo hidden" alt="FUS logo">
-        <div class="startup-kicker">⚽ FOOTBALL UNIVERSE SIMULATOR</div>
-        <h1>Football Universe Simulator</h1>
-        <p class="muted">Create a career world, build its clubs, and shape football history.</p>
+      <div class="main-menu-shell">
+        <div class="mode-menu-hero">
+          <img id="fusStartupLogo" class="fus-logo fus-startup-logo hidden" alt="FUS logo">
+          <div class="startup-kicker">⚽ FOOTBALL UNIVERSE SIMULATOR</div>
+          <h1>Football Universe Simulator</h1>
+          <p class="muted">Create a career world, build its clubs, and shape football history.</p>
+
+          <div class="main-menu-actions">
+            <button type="button" class="btn primary-hero" id="enterClubCareerBtn">Create New World</button>
+            <button type="button" class="btn secondary" id="importCareerMainBtn">Import Career</button>
+            <button type="button" class="btn secondary" id="scenarioModeBtn">🎯 Scenario Mode</button>
+            <button type="button" class="btn secondary" id="managerModeBtn">💼 Manager Mode</button>
+            <button type="button" class="btn secondary player-mode-entry" id="playerModeBtn" style="grid-column:1/-1;max-width:320px;justify-self:center">⭐ Player Mode</button>
+          </div>
+
+          <div class="main-menu-strip">
+            <div class="main-menu-strip-card">
+              <strong>Career Worlds</strong>
+              <span>Create separate saves and shape your own football universe without losing old careers.</span>
+            </div>
+            <div class="main-menu-strip-card">
+              <strong>Manager & Player Paths</strong>
+              <span>Switch between club-building, player development, and scenario-driven stories.</span>
+            </div>
+            <div class="main-menu-strip-card">
+              <strong>History That Stays</strong>
+              <span>Matches, trophies, records, rankings, awards, and long-term progression remain part of your save.</span>
+            </div>
+          </div>
+        </div>
+
+        <section class="main-menu-save-section">
+          <div class="startup-section-heading">
+            <div>
+              <div class="startup-kicker">CAREER WORLDS</div>
+              <h2>Your Saves</h2>
+            </div>
+          </div>
+          <div id="mainCareerSaveList" class="career-save-grid main-menu-save-grid"></div>
+        </section>
+
+        <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
+        <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
+        <p class="muted main-menu-version">Football Universe Simulator · V61.11</p>
       </div>
-      <div class="v51-main-actions">
-        <button type="button" class="btn" id="enterClubCareerBtn">Create New World</button>
-        <button type="button" class="btn secondary" id="importCareerMainBtn">Import Career</button>
-        <button type="button" class="btn secondary" id="scenarioModeBtn">🎯 Scenario Mode</button>
-        <button type="button" class="btn secondary" id="managerModeBtn">💼 Manager Mode</button>
-        <button type="button" class="btn secondary player-mode-entry" id="playerModeBtn">⭐ Player Mode</button>
-      </div>
-      <input id="mainCareerImportInput" type="file" accept=".json,application/json" multiple hidden>
-      <section style="margin-top:28px"><div class="startup-kicker">Career Worlds</div><h2>Your Saves</h2><div id="mainCareerSaveList" class="career-save-grid"></div></section>
-      <button type="button" class="hidden" id="enterUniverseModeBtn" aria-hidden="true" tabindex="-1">Enter Universe Mode</button>
-      <p class="muted" style="text-align:center;margin-top:34px">Football Universe Simulator · V61.8</p>
     </section>
 
     <section id="careerScreen" class="career-startup-shell hidden">
@@ -12587,145 +12848,358 @@ body.player-calendar-advancing #playerNextMatchBtn{
       return ((hash>>>0)%1000)/1000;
     }
 
-    function playerModeClubInterestScore(career,team){
-      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
-      if(!pm||!player||!team||team.id===current?.id)return 0;
-
-      const teamOvr=Number(team.strength||70);
-      const playerOvr=Number(player.overall||0);
-      const clubRep=managerClubReputation(career,team);
-      const playerRep=Number(pm.reputation||30);
+    function playerModeTransferForm(career=currentCareerSave()){
+      const pm=playerModeData(career);
       const season=playerModeSeasonStats(career);
       const avg=playerModeAverageRating(season);
-      const formBonus=avg>=8?7:avg>=7.4?4:avg>=6.9?1:avg&&avg<6.2?-6:0;
-      const potentialBonus=Number(player.age||25)<=21&&Number(player.potential||0)>=86?4:0;
-      const qualityGap=playerOvr-teamOvr;
-      const repGap=playerRep-clubRep;
+      const apps=Number(season?.appearances||0);
+      const contributions=Number(season?.goals||0)+Number(season?.assists||0);
+      const recent=(pm?.matchHistory||[]).filter(r=>r.appeared).slice(0,6);
+      const recentAvg=recent.length
+        ?recent.reduce((sum,r)=>sum+Number(r.rating||0),0)/recent.length
+        :avg;
 
-      let score=60 + qualityGap*4.3 + repGap*.72 + formBonus + potentialBonus;
+      let label="Unproven";
+      if(apps>=8&&recentAvg>=8.1)label="Excellent";
+      else if(apps>=6&&recentAvg>=7.4)label="Strong";
+      else if(apps>=5&&recentAvg>=6.8)label="Solid";
+      else if(apps>=4&&recentAvg>0&&recentAvg<6.2)label="Poor";
 
-      // Elite clubs do not chase clearly under-level players just because the
-      // user clicked a button. They may notice a prospect, but not offer.
-      if(qualityGap<=-14)score=Math.min(score,20);
-      else if(qualityGap<=-11)score=Math.min(score,34);
-      else if(qualityGap<=-8)score=Math.min(score,49);
+      return {
+        apps,
+        avg:Number(avg||0),
+        recentAvg:Number(recentAvg||0),
+        contributions,
+        label
+      };
+    }
 
-      if(teamOvr>=82 && playerOvr<73)score=Math.min(score,24);
-      if(teamOvr>=86 && playerOvr<77)score=Math.min(score,20);
+    function playerModeTransferInterestLabel(score){
+      const n=Number(score||0);
+      if(n>=86)return "Priority Target";
+      if(n>=74)return "Serious Interest";
+      if(n>=62)return "Active Scouting";
+      if(n>=48)return "Monitoring";
+      return "Distant Interest";
+    }
 
-      const currentLeague=playerModeDomesticLeagueForClub(career,current?.id);
-      const targetLeague=playerModeDomesticLeagueForClub(career,team);
+    function playerModeTransferClubFit(career,team){
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        current=playerModeClub(career);
 
-      if(pm.agentIntent==="Find a bigger club"){
-        const biggerGap=teamOvr-Number(current?.strength||playerOvr);
-        if(biggerGap<2)score-=22;
-        else if(biggerGap<=8)score+=8;
-        else score-=Math.max(0,(biggerGap-8)*3);
-      }else if(pm.agentIntent==="I need more playing time"){
-        const role=playerModeProjectedRole(player,team);
-        if(["Starter","Important Player"].includes(role))score+=14;
-        else if(role==="Rotation")score+=4;
-        else score-=18;
-      }else if(pm.agentIntent==="Try another league"){
-        if(currentLeague&&targetLeague&&currentLeague.id===targetLeague.id)score-=35;
-        else score+=10;
-      }else if(pm.agentIntent==="Stay and develop"){
-        score-=40;
+      if(!pm||!player||!team||team.id===current?.id){
+        return {score:0,label:"No Interest",reason:"",role:"",affordable:false};
       }
 
-      score+=(playerModeStableClubNoise(team.id,career.worldSeason||1)-.5)*7;
+      const form=playerModeTransferForm(career);
+      const playerOvr=Number(player.overall||0);
+      const playerAge=Number(player.age||25);
+      const potential=Number(player.potential||playerOvr);
+      const targetOvr=Number(team.strength||70);
+      const currentOvr=Number(current?.strength||playerOvr);
+      const targetRep=managerClubReputation(career,team);
+      const currentRep=current?managerClubReputation(career,current):40;
+      const playerRep=Number(pm.reputation||30);
+      const role=playerModeProjectedRole(player,team);
+      const contractYears=Math.max(0,Number(player.contractYears||0));
+      const currentLeague=playerModeDomesticLeagueForClub(career,current?.id);
+      const targetLeague=playerModeDomesticLeagueForClub(career,team);
+      const differentLeague=!!(currentLeague&&targetLeague&&currentLeague.id!==targetLeague.id);
+      const targetFin=career.manager?.clubFinances?.[team.id];
+      const expectedValue=Number(player.marketValue||managerPlayerValue(player));
+      const budget=Number(targetFin?.budget||0);
+      const affordable=!targetFin||budget>=Math.max(expectedValue*.82,12_000_000);
 
-      return clamp(Math.round(score),0,98);
+      // Base interest is driven by whether the player is good enough for the
+      // club while still having a sensible role there.
+      const qualityGap=playerOvr-targetOvr;
+      let score=54 + qualityGap*3.1;
+
+      // Recent form and actual production now matter.
+      if(form.apps>=5){
+        score+=(form.recentAvg-6.5)*6.2;
+        score+=Math.min(7,form.contributions*.65);
+      }else if(playerAge>23){
+        score-=5;
+      }
+
+      // Reputation matters, but it no longer overwhelms football performance.
+      score+=(playerRep-targetRep)*.30;
+
+      // Young elite-potential players can attract bigger clubs before they are
+      // finished products, but a 68 OVR teenager still will not get Real Madrid.
+      if(playerAge<=21&&potential>=88)score+=6;
+      else if(playerAge<=23&&potential>=85)score+=3;
+
+      // Role fit. Clubs are less likely to spend heavily on someone projected
+      // to sit at the bottom of the squad.
+      if(role==="Important Player")score+=9;
+      else if(role==="Starter")score+=7;
+      else if(role==="Rotation")score+=1;
+      else if(role==="Prospect")score+=playerAge<=21?1:-8;
+      else score-=14;
+
+      // Contract situation makes a deal easier or harder.
+      if(contractYears<=1)score+=6;
+      else if(contractYears>=4)score-=4;
+
+      // Financial realism.
+      if(!affordable)score-=30;
+      else if(targetFin&&budget<expectedValue*1.15)score-=6;
+
+      // Club trajectory and European football.
+      const targetEurope=managerClubEuropeanStatus(career,team.id);
+      if(targetEurope==="champions")score+=3;
+      const currentEurope=current?managerClubEuropeanStatus(career,current.id):"none";
+
+      // Agent instruction.
+      if(pm.agentIntent==="Find a bigger club"){
+        const reputationStep=targetRep-currentRep;
+        if(reputationStep>=5&&targetOvr>=currentOvr+1)score+=10;
+        else if(targetOvr<=currentOvr&&targetRep<=currentRep)score-=28;
+        if(targetOvr-currentOvr>=10)score-=8;
+      }else if(pm.agentIntent==="I need more playing time"){
+        if(["Important Player","Starter"].includes(role))score+=13;
+        else if(role==="Rotation")score+=2;
+        else score-=22;
+      }else if(pm.agentIntent==="Try another league"){
+        if(differentLeague)score+=11;
+        else score-=34;
+      }else if(pm.agentIntent==="Stay and develop"){
+        score-=60;
+      }
+
+      // Hard realism gates for major clubs.
+      if(targetRep>=82){
+        if(playerOvr<76&&!(playerAge<=20&&potential>=91))score=Math.min(score,22);
+        if(playerOvr<80&&form.apps>=8&&form.recentAvg<7.2)score=Math.min(score,38);
+        if(playerRep<48&&playerOvr<82)score=Math.min(score,43);
+      }
+      if(targetRep>=90&&playerOvr<80)score=Math.min(score,25);
+
+      // A star at an elite club rarely moves sideways unless unhappy or asking
+      // for a different league.
+      if(currentRep>=78&&targetRep<currentRep-8&&pm.agentIntent!=="I need more playing time"){
+        score-=18;
+      }
+
+      // Stable club-specific noise avoids identical interest every refresh.
+      score+=(playerModeStableClubNoise(team.id,career.worldSeason||1)-.5)*5;
+
+      score=clamp(Math.round(score),0,96);
+
+      let reason="";
+      if(!affordable)reason="Budget is currently too tight for a realistic bid.";
+      else if(targetRep>=82&&playerOvr<76)reason="The club sees you as a future prospect, not a first-team signing yet.";
+      else if(["Important Player","Starter"].includes(role)&&form.label==="Strong")reason="Your form and projected playing role fit their recruitment plan.";
+      else if(["Important Player","Starter"].includes(role))reason="You project to have a genuine first-team role.";
+      else if(role==="Rotation")reason="They are monitoring you as a rotation option.";
+      else reason="They like the profile, but your pathway to minutes is not clear.";
+
+      return {
+        score,
+        label:playerModeTransferInterestLabel(score),
+        reason,
+        role,
+        affordable,
+        targetRep,
+        currentRep,
+        differentLeague,
+        targetEurope,
+        currentEurope,
+        form
+      };
+    }
+
+    function playerModeClubInterestScore(career,team){
+      return playerModeTransferClubFit(career,team).score;
     }
 
     function playerModeAgentIntentDescription(career=currentCareerSave()){
       const pm=playerModeData(career);
       if(!pm)return "";
-      if(pm.agentIntent==="Stay and develop")return "Your agent will not shop you around. Training and manager trust are the priority.";
-      if(pm.agentIntent==="Find a bigger club")return "Your agent targets stronger clubs, but only clubs where your current level makes a move realistic.";
-      if(pm.agentIntent==="I need more playing time")return "Your agent targets clubs where you project as a Starter or Important Player. Young players are also considered for loans.";
-      return "Your agent prioritizes realistic clubs outside your current domestic league.";
+      if(pm.agentIntent==="Stay and develop")return "Your agent will not shop you around. Training, form and manager trust are the priority.";
+      if(pm.agentIntent==="Find a bigger club")return "Your agent targets a genuine step up in club level and reputation, but elite clubs still require elite form, reputation or potential.";
+      if(pm.agentIntent==="I need more playing time")return "Your agent prioritizes clubs where you project to start or play an important role. Loans are mainly for young players who need minutes.";
+      return "Your agent prioritizes realistic clubs in another domestic league, with role, finances and club level still taken into account.";
     }
 
     function playerModeTransferAgreement(career,target,interest,loan=false){
-      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        current=playerModeClub(career);
+
       if(!pm||!player||!target)return {ok:false,reason:"Transfer data is unavailable."};
 
-      const targetRole=playerModeProjectedRole(player,target);
-      const targetThreshold=loan?44:58;
+      const fit=playerModeTransferClubFit(career,target);
+      const targetRole=fit.role||playerModeProjectedRole(player,target);
+      const interestScore=Number(interest||fit.score||0);
+      const age=Number(player.age||25);
+      const contractYears=Math.max(0,Number(player.contractYears||0));
+      const expectedValue=Number(player.marketValue||managerPlayerValue(player));
+      const targetFin=career.manager?.clubFinances?.[target.id];
+      const currentFin=current?career.manager?.clubFinances?.[current.id]:null;
+      const windowPhase=career.manager?.transferWindow?.phase||"summer";
 
-      if(interest<targetThreshold){
+      if(loan){
+        if(age>23){
+          return {ok:false,side:"target",reason:"A loan is not realistic at this stage of your career. Clubs are looking at permanent deals instead."};
+        }
+        if(!["Prospect","Rotation","Starter"].includes(targetRole)){
+          return {ok:false,side:"target",reason:`${target.name} cannot offer a convincing development role on loan.`};
+        }
+        if(interestScore<48){
+          return {ok:false,side:"target",reason:`${target.name} are only monitoring you. They are not ready to request a loan yet.`};
+        }
+        if(current&&["Star Player","Important Player"].includes(pm.squadRole)&&pm.managerTrust>=72){
+          return {ok:false,side:"current",reason:`${current.name} rejected the loan because you are already an important first-team player.`};
+        }
+
+        const wageShare=clamp(.45+(Number(target.strength||70)-65)/80,.45,.82);
+        const wage=Math.round(Math.max(Number(player.wage||0)*wageShare,managerExpectedWage(player)*.65)/1000)*1000;
+
         return {
-          ok:false,
-          side:"target",
-          reason:`${target.name} likes the profile, but their sporting department is not ready to make a ${loan?"loan":"transfer"} offer yet.`
+          ok:true,
+          fee:0,
+          wage,
+          contractYears:1,
+          targetRole,
+          currentApproved:true,
+          targetApproved:true,
+          loanWageShare:Math.round(wageShare*100),
+          fit
         };
       }
 
-      const targetFin=career.manager?.clubFinances?.[target.id];
-      const expectedValue=Number(player.marketValue||managerPlayerValue(player));
-      const fee=loan?0:Math.round(expectedValue*(.90+interest/260)/1_000_000)*1_000_000;
-
-      if(!loan && targetFin && Number(targetFin.budget||0)<fee){
+      if(interestScore<62){
         return {
           ok:false,
           side:"target",
-          reason:`${target.name} cannot fund the club-to-club fee required for this move.`
+          reason:interestScore>=48
+            ?`${target.name} are scouting you, but their recruitment team is not ready to submit a formal bid yet.`
+            :`${target.name} do not currently see the move as a strong enough sporting fit.`
+        };
+      }
+
+      if(!fit.affordable){
+        return {
+          ok:false,
+          side:"target",
+          reason:`${target.name} cannot realistically finance the transfer at your current market value.`
+        };
+      }
+
+      // Seller asking price: contract length, role, age, form and whether the
+      // player is actively pushing to move all matter.
+      const form=playerModeTransferForm(career);
+      const rolePremium=
+        pm.squadRole==="Star Player"?.26:
+        pm.squadRole==="Important Player"?.17:
+        pm.squadRole==="Starter"?.10:0;
+
+      const contractPremium=
+        contractYears>=4?.22:
+        contractYears===3?.15:
+        contractYears===2?.08:
+        contractYears<=1?-.08:0;
+
+      const agePremium=age<=23?.08:age>=31?-.10:0;
+      const formPremium=form.recentAvg>=8?.10:form.recentAvg>=7.4?.05:form.recentAvg&&form.recentAvg<6.2?-.07:0;
+      const wantsMove=pm.agentIntent!=="Stay and develop";
+      const moveDiscount=wantsMove?.05:0;
+
+      let asking=expectedValue*(1+rolePremium+contractPremium+agePremium+formPremium-moveDiscount);
+
+      // Release clause becomes the ceiling if it is active and lower.
+      const releaseClause=Number(player.releaseClause||0);
+      const clauseActive=releaseClause>0&&releaseClause<asking*1.03;
+      if(clauseActive)asking=Math.min(asking,releaseClause);
+
+      // Buying club opens below the seller valuation, then stronger interest
+      // closes the gap. This makes a "contact" feel like a negotiation rather
+      // than an instant transfer.
+      const openingFactor=.88+Math.max(0,interestScore-62)*.0042;
+      let fee=expectedValue*openingFactor;
+
+      // Contract expiring soon gives the buyer leverage.
+      if(contractYears<=1)fee*=.90;
+
+      // Serious interest can stretch above market value for a priority target.
+      if(interestScore>=84)fee*=1.06;
+
+      fee=Math.round(Math.max(1_000_000,fee)/1_000_000)*1_000_000;
+      asking=Math.round(Math.max(1_000_000,asking)/1_000_000)*1_000_000;
+
+      if(targetFin&&Number(targetFin.budget||0)<fee){
+        return {
+          ok:false,
+          side:"target",
+          reason:`${target.name} cannot fund even their opening bid of ${money(fee)}.`
         };
       }
 
       if(current){
-        if(loan){
-          const loanApproved=
-            Number(player.age||25)<=23 ||
-            pm.agentIntent==="I need more playing time" ||
-            !["Star Player","Important Player"].includes(pm.squadRole);
+        // January sales of important players are harder because replacing them
+        // mid-season is difficult.
+        if(windowPhase==="january"&&["Star Player","Important Player"].includes(pm.squadRole)&&contractYears>1&&!wantsMove){
+          return {
+            ok:false,
+            side:"current",
+            reason:`${current.name} will not sell an important player in January unless a major bid arrives or you push for the move.`
+          };
+        }
 
-          if(!loanApproved){
-            return {
-              ok:false,
-              side:"current",
-              reason:`${current.name} rejected the loan because you are too important to the first team right now.`
-            };
-          }
-        }else{
-          const contractYears=Number(player.contractYears||1);
-          const rolePremium=pm.squadRole==="Star Player"?.16:pm.squadRole==="Important Player"?.09:0;
-          const asking=expectedValue*(1.00+Math.min(.18,contractYears*.035)+rolePremium);
-          const wantsMove=pm.agentIntent!=="Stay and develop";
-
-          if(fee<asking && !(wantsMove && fee>=asking*.91)){
-            return {
-              ok:false,
-              side:"current",
-              reason:`${current.name} rejected ${target.name}'s ${money(fee)} approach. They value you at about ${money(Math.round(asking/1_000_000)*1_000_000)}.`
-            };
-          }
+        const acceptanceFloor=wantsMove?asking*.91:asking*.96;
+        if(fee<acceptanceFloor){
+          return {
+            ok:false,
+            side:"current",
+            reason:`${current.name} rejected ${target.name}'s ${money(fee)} bid. Their valuation is around ${money(asking)}.`
+          };
         }
       }
 
-      const contractYears=loan?1:(interest>=82?5:4);
+      // Personal terms: protect a player's existing wage and scale the contract
+      // to status, club level and age.
+      const currentWage=Number(player.wage||0);
+      const baseExpected=managerExpectedWage(player);
+      const statusPremium=
+        targetRole==="Important Player"?.18:
+        targetRole==="Starter"?.10:
+        targetRole==="Rotation"?.03:-.04;
+      const clubPremium=Math.max(0,Number(target.strength||70)-Number(current?.strength||70))*.012;
       const wage=Math.round(
-        managerExpectedWage(player)*
-        (1.02+Math.max(0,Number(target.strength||70)-Number(current?.strength||70))/80+interest/650)
+        Math.max(currentWage*1.05,baseExpected*(1+statusPremium+clubPremium))
         /5000
       )*5000;
+
+      const years=
+        age<=23?5:
+        age<=28?(interestScore>=82?5:4):
+        age<=31?3:2;
 
       return {
         ok:true,
         fee,
+        asking,
         wage,
-        contractYears,
+        contractYears:years,
         targetRole,
         currentApproved:true,
-        targetApproved:true
+        targetApproved:true,
+        releaseClauseTriggered:clauseActive&&fee>=releaseClause,
+        fit
       };
     }
 
     function playerModeRefreshTransferInterest(career=currentCareerSave(),force=false){
       if(!isPlayerMode(career))return;
 
-      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        current=playerModeClub(career);
+
       if(!pm||!player)return;
 
       if(pm.agentIntent==="Stay and develop"){
@@ -12739,42 +13213,54 @@ body.player-calendar-advancing #playerNextMatchBtn{
       let rows=(career.teams||[])
         .filter(team=>team.id!==current?.id)
         .map(team=>{
-          const interest=playerModeClubInterestScore(career,team);
+          const fit=playerModeTransferClubFit(career,team);
           const targetLeague=playerModeDomesticLeagueForClub(career,team);
           return {
             clubId:team.id,
-            interest,
-            projectedRole:playerModeProjectedRole(player,team),
+            interest:fit.score,
+            interestLabel:fit.label,
+            reason:fit.reason,
+            projectedRole:fit.role,
             leagueName:targetLeague?.name||"",
-            differentLeague:!!(currentLeague&&targetLeague&&currentLeague.id!==targetLeague.id)
+            differentLeague:fit.differentLeague,
+            affordable:fit.affordable,
+            targetRep:fit.targetRep
           };
         });
 
       if(pm.agentIntent==="Find a bigger club"){
+        const currentRep=current?managerClubReputation(career,current):0;
         rows=rows.filter(row=>{
           const team=managerTeam(row.clubId,career);
-          return Number(team?.strength||0)>Number(current?.strength||0)+1;
+          return Number(team?.strength||0)>=Number(current?.strength||0)+1 ||
+            Number(row.targetRep||0)>=currentRep+5;
         });
       }else if(pm.agentIntent==="I need more playing time"){
         rows=rows.filter(row=>["Starter","Important Player","Rotation"].includes(row.projectedRole));
-      }else if(pm.agentIntent==="Try another league" && currentLeague){
+      }else if(pm.agentIntent==="Try another league"&&currentLeague){
         rows=rows.filter(row=>row.differentLeague);
       }
 
+      // Clubs below monitoring level are not shown. A maximum of 7 keeps the
+      // page believable rather than pretending half of Europe wants the player.
       pm.transferInterest=rows
-        .filter(row=>row.interest>=34)
+        .filter(row=>row.interest>=46)
         .sort((a,b)=>{
           if(b.interest!==a.interest)return b.interest-a.interest;
           const teamA=managerTeam(a.clubId,career),teamB=managerTeam(b.clubId,career);
           return Number(teamB?.strength||0)-Number(teamA?.strength||0) ||
             String(teamA?.name||"").localeCompare(String(teamB?.name||""));
         })
-        .slice(0,6);
+        .slice(0,7);
+
+      const serious=pm.transferInterest.filter(r=>r.interest>=74).length;
+      const monitoring=pm.transferInterest.length-serious;
 
       pm.agentStatus=pm.transferInterest.length
-        ?`${pm.transferInterest.length} realistic club${pm.transferInterest.length===1?" is":"s are"} on your agent's current radar.`
-        :"No realistic club matches your instruction right now. Keep performing and developing.";
+        ?`${serious?`${serious} club${serious===1?" has":"s have"} serious interest`: "No club is ready to bid yet"}${monitoring?` · ${monitoring} monitoring`:""}.`
+        :"No realistic club matches your instruction right now. Keep performing, developing and building your reputation.";
     }
+
     function playerModeSetAgentIntent(intent){
       const career=currentCareerSave(),pm=playerModeData(career);
       if(!pm)return;
@@ -12838,6 +13324,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
         wage:agreement.wage,
         contractYears:agreement.contractYears,
         targetRole:agreement.targetRole,
+        asking:agreement.asking||agreement.fee||0,
+        releaseClauseTriggered:!!agreement.releaseClauseTriggered,
+        loanWageShare:agreement.loanWageShare||null,
         targetApproved:true,
         currentApproved:true,
         stage:"personal-terms",
@@ -13417,6 +13906,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
                 <strong>${pending.loan?'Season loan':money(pending.fee)}</strong>
                 <div class="muted">${money(pending.wage)}/week · ${pending.loan?"1 season":`${pending.contractYears||4} years`}</div>
                 <div class="muted">Projected role: ${escapeHtml(pending.targetRole||"Squad player")}</div>
+                ${pending.releaseClauseTriggered?`<div class="muted">Release clause activated</div>`:""}
+                ${pending.loanWageShare?`<div class="muted">Loan club covers about ${pending.loanWageShare}% of salary</div>`:""}
               </div>
               ${teamLogo(offerClub)}
             </div>
@@ -13449,8 +13940,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
                 <div>
                   <strong>${escapeHtml(club.name)}</strong>
                   <small class="muted" style="display:block">
-                    Interest ${item.interest}% · ${escapeHtml(item.projectedRole||"Squad role")}
+                    ${escapeHtml(item.interestLabel||playerModeTransferInterestLabel(item.interest))} · ${escapeHtml(item.projectedRole||"Squad role")}
                     ${item.leagueName?` · ${escapeHtml(item.leagueName)}`:""}
+                  </small>
+                  <small class="muted" style="display:block;margin-top:3px">
+                    ${escapeHtml(item.reason||"The club is monitoring your situation.")}
                   </small>
                 </div>
                 <div>
@@ -13660,6 +14154,204 @@ body.player-calendar-advancing #playerNextMatchBtn{
       }
 
       return {updated};
+    }
+
+    const ORIGINAL_CLUB_SQUAD_RESET_VERSION="v61.12-original-clubs-once";
+
+    function managerCanonicalRosterKey(name){
+      return String(name||"")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .replace(/[’']/g,"'")
+        .trim()
+        .toLowerCase();
+    }
+
+    function managerCreateCanonicalRealPlayer(team,realPlayer,index){
+      const position=realPlayer?.position||MANAGER_POSITIONS[index]||"CM";
+      const player=managerGeneratePlayer(Number(team?.strength||70),position,index,team?.id);
+
+      player.name=realPlayer.name;
+      player.position=position;
+      player.age=Number(realPlayer.age||player.age);
+      player.nationality=realPlayer.nationality||player.nationality;
+      player.realPlayer=true;
+      player.realRosterSnapshot=REAL_MANAGER_ROSTER_SNAPSHOT;
+      player.clubId=team.id;
+
+      managerApplyRealPlayerRating(player,team,index);
+      return player;
+    }
+
+    function managerResetCanonicalSquadsOnce(career){
+      if(!career?.managerMode)return {changed:false,moved:0,created:0};
+      career.manager=career.manager||{};
+
+      if(career.manager.originalClubSquadResetVersion===ORIGINAL_CLUB_SQUAD_RESET_VERSION){
+        return {changed:false,moved:0,created:0};
+      }
+
+      const teams=Array.isArray(career.teams)?career.teams:[];
+      const freeAgents=Array.isArray(career.manager.freeAgents)?career.manager.freeAgents:[];
+      const isPlayerCareer=!!career.playerMode;
+
+      // The user's Player Career footballer is protected regardless of whether
+      // it is a created player or a real player selected at career creation.
+      const protectedIds=new Set();
+      const controlledPlayerId=career.playerCareer?.playerId||null;
+
+      teams.forEach(team=>{
+        (team.managerSquad||[]).forEach(player=>{
+          if(
+            player?.playerModeProtected ||
+            player?.createdPlayerMode ||
+            (isPlayerCareer&&controlledPlayerId&&player?.id===controlledPlayerId)
+          ){
+            protectedIds.add(player.id);
+          }
+        });
+      });
+      freeAgents.forEach(player=>{
+        if(
+          player?.playerModeProtected ||
+          player?.createdPlayerMode ||
+          (isPlayerCareer&&controlledPlayerId&&player?.id===controlledPlayerId)
+        ){
+          protectedIds.add(player.id);
+        }
+      });
+
+      const canonicalByKey=new Map();
+      Object.entries(REAL_MANAGER_ROSTERS||{}).forEach(([clubName,roster])=>{
+        (roster||[]).slice(0,18).forEach((realPlayer,index)=>{
+          const key=managerCanonicalRosterKey(realPlayer?.name);
+          if(!key)return;
+          canonicalByKey.set(key,{clubName,realPlayer,index});
+        });
+      });
+
+      // Collect every existing copy before changing memberships. This preserves
+      // ratings, age progression, stats, contracts, wages, morale and IDs.
+      const existingByKey=new Map();
+      const remember=(player,sourceTeamId=null,freeAgent=false)=>{
+        const key=managerCanonicalRosterKey(player?.name);
+        if(!canonicalByKey.has(key))return;
+        const rows=existingByKey.get(key)||[];
+        rows.push({player,sourceTeamId,freeAgent});
+        existingByKey.set(key,rows);
+      };
+
+      teams.forEach(team=>(team.managerSquad||[]).forEach(player=>remember(player,team.id,false)));
+      freeAgents.forEach(player=>remember(player,null,true));
+
+      // Choose the best existing copy when an old save contains duplicates.
+      const selectedByKey=new Map();
+      existingByKey.forEach((rows,key)=>{
+        rows.sort((a,b)=>{
+          const ap=a.player,bp=b.player;
+          const aProtected=protectedIds.has(ap?.id)?1:0;
+          const bProtected=protectedIds.has(bp?.id)?1:0;
+          if(bProtected!==aProtected)return bProtected-aProtected;
+
+          const aReal=ap?.realPlayer?1:0,bReal=bp?.realPlayer?1:0;
+          if(bReal!==aReal)return bReal-aReal;
+
+          const aApps=Number(ap?.appearancesCareer||0);
+          const bApps=Number(bp?.appearancesCareer||0);
+          if(bApps!==aApps)return bApps-aApps;
+
+          return Number(bp?.overall||0)-Number(ap?.overall||0);
+        });
+        selectedByKey.set(key,rows[0]);
+      });
+
+      // Remove canonical real-player copies from their current locations.
+      // Protected Player Career footballers stay exactly where they are.
+      teams.forEach(team=>{
+        team.managerSquad=(team.managerSquad||[]).filter(player=>{
+          const key=managerCanonicalRosterKey(player?.name);
+          if(!canonicalByKey.has(key))return true;
+          if(protectedIds.has(player?.id))return true;
+          return false;
+        });
+      });
+
+      career.manager.freeAgents=freeAgents.filter(player=>{
+        const key=managerCanonicalRosterKey(player?.name);
+        if(!canonicalByKey.has(key))return true;
+        if(protectedIds.has(player?.id))return true;
+        return false;
+      });
+
+      let moved=0,created=0;
+
+      for(const [key,canonical] of canonicalByKey.entries()){
+        const targetTeam=teams.find(team=>team.name===canonical.clubName);
+        if(!targetTeam)continue;
+
+        const selected=selectedByKey.get(key);
+
+        // If this is the Player Career controlled footballer, do not relocate
+        // them and do not create a second copy at their original club.
+        if(selected?.player && protectedIds.has(selected.player.id)){
+          continue;
+        }
+
+        let player=selected?.player||null;
+        if(!player){
+          player=managerCreateCanonicalRealPlayer(
+            targetTeam,
+            canonical.realPlayer,
+            canonical.index
+          );
+          created++;
+        }else{
+          if(selected.sourceTeamId!==targetTeam.id || selected.freeAgent)moved++;
+          player.realPlayer=true;
+          player.realRosterSnapshot=REAL_MANAGER_ROSTER_SNAPSHOT;
+          player.clubId=targetTeam.id;
+
+          // Membership resets to the original club, but the player's existing
+          // progression, contract, stats, wage, morale, rating and history stay.
+          if(!player.position)player.position=canonical.realPlayer.position||"CM";
+          if(!player.nationality)player.nationality=canonical.realPlayer.nationality||"";
+        }
+
+        targetTeam.managerSquad=Array.isArray(targetTeam.managerSquad)
+          ?targetTeam.managerSquad
+          :[];
+
+        if(!targetTeam.managerSquad.some(existing=>existing.id===player.id)){
+          targetTeam.managerSquad.push(player);
+        }
+      }
+
+      // Preserve every non-canonical/custom/generated player and all save data.
+      // Only real-player club membership is reset.
+      teams.forEach(team=>{
+        managerRecalculateTeam(team);
+      });
+      managerUpdateWageBills(career);
+
+      career.manager.originalClubSquadResetVersion=ORIGINAL_CLUB_SQUAD_RESET_VERSION;
+
+      if(!isPlayerCareer){
+        managerNotify(
+          career,
+          "One-Time Original Squad Reset",
+          `Real players were returned to their original ${REAL_MANAGER_ROSTER_SNAPSHOT} clubs for this update only. Your finances, trophies, contracts, custom/generated players, history, competitions and other Manager Mode progress were not reset.`,
+          "squad"
+        );
+      }else{
+        career.playerCareer=career.playerCareer||{};
+        career.playerCareer.squadResetNoticeVersion=ORIGINAL_CLUB_SQUAD_RESET_VERSION;
+      }
+
+      // Persist the flag immediately. Future openings of this save will not
+      // perform the reset again.
+      persistDataSilently();
+
+      return {changed:(moved+created)>0,moved,created};
     }
 
     function managerBuildInitialSquad(team){
@@ -14125,6 +14817,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       career.manager.playerRequestGraceUntilTick=Number(career.manager.playerRequestGraceUntilTick??(career.manager.managerActionTick+3));
       career.manager.lastIncomingOfferTick=Number(career.manager.lastIncomingOfferTick??-99);
       career.manager.lastPlayerRequestTick=Number(career.manager.lastPlayerRequestTick??-99);
+
+      // V61.12 one-time migration: restore canonical real players to their
+      // original clubs without resetting the rest of the save.
+      managerResetCanonicalSquadsOnce(career);
       Object.entries(career.manager.clubPlayerTotals||{}).forEach(([teamId,players])=>{
         Object.values(players||{}).forEach(item=>{
           item.goals=Number(item.goals||0);
@@ -14215,17 +14911,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       }
 
       if(career.manager.populationRepairVersion!=="v60.28"){
-        const repair=managerNormalizePlayerPopulation(career);
+        // V61.12 intentionally preserves custom/generated players while the
+        // original-club squad reset is being applied. Do not delete anything
+        // from the user's Manager or Player Career save in this migration.
         career.manager.populationRepairVersion="v60.28";
-
-        if(repair.removed>0){
-          managerNotify(
-            career,
-            'Player Database Rebalanced',
-            `Removed ${repair.removed} accidental generated/duplicate players from older saves. Living player population: ${repair.count} / target ${repair.target}. From now on, new players are created only when someone retires.`,
-            'squad'
-          );
-        }
       }
 
       (career.teams||[]).forEach(club=>(club.managerSquad||[]).forEach(managerAssignRetirementPlan));
@@ -17458,6 +18147,79 @@ body.player-calendar-advancing #playerNextMatchBtn{
         }
       }
     }
+    function managerAiPositionNeed(team){
+      const positions=["GK","RB","CB","LB","CM","CAM","RW","LW","ST"];
+      const squad=team?.managerSquad||[];
+
+      const positionScore=pos=>{
+        const compatible=squad
+          .filter(p=>p.position===pos)
+          .sort((a,b)=>Number(b.overall||0)-Number(a.overall||0));
+        if(!compatible.length)return -25;
+        const first=Number(compatible[0]?.overall||55);
+        const second=Number(compatible[1]?.overall||first-8);
+        return first*.72+second*.28;
+      };
+
+      return positions
+        .map(pos=>({pos,score:positionScore(pos)}))
+        .sort((a,b)=>a.score-b.score)[0]?.pos||"CM";
+    }
+
+    function managerAiRecentlyMoved(career,playerId){
+      const season=Number(career.worldSeason||1);
+      return (career.manager?.transferHistory||[]).some(row=>
+        row.playerId===playerId&&Number(row.season||0)===season
+      );
+    }
+
+    function managerAiTransferTargetScore(career,buyer,seller,p,needPos){
+      if(!buyer||!seller||!p)return -999;
+      if(managerAiRecentlyMoved(career,p.id))return -999;
+      if((seller.managerSquad||[]).length<=15)return -999;
+
+      const buyerRep=managerClubReputation(career,buyer);
+      const sellerRep=managerClubReputation(career,seller);
+      const buyerStrength=Number(buyer.strength||70);
+      const playerOvr=Number(p.overall||0);
+      const age=Number(p.age||25);
+      const potential=Number(p.potential||playerOvr);
+      const interest=managerPlayerInterest(career,p,buyer,seller,managerExpectedWage(p),false);
+
+      if(interest.hardBlock)return -999;
+
+      let score=0;
+
+      // Actual squad need is the first priority.
+      if(p.position===needPos)score+=24;
+      else if(
+        (needPos==="CB"&&["LB","RB"].includes(p.position)) ||
+        (needPos==="CM"&&["CAM"].includes(p.position)) ||
+        (needPos==="CAM"&&["CM","RW","LW"].includes(p.position)) ||
+        (needPos==="ST"&&["RW","LW"].includes(p.position))
+      )score+=7;
+      else score-=8;
+
+      // Buyers prefer players who improve their first XI, or high-upside youth.
+      const qualityDelta=playerOvr-buyerStrength;
+      score+=qualityDelta*3.0;
+      if(qualityDelta<-5&&!(age<=21&&potential>=buyerStrength+7))score-=22;
+
+      if(age<=22&&potential>=playerOvr+5)score+=7;
+      if(age>=32)score-=6;
+
+      // Player willingness and club stature.
+      score+=(interest.percent-50)*.32;
+      if(buyerRep>=sellerRep+8)score+=5;
+      if(buyerRep<sellerRep-12&&!p.wantsOut)score-=12;
+
+      if(p.transferListed)score+=8;
+      if(p.wantsOut)score+=12;
+      if(Number(p.contractYears||0)<=1)score+=7;
+
+      return score;
+    }
+
     function managerRunAiTransferMarket(career=currentCareerSave(),phase='summer',quiet=false){
       if(!isManagerMode(career))return;
 
@@ -17465,58 +18227,103 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(career.manager.lastAiWindowKey===key)return;
       career.manager.lastAiWindowKey=key;
 
-      // AI clubs now actively use the free-agent market first.
       managerAiResolveFreeAgents(career,{repairMode:false});
 
       const deals=phase==='summer'
-        ?Math.min(18,Math.max(6,Math.round(career.teams.length*.45)))
-        :Math.min(10,Math.max(3,Math.round(career.teams.length*.25)));
+        ?Math.min(14,Math.max(4,Math.round(career.teams.length*.32)))
+        :Math.min(7,Math.max(2,Math.round(career.teams.length*.16)));
 
       for(let i=0;i<deals;i++){
-        const buyers=career.teams.filter(
-          t=>t.id!==career.controlledTeamId&&career.manager.clubFinances[t.id]?.budget>25_000_000
-        );
+        const buyers=career.teams.filter(t=>{
+          if(t.id===career.controlledTeamId)return false;
+          const fin=career.manager.clubFinances[t.id];
+          return fin&&Number(fin.budget||0)>18_000_000&&(t.managerSquad||[]).length<22;
+        });
+
         if(!buyers.length)break;
 
-        const buyer=buyers[Math.floor(Math.random()*buyers.length)],
-          fin=career.manager.clubFinances[buyer.id],
-          needPos=['GK','CB','CM','CAM','RW','LW','ST'][Math.floor(Math.random()*7)],
-          targets=career.teams
-            .filter(t=>t.id!==buyer.id&&t.id!==career.controlledTeamId)
-            .flatMap(t=>(t.managerSquad||[])
-              .filter(p=>
-                (p.position===needPos||Math.random()<.15)&&
-                p.marketValue<fin.budget*.55
-              )
-              .map(p=>({p,seller:t}))
-            )
-            .sort((a,b)=>b.p.overall-a.p.overall);
+        // Clubs with weaker squads are slightly more likely to enter the market,
+        // but the chosen target is no longer random.
+        buyers.sort((a,b)=>
+          Number(a.strength||0)-Number(b.strength||0) ||
+          Number(career.manager.clubFinances[b.id]?.budget||0)-Number(career.manager.clubFinances[a.id]?.budget||0)
+        );
 
-        if(!targets.length)continue;
+        const pool=buyers.slice(0,Math.max(3,Math.ceil(buyers.length*.7)));
+        const buyer=pool[Math.floor(Math.random()*pool.length)];
+        const fin=career.manager.clubFinances[buyer.id];
+        const needPos=managerAiPositionNeed(buyer);
 
-        const target=targets[Math.floor(Math.random()*Math.min(12,targets.length))],
-          fee=Math.round(target.p.marketValue*(.9+Math.random()*.2)/1_000_000)*1_000_000;
+        const candidates=[];
+        career.teams
+          .filter(t=>t.id!==buyer.id&&t.id!==career.controlledTeamId)
+          .forEach(seller=>{
+            (seller.managerSquad||[]).forEach(p=>{
+              const value=Number(p.marketValue||managerPlayerValue(p));
+              if(value<=0||value>Number(fin.budget||0)*.62)return;
 
-        if(fee<=0||fee>fin.budget)continue;
+              const score=managerAiTransferTargetScore(career,buyer,seller,p,needPos);
+              if(score<=0)return;
+              candidates.push({p,seller,score,value});
+            });
+          });
+
+        candidates.sort((a,b)=>b.score-a.score||b.p.overall-a.p.overall);
+        const shortlist=candidates.slice(0,Math.min(10,candidates.length));
+        if(!shortlist.length)continue;
+
+        // Top targets are much more likely, but there is still variation.
+        const pickIndex=Math.min(shortlist.length-1,Math.floor(Math.pow(Math.random(),2)*shortlist.length));
+        const target=shortlist[pickIndex];
+        const p=target.p;
+
+        const sellerRep=managerClubReputation(career,target.seller);
+        const buyerRep=managerClubReputation(career,buyer);
+        const contractYears=Math.max(0,Number(p.contractYears||0));
+        const rolePremium=p.isStarter?.10:0;
+        const contractPremium=contractYears>=4?.18:contractYears===3?.12:contractYears===2?.06:contractYears<=1?-.08:0;
+        const wantsDiscount=p.wantsOut?.09:p.transferListed?.05:0;
+
+        let asking=target.value*(1+rolePremium+contractPremium-wantsDiscount);
+        if(buyerRep<sellerRep-10&&!p.wantsOut)asking*=1.06;
+
+        let bid=target.value*(.92+Math.random()*.13);
+        if(contractYears<=1)bid*=.94;
+        if(p.wantsOut)bid*=1.02;
+
+        const fee=Math.round(Math.min(asking*1.04,Math.max(bid,asking*.92))/1_000_000)*1_000_000;
+        if(fee<=0||fee>Number(fin.budget||0))continue;
+
+        // Seller can reject if valuation is not met, especially for starters.
+        const sellerAccepts=
+          p.wantsOut ||
+          p.transferListed ||
+          contractYears<=1 ||
+          fee>=asking*.96;
+
+        if(!sellerAccepts)continue;
+
+        const interest=managerPlayerInterest(career,p,buyer,target.seller,managerExpectedWage(p),false);
+        if(interest.percent<46&&!p.wantsOut)continue;
 
         if(managerCompleteTransfer(
           career,
-          target.p.id,
+          p.id,
           target.seller.id,
           buyer.id,
           fee,
           {
-            wage:managerExpectedWage(target.p),
-            years:3+Math.floor(Math.random()*3),
-            clause:managerReleaseClause(target.p),
+            wage:Math.max(Number(p.wage||0)*1.05,managerExpectedWage(p)),
+            years:Number(p.age||25)<=23?5:Number(p.age||25)<=29?4:3,
+            clause:managerReleaseClause(p),
             reason:'AI transfer'
           }
         )){
-          if(target.p.overall>=90||fee>=180_000_000){
+          if(p.overall>=89||fee>=120_000_000){
             managerNotify(
               career,
               'Major Transfer',
-              `${buyer.name} signed ${target.p.name} from ${target.seller.name} for ${money(fee)}.`,
+              `${buyer.name} signed ${p.name} from ${target.seller.name} for ${money(fee)}.`,
               'news'
             );
           }
@@ -17526,6 +18333,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       managerCleanShortlist(career);
       if(!quiet)saveData('AI transfer market updated');
     }
+
     function renderManagerInbox(){const career=currentCareerSave(),panel=$('tab-manager-inbox');if(!panel)return;if(!isManagerMode(career)){panel.innerHTML='';return}const inbox=career.manager.inbox||[],viewing=document.querySelector('.tab.active')?.dataset.tab==='manager-inbox';panel.innerHTML=`<div class="card"><div class="manager-transfer-toolbar"><div><div class="startup-kicker">📩 MANAGER INBOX</div><h1 style="margin:4px 0">Club Messages</h1></div><span class="badge">${inbox.filter(n=>n.unread).length} unread</span></div><p class="muted">Offers, contracts, player requests, prize money, transfer windows and major deals appear here.</p></div><div class="manager-inbox-list" style="margin-top:14px">${inbox.length?inbox.map(n=>`<article class="manager-inbox-item ${n.unread?'unread':''}" data-inbox-id="${n.id}"><div class="manager-inbox-meta"><div><strong>${escapeHtml(n.title)}</strong><small class="muted" style="display:block">${escapeHtml(seasonDisplay(n.season||1))}</small></div><span class="badge">${escapeHtml(n.type||'Update')}</span></div><div>${escapeHtml(n.message)}</div>${managerInboxActionsHtml(n)}</article>`).join(''):'<div class="card"><p class="muted">Your inbox is empty.</p></div>'}</div>`;if(viewing){inbox.forEach(n=>n.unread=false);persistDataSilently()}panel.querySelectorAll('[data-offer-accept]').forEach(b=>b.onclick=()=>managerResolveIncomingOffer(b.dataset.offerAccept,'accept'));panel.querySelectorAll('[data-offer-reject]').forEach(b=>b.onclick=()=>managerResolveIncomingOffer(b.dataset.offerReject,'reject'));panel.querySelectorAll('[data-offer-negotiate]').forEach(b=>b.onclick=()=>managerResolveIncomingOffer(b.dataset.offerNegotiate,'negotiate'))}
     function managerInboxActionsHtml(note){const a=note.actions;if(!a||a.kind!=='incoming-offer'||a.status!=='pending'||a.releaseClause)return '';return `<div class="manager-inbox-actions"><button class="btn success small" data-offer-accept="${note.id}">Accept</button><button class="btn secondary small" data-offer-negotiate="${note.id}">Negotiate</button><button class="btn danger small" data-offer-reject="${note.id}">Reject</button></div>`}
     function managerResolveIncomingOffer(noteId,choice){const career=currentCareerSave(),note=career.manager.inbox.find(n=>n.id===noteId),a=note?.actions;if(!a||a.status!=='pending')return;const p=managerPlayerById(a.playerId,career),buyer=managerTeam(a.buyerId,career);if(!p||!buyer)return;if(choice==='reject'){a.status='rejected';note.message+=` You rejected ${buyer.name}'s offer.`;p.morale=Math.max(25,Number(p.morale||70)-(p.wantsOut?12:4))}else{let fee=Number(a.fee);if(choice==='negotiate'){const counter=Number(prompt(`Counter offer to ${buyer.name}:`,String(Math.round(fee*1.12/1_000_000)*1_000_000)));if(!Number.isFinite(counter))return;if(counter>fee*1.22){a.status='walked';note.message+=` ${buyer.name} walked away from your ${money(counter)} counteroffer.`;saveData('Offer negotiation ended');renderManagerInbox();return}fee=counter}const buyerFin=career.manager.clubFinances[buyer.id];if(!buyerFin||buyerFin.budget<fee){a.status='walked';note.message+=` ${buyer.name} could not fund the deal.`}else{managerCompleteTransfer(career,p.id,career.controlledTeamId,buyer.id,fee,{reason:'Accepted offer'});a.status='completed';note.message+=` Deal completed for ${money(fee)}.`}}saveData('Transfer offer resolved');renderManagerInbox();renderManagerSquad();renderManagerTransfers();renderManagerFinances();renderCareerDashboard();renderTeams()}
@@ -18104,38 +18912,104 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
     function managerBallonDorHonourPoints(honour){
       const win=honour.result==='winner';
-      if(honour.category==='world-cup')return win?52:28;
-      if(honour.category==='champions-league')return win?48:23;
-      if(honour.category==='europa-league')return win?28:14;
-      if(honour.category==='super-league')return win?22:10;
+
+      // Major international and Champions League success matter most, but no
+      // single trophy automatically overrides a huge individual season.
+      if(honour.category==='world-cup')return win?40:18;
+      if(honour.category==='champions-league')return win?36:16;
+      if(honour.category==='europa-league')return win?18:8;
+      if(honour.category==='super-league')return win?9:4;
+
       if(honour.category==='league'){
-        const tier=[1,2,3,4].includes(Number(honour.leagueTier))?Number(honour.leagueTier):1;
+        const tier=[1,2,3,4].includes(Number(honour.leagueTier))
+          ?Number(honour.leagueTier):1;
         const weight=leagueTierMultiplier(tier);
-        return Math.round((win?27:8)*weight);
+        return Math.round((win?22:6)*weight);
       }
-      return win?17:5;
+
+      return win?10:3;
+    }
+
+    function managerBallonDorPositionWeights(position){
+      const pos=String(position||"").toUpperCase();
+
+      if(pos==="GK"){
+        return {goal:1.2,assist:1.8,appearance:.30,overall:.34,productionFloor:0};
+      }
+      if(["CB","LB","RB"].includes(pos)){
+        return {goal:3.3,assist:2.4,appearance:.32,overall:.34,productionFloor:0};
+      }
+      if(["CM","CDM"].includes(pos)){
+        return {goal:2.8,assist:3.0,appearance:.30,overall:.32,productionFloor:6};
+      }
+      if(["CAM","LW","RW"].includes(pos)){
+        return {goal:3.2,assist:2.8,appearance:.27,overall:.28,productionFloor:10};
+      }
+      return {goal:3.45,assist:2.35,appearance:.25,overall:.27,productionFloor:12};
+    }
+
+    function managerBallonDorIndividualQuality(row){
+      const apps=Math.max(1,Number(row.appearances||0));
+      const goals=Number(row.goals||0);
+      const assists=Number(row.assists||0);
+      const pos=String(row.position||"").toUpperCase();
+      const per90ish=(goals+assists)/apps;
+
+      let bonus=0;
+
+      // Exceptional production gets rewarded without allowing a single raw
+      // total to dominate every trophy and every other part of the season.
+      if(["ST","LW","RW","CAM"].includes(pos)){
+        if(per90ish>=1.05)bonus+=17;
+        else if(per90ish>=.80)bonus+=11;
+        else if(per90ish>=.58)bonus+=6;
+      }else if(["CM","CDM"].includes(pos)){
+        if(per90ish>=.70)bonus+=15;
+        else if(per90ish>=.48)bonus+=9;
+        else if(per90ish>=.30)bonus+=5;
+      }else if(["CB","LB","RB"].includes(pos)){
+        if(per90ish>=.35)bonus+=12;
+        else if(per90ish>=.20)bonus+=7;
+      }
+
+      if(Number(row.appearances||0)>=28)bonus+=4;
+      else if(Number(row.appearances||0)<12)bonus-=10;
+
+      return bonus;
     }
 
     function managerBallonDorReason(row){
       const reasons=[];
-      if(row.goals>=30)reasons.push(`${row.goals} goals`);
-      else if(row.goals>=18)reasons.push(`strong ${row.goals}-goal season`);
 
-      if(row.assists>=18)reasons.push(`${row.assists} assists`);
+      if(row.goals>=30)reasons.push(`${row.goals} goals`);
+      else if(row.goals>=18)reasons.push(`${row.goals}-goal season`);
+
+      if(row.assists>=16)reasons.push(`${row.assists} assists`);
       else if(row.assists>=10)reasons.push(`${row.assists} assists`);
 
       const wins=row.honours.filter(h=>h.result==='winner');
-      const major=wins.find(h=>['world-cup','champions-league'].includes(h.category))||wins[0];
+      const major=
+        wins.find(h=>h.category==='world-cup') ||
+        wins.find(h=>h.category==='champions-league') ||
+        wins.find(h=>h.category==='league') ||
+        wins[0];
+
       if(major)reasons.push(`${major.competitionName} winner`);
 
-      if(!major&&row.overall>=90)reasons.push(`${row.overall} OVR elite level`);
-      if(!reasons.length)reasons.push(`${row.overall} OVR with consistent performances`);
+      if(row.playerCareerAverage>=7.8)reasons.push(`${row.playerCareerAverage.toFixed(2)} avg rating`);
+      if(!reasons.length&&row.overall>=90)reasons.push(`${row.overall} OVR elite season`);
+      if(!reasons.length)reasons.push(`consistent ${row.appearances}-appearance season`);
 
       return reasons.slice(0,3).join(' · ');
     }
 
     function managerBallonDorRanking(career,season=Number(career.worldSeason||1),includeSuperLeague=true){
       const stats=managerPlayerSeasonStats(career,season);
+      const playerCareer=isPlayerMode(career)?playerModeData(career):null;
+      const userPlayer=isPlayerMode(career)?playerModePlayer(career):null;
+      const userSeason=userPlayer&&playerCareer
+        ?playerModeSeasonStats(career,season)
+        :null;
 
       const rows=Object.values(stats).map(stat=>{
         const player=managerPlayerById(stat.playerId,career);
@@ -18143,32 +19017,88 @@ body.player-calendar-advancing #playerNextMatchBtn{
         const lastClubId=stat.clubIds[stat.clubIds.length-1]||currentClub?.id||null;
         const lastClub=career.teams.find(t=>t.id===lastClubId)||currentClub;
         const overall=Number(player?.overall||70);
+        const position=player?.position||"ST";
         const honours=managerSeasonHonoursForPlayer(career,stat,season,includeSuperLeague);
         const honourPoints=honours.reduce((sum,h)=>sum+managerBallonDorHonourPoints(h),0);
+        const w=managerBallonDorPositionWeights(position);
 
-        // Goals matter most, then assists, major trophies, individual level and volume.
-        const score=
-          Number(stat.goals||0)*4.6+
-          Number(stat.assists||0)*3.0+
-          Math.min(38,Number(stat.appearances||0))*.35+
-          overall*1.12+
-          honourPoints;
+        const apps=Number(stat.appearances||0);
+        const goals=Number(stat.goals||0);
+        const assists=Number(stat.assists||0);
+
+        // OVR is now only a supporting signal. The award is driven primarily
+        // by what the player actually did during the season.
+        const overallAboveElite=Math.max(0,overall-78);
+        const production=
+          goals*w.goal +
+          assists*w.assist;
+
+        const availability=Math.min(35,apps)*w.appearance;
+        const eliteLevel=overallAboveElite*w.overall;
+        const individualQuality=managerBallonDorIndividualQuality({
+          ...stat,position,overall
+        });
+
+        // Player Career has match ratings, so use them as a modest extra signal
+        // rather than pretending other simulated players have ratings we do not
+        // track.
+        let playerCareerAverage=0;
+        let ratingBonus=0;
+        if(userPlayer&&stat.playerId===userPlayer.id&&userSeason?.ratedMatches){
+          playerCareerAverage=Number(playerModeAverageRating(userSeason)||0);
+          ratingBonus=clamp((playerCareerAverage-6.7)*7,-5,11);
+        }
+
+        // A weak season should not be rescued by reputation alone.
+        const minimumProduction=
+          ["GK","CB","LB","RB"].includes(String(position).toUpperCase())
+            ?0:w.productionFloor;
+
+        let score=
+          production +
+          availability +
+          eliteLevel +
+          honourPoints +
+          individualQuality +
+          ratingBonus;
+
+        if(apps<10)score-=16;
+        if(apps>=12&&(goals+assists)<minimumProduction)score-=8;
+
+        // Trophy stacking is capped a little so a player does not win purely
+        // because their club collected every competition.
+        const trophyWins=honours.filter(h=>h.result==='winner').length;
+        if(trophyWins>=3)score-=Math.max(0,trophyWins-2)*3;
 
         const row={
           ...stat,
           overall,
+          position,
           honours,
           clubId:lastClub?.id||lastClubId,
           clubName:lastClub?.name||'Free Agent',
-          score
+          playerCareerAverage,
+          score:Number(score.toFixed(2))
         };
+
         row.reason=managerBallonDorReason(row);
         return row;
       });
 
       return rows
-        .filter(row=>row.appearances>0||row.goals>0||row.assists>0)
-        .sort((a,b)=>b.score-a.score||b.goals-a.goals||b.assists-a.assists||b.overall-a.overall);
+        .filter(row=>{
+          // Normal candidates need a meaningful season. Exceptional low-volume
+          // seasons can still qualify if the production is enormous.
+          if(row.appearances>=12)return true;
+          return row.appearances>=8&&(row.goals+row.assists)>=14;
+        })
+        .sort((a,b)=>
+          b.score-a.score ||
+          b.goals-a.goals ||
+          b.assists-a.assists ||
+          b.appearances-a.appearances ||
+          b.overall-a.overall
+        );
     }
 
     function managerBallonPlayerFace(row,context='bench'){
@@ -18248,6 +19178,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <h2 class="ballon-title">The Final 10</h2>
           <p class="ballon-subtitle">
             These are the ten players still in contention before the Super League.
+            The shortlist now weighs individual production, appearances, position, major trophies and elite-level performance.
             <strong>No ranking is being shown yet.</strong> They are listed in a random presentation order so the final ceremony stays a surprise.
           </p>
 
@@ -18332,7 +19263,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       managerNotify(
         career,
         "Ballon d'Or Winner",
-        `${winner.name} (${winner.clubName}) wins the ${seasonDisplay(season)} Ballon d'Or after ${winner.goals} goals and ${winner.assists} assists.`,
+        `${winner.name} (${winner.clubName}) wins the ${seasonDisplay(season)} Ballon d'Or · ${winner.reason}.`,
         'award'
       );
 
