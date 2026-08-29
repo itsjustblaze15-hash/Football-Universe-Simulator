@@ -5901,6 +5901,15 @@ body.player-mode [data-tab="player-latest-transfers"]{
   margin:0;
 }
 
+
+/* V61.18 — Player Records shared by Manager Mode + Player Career */
+.player-records-shared{display:none!important}
+body.manager-mode .player-records-shared,
+body.player-mode .player-records-shared{display:flex!important}
+body.player-mode #tab-manager-player-records{
+  --manager-money:#c4b5fd;
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -9055,7 +9064,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <button class="tab" data-tab="teams">🛡️ Teams</button>
           <button class="tab" data-tab="competitions">🏆 Competitions</button>
           <button class="tab" data-tab="records">📚 World Records</button>
-          <button class="tab manager-only" data-tab="manager-player-records">🏅 Player Records</button>
+          <button class="tab player-records-shared" data-tab="manager-player-records">🏅 Player Records</button>
           <button class="tab" data-tab="team-history">📈 Team History</button>
           <button class="tab" data-tab="team-rankings">📊 Team Rankings</button>
           <button class="tab" data-tab="world-cup-qualification">🌎 World Cup Qualification</button>
@@ -14851,7 +14860,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const career=currentCareerSave(),panel=$("tab-player-career");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career);const rivals=Object.values(pm.rivals||{}).sort((a,b)=>b.intensity-a.intensity).slice(0,5);panel.innerHTML=`<div class="card"><div class="startup-kicker">📚 CAREER HISTORY</div><h1>${escapeHtml(player?.name||"Player")}</h1><div class="manager-summary-grid"><div class="manager-summary-card"><small>Appearances</small><strong>${pm.stats.appearances}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${pm.stats.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${pm.stats.assists}</strong></div><div class="manager-summary-card"><small>Trophies</small><strong>${pm.trophyCabinet.length}</strong></div><div class="manager-summary-card"><small>Awards</small><strong>${pm.awards.length}</strong></div><div class="manager-summary-card"><small>Highest Status</small><strong>${escapeHtml(playerModeReputationLabel(pm.reputation))}</strong></div></div></div><div class="player-dashboard-grid"><article class="card"><h2>Career Timeline</h2><div class="player-history-list">${pm.careerTimeline.slice(0,40).map(row=>`<div class="player-history-row"><span class="badge">${escapeHtml(seasonDisplay(row.season||1))}</span><span>${escapeHtml(row.text)}</span><span>${row.clubId?escapeHtml(managerTeam(row.clubId,career)?.name||''):''}</span></div>`).join("")||`<p class="muted">Career history begins here.</p>`}</div></article><article class="card"><h2>Milestones</h2><div class="player-history-list">${pm.milestones.slice(0,40).map(row=>`<div class="player-history-row"><span>⭐</span><span>${escapeHtml(row.text)}</span><span class="muted">${escapeHtml(row.date||seasonDisplay(row.season||1))}</span></div>`).join("")||`<p class="muted">No milestones yet.</p>`}</div></article><article class="card"><h2>Personal Rivalries</h2>${rivals.map(r=>{const club=managerTeam(r.clubId,career),rival=managerPlayerById(r.rivalPlayerId,career);return `<div class="stage"><strong>${escapeHtml(club?.name||'Unknown Club')}</strong><div class="muted">${r.meetings} meetings · Intensity ${r.intensity}${rival?` · Rival: ${escapeHtml(rival.name)}`:''}</div></div>`}).join("")||`<p class="muted">Rivalries build after repeated big matches.</p>`}</article><article class="card"><h2>Retirement</h2><p class="muted">Retirement becomes your choice from age 35. You can keep playing another season if you want.</p>${pm.retired?`<div class="notice"><strong>Career complete.</strong></div>`:pm.retirementEligible?`<div class="toolbar"><button class="btn danger" id="playerRetireBtn">Retire Now</button><button class="btn secondary" id="playerContinueCareerBtn">Continue Another Year</button></div>`:`<p><strong>Current age:</strong> ${player?.age||'—'}</p>`}</article></div>`;$("playerRetireBtn")?.addEventListener("click",playerModeRetire);$("playerContinueCareerBtn")?.addEventListener("click",playerModeContinueCareer);
     }
     function renderPlayerWorld(){
-      const career=currentCareerSave(),panel=$("tab-player-world");if(!panel||!isPlayerMode(career))return;const club=playerModeClub(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">🌍 FOOTBALL WORLD</div><h1>${escapeHtml(seasonDisplay(career.worldSeason||1))}</h1><p class="muted">Player Mode still lives inside the full FUS universe. Clubs, competitions, transfers, records and World Cups continue around your career.</p></div><div class="player-world-shortcuts" style="margin-top:14px"><button class="card career-option" data-player-world-tab="competitions"><div class="record-icon">🏆</div><h2>Competitions</h2><p class="muted">Open every active competition.</p></button><button class="card career-option" data-player-world-tab="teams"><div class="record-icon">🛡️</div><h2>Clubs</h2><p class="muted">View the 30-club world.</p></button><button class="card career-option" data-player-world-tab="records"><div class="record-icon">📚</div><h2>World Records</h2><p class="muted">See the history building around you.</p></button><button class="card career-option" data-player-world-tab="player-latest-transfers"><div class="record-icon">🔄</div><h2>Latest Transfers</h2><p class="muted">See completed moves across every club.</p></button><button class="card career-option" data-player-world-tab="news"><div class="record-icon">📰</div><h2>News</h2><p class="muted">Follow the football world around your career.</p></button></div><article class="card" style="margin-top:14px"><h2>Your Current Club</h2>${club?`<div class="career-hero">${teamLogo(club)}<div><h2>${escapeHtml(club.name)}</h2><p class="muted">Club OVR ${club.strength} · World Rank #${Math.max(1,liveTeamRanking(career).findIndex(t=>t.id===club.id)+1)}</p></div></div>`:`<p class="muted">Free Agent</p>`}</article>`;panel.querySelectorAll("[data-player-world-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.playerWorldTab));
+      const career=currentCareerSave(),panel=$("tab-player-world");if(!panel||!isPlayerMode(career))return;const club=playerModeClub(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">🌍 FOOTBALL WORLD</div><h1>${escapeHtml(seasonDisplay(career.worldSeason||1))}</h1><p class="muted">Player Mode still lives inside the full FUS universe. Clubs, competitions, transfers, records and World Cups continue around your career.</p></div><div class="player-world-shortcuts" style="margin-top:14px"><button class="card career-option" data-player-world-tab="competitions"><div class="record-icon">🏆</div><h2>Competitions</h2><p class="muted">Open every active competition.</p></button><button class="card career-option" data-player-world-tab="teams"><div class="record-icon">🛡️</div><h2>Clubs</h2><p class="muted">View the 30-club world.</p></button><button class="card career-option" data-player-world-tab="records"><div class="record-icon">📚</div><h2>World Records</h2><p class="muted">See the history building around you.</p></button><button class="card career-option" data-player-world-tab="manager-player-records"><div class="record-icon">🏅</div><h2>Player Records</h2><p class="muted">Compare career goals, assists, trophies, awards and records across every player.</p></button><button class="card career-option" data-player-world-tab="player-latest-transfers"><div class="record-icon">🔄</div><h2>Latest Transfers</h2><p class="muted">See completed moves across every club.</p></button><button class="card career-option" data-player-world-tab="news"><div class="record-icon">📰</div><h2>News</h2><p class="muted">Follow the football world around your career.</p></button></div><article class="card" style="margin-top:14px"><h2>Your Current Club</h2>${club?`<div class="career-hero">${teamLogo(club)}<div><h2>${escapeHtml(club.name)}</h2><p class="muted">Club OVR ${club.strength} · World Rank #${Math.max(1,liveTeamRanking(career).findIndex(t=>t.id===club.id)+1)}</p></div></div>`:`<p class="muted">Free Agent</p>`}</article>`;panel.querySelectorAll("[data-player-world-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.playerWorldTab));
     }
 
 
@@ -20718,11 +20727,12 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const career=currentCareerSave(),panel=$('tab-manager-player-records');
       if(!panel)return;
 
-      if(!isManagerMode(career)){
-        panel.innerHTML=`<div class="card"><p class="muted">Player Records are available in Manager Mode.</p></div>`;
+      if(!isManagerMode(career)&&!isPlayerMode(career)){
+        panel.innerHTML=`<div class="card"><p class="muted">Player Records are available in Manager Mode and Player Career Mode.</p></div>`;
         return;
       }
 
+      const playerCareerView=isPlayerMode(career);
       const rows=managerPlayerCareerLeaderboard(career);
       const history=[...(career.manager.ballonDorHistory||[])].sort((a,b)=>b.season-a.season);
 
@@ -20770,7 +20780,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <div class="startup-kicker">🌍 WORLD PLAYER HISTORY</div>
           <h2 style="margin:5px 0 6px">🏅 Player Records</h2>
           <p class="muted" style="margin:0">
-            Overall player history for everyone in this Manager world. Just like World Records, choose a category to see the full ranked list.
+            ${playerCareerView
+              ?"Overall player history for everyone in your Player Career world, including you. Choose a category to see the full ranked list."
+              :"Overall player history for everyone in this Manager world. Just like World Records, choose a category to see the full ranked list."}
           </p>
         </div>
 
@@ -21131,6 +21143,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           renderPlayerCareer();
           renderPlayerWorld();
           renderPlayerLatestTransfers();
+          renderManagerPlayerRecords();
         } else if (isManagerMode(currentCareerSave())) {
           renderManagerSquad();
           renderManagerTransfers();
