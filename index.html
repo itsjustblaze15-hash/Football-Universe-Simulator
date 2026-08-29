@@ -13651,6 +13651,64 @@ body.player-calendar-advancing #playerNextMatchBtn{
       return false;
     }
 
+    function playerModeReviewFormalOffer(offerId){
+      const career=currentCareerSave(),
+        pm=playerModeData(career);
+
+      if(!pm)return;
+
+      const offer=(pm.transferOffers||[]).find(row=>row.id===offerId);
+
+      if(!offer){
+        showToast("That formal offer is no longer available.",true);
+        renderPlayerAgent();
+        return;
+      }
+
+      const club=managerTeam(offer.clubId,career);
+
+      if(!club){
+        pm.transferOffers=(pm.transferOffers||[]).filter(row=>row.id!==offerId);
+        showToast("That club is no longer available.",true);
+        saveData("");
+        renderPlayerAgent();
+        return;
+      }
+
+      const windowOpen=playerModeTransferWindowOpen(career);
+      const alreadyAgreed=offer.status==="accepted-waiting-window";
+
+      // This is the button shown as "Complete Move".
+      // An already-agreed deal should not be sent back through negotiations.
+      if(alreadyAgreed&&windowOpen){
+        pm.pendingOffer={...offer};
+
+        playerModeShowSigningAnimation(
+          career,
+          club,
+          {
+            ...offer,
+            committedFormalOffer:true,
+            targetApproved:true,
+            currentApproved:true,
+            stage:"personal-terms"
+          }
+        );
+        return;
+      }
+
+      // Normal Review Offer path.
+      pm.pendingOffer={
+        ...offer,
+        targetApproved:offer.targetApproved!==false,
+        currentApproved:offer.currentApproved!==false,
+        stage:offer.stage||"personal-terms"
+      };
+
+      saveData("");
+      renderPlayerAgent();
+    }
+
     function playerModeRefreshTransferInterest(career=currentCareerSave(),force=false){
       if(!isPlayerMode(career))return;
 
@@ -14068,10 +14126,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
         const button=$("playerSigningContinueBtn");
 
         if(!ok){
-          if(status)status.textContent="The transfer could not be finalized. No move was completed.";
+          const reason=career.manager?.lastTransferFailureReason||"The transfer could not be finalized.";
+          if(status)status.textContent=`${reason} No move was completed.`;
           if(button){
             button.classList.remove("hidden");
-            button.textContent="Close";
+            button.textContent="Back to Agent";
             button.onclick=()=>{dialog.close();renderPlayerAgent()};
           }
           return;
@@ -14774,7 +14833,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
                     </small>
                   </div>
                   <div>
-                    <button class="btn ${accepted&&playerModeTransferWindowOpen(career)?"success":"secondary"} small" data-player-review-offer="${offer.id}">
+                    <button
+                      class="btn ${accepted&&playerModeTransferWindowOpen(career)?"success":"secondary"} small"
+                      data-player-review-offer="${offer.id}"
+                      data-player-offer-action="${accepted&&playerModeTransferWindowOpen(career)?"complete":"review"}"
+                    >
                       ${accepted&&playerModeTransferWindowOpen(career)?"Complete Move":"Review Offer"}
                     </button>
                   </div>
@@ -14837,9 +14900,16 @@ body.player-calendar-advancing #playerNextMatchBtn{
         button=>button.onclick=()=>playerModeConsiderMove(button.dataset.playerLoanClub,true)
       );
 
-      panel.querySelectorAll("[data-player-review-offer]").forEach(
-        button=>button.onclick=()=>playerModeReviewFormalOffer(button.dataset.playerReviewOffer)
-      );
+      panel.querySelectorAll("[data-player-review-offer]").forEach(button=>{
+        button.onclick=()=>{
+          try{
+            playerModeReviewFormalOffer(button.dataset.playerReviewOffer);
+          }catch(error){
+            console.error("Formal offer action failed:",error);
+            showToast(`Transfer action failed: ${error?.message||"Unknown error"}`,true);
+          }
+        };
+      });
 
       $("playerRefreshInterestBtn")?.addEventListener("click",()=>{
         playerModeRefreshTransferInterest(career,true);
