@@ -6027,7 +6027,7 @@ body.player-mode #tab-manager-player-records{
 }
 
 
-/* V61.20 — FIFA 23-style Player Career transfers */
+/* V61.20 — Player Career incoming-offer transfer system */
 .fifa23-transfer-status{
   border-color:rgba(96,165,250,.24);
   background:
@@ -6039,6 +6039,20 @@ body.player-mode #tab-manager-player-records{
 }
 .fifa23-incoming-offer:hover{
   border-color:rgba(96,165,250,.42);
+}
+
+
+/* V61.21 — Player Hub news + Agent transfer access */
+.player-hub-news-feed{
+  display:grid;
+  gap:10px;
+  margin-top:12px;
+}
+.player-hub-latest-news .news-card{
+  min-height:76px;
+}
+.player-hub-latest-news .news-card:nth-child(n+4){
+  display:none;
 }
 
 </style>
@@ -9203,8 +9217,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <button class="tab" data-tab="world-cup-winners">🏆 World Cup Winners</button>
           <button class="tab" data-tab="rivalries">⚔️ Head-to-Head</button>
           <button class="tab" data-tab="news">📰 News</button>
-          <button class="tab player-only" data-tab="player-latest-transfers">🌍 Latest Transfers</button>
-          <button class="tab" data-tab="news-history">★ News History</button>
+          <button class="tab" data-tab="news-history">★ Favorite News</button>
           <button class="tab manager-only" data-tab="manager-squad">👥 Squad</button>
           <button class="tab manager-only" data-tab="manager-transfers">🔄 Transfers</button>
           <button class="tab manager-only" data-tab="manager-inbox">📩 Inbox</button>
@@ -12309,7 +12322,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           ?"Your existing offers were preserved. The transfer market now works through incoming club offers."
           :pm.transferRequestStatus==="approved"
             ?`Your ${pm.transferRequestType==="loan"?"loan":"transfer"} request is active. Clubs will contact you automatically.`
-            :"FIFA 23-style transfers are active: request a transfer or loan, then wait for clubs to approach you.";
+            :"Request a transfer or loan, then wait for clubs to approach you with real offers.";
       }
       playerModeSyncControlledClub(career);
       player.overall=playerModeCalculateOverallFromAttributes(player.position,pm.attributes);
@@ -14278,7 +14291,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const requestType=pm.transferRequestType==="loan"?"loan":"transfer";
       const form=playerModeTransferForm(career);
 
-      // FIFA 23-style core path: once listed, offers come to the player.
+      // Incoming-offer core path: once listed, clubs can approach the player.
       // A very strong player can still receive the occasional unsolicited
       // permanent offer even without submitting a request.
       const unsolicitedEligible=
@@ -14793,7 +14806,62 @@ body.player-calendar-advancing #playerNextMatchBtn{
     }
 
     function playerModeCompetitionCompleted(career,comp,runnerUpId){
-      if(!isPlayerMode(career))return;const pm=playerModeData(career),club=playerModeClub(career);if(!pm||!club)return;if(comp.championId===club.id){const trophy={id:uid(),season:Number(career.worldSeason||1),competitionId:comp.id,name:comp.name,category:comp.category,date:pm.currentDate};pm.trophyCabinet.unshift(trophy);pm.reputation=clamp(pm.reputation+(["champions-league","world-cup"].includes(comp.category)?7:comp.category==="league"?5:3),0,100);pm.developmentPoints+=2;playerModeMilestone(career,`trophy-${comp.id}-${career.worldSeason}`,`Won ${comp.name} with ${club.name}.`);playerModeShowCeremony("TROPHY WON",comp.name,"Your Player Mode trophy cabinet has been updated.")}
+      if(!isPlayerMode(career))return;
+
+      const pm=playerModeData(career),
+        club=playerModeClub(career);
+
+      if(!pm||!club||comp.championId!==club.id)return;
+
+      const category=String(comp.category||"");
+      const trophy={
+        id:uid(),
+        season:Number(career.worldSeason||1),
+        competitionId:comp.id,
+        name:comp.name,
+        category,
+        date:pm.currentDate
+      };
+
+      pm.trophyCabinet.unshift(trophy);
+
+      const reputationGain=
+        category==="world-cup"?10:
+        category==="champions-league"?7:
+        category==="europa-league"?5:
+        category==="league"?5:3;
+
+      // Player Career trophy-development hierarchy.
+      // Super League intentionally gives ZERO Development Points.
+      const developmentReward=
+        category==="world-cup"?12:
+        category==="champions-league"?8:
+        category==="europa-league"?4:
+        0;
+
+      pm.reputation=clamp(Number(pm.reputation||0)+reputationGain,0,100);
+      pm.developmentPoints=Number(pm.developmentPoints||0)+developmentReward;
+
+      playerModeMilestone(
+        career,
+        `trophy-${comp.id}-${career.worldSeason}`,
+        `Won ${comp.name} with ${club.name}.${developmentReward?` +${developmentReward} Development Points.`:""}`
+      );
+
+      if(developmentReward>0){
+        pm.mediaNotes.unshift({
+          date:pm.currentDate,
+          text:`${comp.name} champions — ${developmentReward} Development Points awarded.`
+        });
+      }
+
+      playerModeShowCeremony(
+        "TROPHY WON",
+        comp.name,
+        developmentReward>0
+          ?`🏆 Champions · +${developmentReward} Development Points`
+          :"Your Player Career trophy cabinet has been updated."
+      );
     }
     function playerModeBeforeSeasonEnd(career){
       if(!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!pm||!player)return;const season=Number(career.worldSeason||1),s=playerModeSeasonStats(career,season);pm.careerTimeline.unshift({season,date:pm.currentDate,type:"season",clubId:club?.id||null,text:`${seasonDisplay(season)}: ${s.appearances} apps, ${s.goals} goals, ${s.assists} assists, ${playerModeAverageRating(s).toFixed(2)} avg rating.`});
@@ -14855,11 +14923,145 @@ body.player-calendar-advancing #playerNextMatchBtn{
         :`<p class="muted" style="text-align:center;margin-top:8px">Advance the calendar to reach match day.</p>`
       }`;
     }
+    function playerModeLatestNewsPreviewHtml(career=currentCareerSave()){
+      const rows=currentFootballNewsRows(career).slice(0,3);
+
+      if(!rows.length){
+        return `<div class="notice"><strong>No latest news yet.</strong><br>Transfers, trophies and major stories will appear here as your world develops.</div>`;
+      }
+
+      return `<div class="player-hub-news-feed">${
+        rows.map(row=>row.type==="world"
+          ?newsCardHtml(row.story)
+          :newsInboxCardHtml(row.note,career)
+        ).join("")
+      }</div>`;
+    }
+
     function renderPlayerHub(){
-      const career=currentCareerSave(),panel=$("tab-player-hub");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);if(!player||pm.retired){panel.innerHTML=`<div class="card"><div class="startup-kicker">PLAYER MODE</div><h1>Career Complete</h1><p class="muted">Open Career History for the full summary.</p></div>`;return}const season=playerModeSeasonStats(career),avg=playerModeAverageRating(season),rep=playerModeReputationLabel(pm.reputation);panel.innerHTML=`<section class="player-hero">${playerModeFaceHtml(career)}<div><div class="startup-kicker">⭐ PLAYER MODE · ${escapeHtml(seasonDisplay(career.worldSeason||1))}</div><h1 class="player-hero-name">${escapeHtml(player.name)}</h1><div class="toolbar"><span class="player-role-pill">${escapeHtml(pm.squadRole)}</span><span class="badge">${escapeHtml(player.position)}</span><span class="badge">Age ${player.age}</span><span class="badge">${escapeHtml(player.nationality)}</span><span class="badge">${escapeHtml(rep)}</span>${pm.captaincy!=="None"?`<span class="badge">© ${escapeHtml(pm.captaincy)}</span>`:""}</div><p class="muted">${escapeHtml(club?.name||"Free Agent")} · #${pm.shirtNumber} · ${escapeHtml(pm.preferredFoot)} foot · ${pm.height} cm</p></div><div class="player-ovr-orb"><div><strong>${player.overall}</strong><small>OVR</small></div></div></section>
-      <div class="player-kpi-grid">${[["Manager Trust",pm.managerTrust],["Fitness",pm.fitness],["Sharpness",pm.sharpness],["Morale",pm.morale],["Reputation",pm.reputation],["Chemistry",pm.chemistry]].map(([label,value])=>`<div class="player-kpi"><small>${label}</small><strong>${Math.round(value)}</strong><div class="player-bar"><span style="width:${clamp(value,0,100)}%"></span></div></div>`).join("")}</div>
-      <div class="player-dashboard-grid"><article class="card"><div class="startup-kicker">NEXT MATCH</div>${playerModeNextMatchHtml(career,true)}<div class="toolbar" style="margin-top:10px"><button class="btn secondary small" id="playerHubCalendarBtn">Open Calendar</button><button class="btn secondary small" id="playerHubAdvanceBtn">Advance to Match</button></div></article><article class="card"><div class="startup-kicker">CURRENT SEASON</div><div class="manager-summary-grid"><div class="manager-summary-card"><small>Apps</small><strong>${season.appearances}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${season.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${season.assists}</strong></div><div class="manager-summary-card"><small>Avg Rating</small><strong>${avg?avg.toFixed(2):"—"}</strong></div></div><p class="muted" style="margin-top:10px">Development Points: <strong>${pm.developmentPoints}</strong> · Current Road-to-99 ceiling: <strong>${pm.roadCap}</strong></p><button class="btn secondary small" id="playerHubDevelopmentBtn">Open Development</button></article><article class="card"><div class="startup-kicker">STATUS</div><h2>${pm.injury?`🩹 ${escapeHtml(pm.injury.type)} · ${pm.injury.days} days`:pm.suspensionMatches?`🟥 Suspended · ${pm.suspensionMatches} match${Number(pm.suspensionMatches)===1?"":"es"}`:`✅ Available`}</h2>${pm.suspensionMatches?`<div class="notice" style="margin-bottom:10px"><strong>Reason:</strong> ${escapeHtml(pm.suspension?.reason||"Disciplinary suspension")}<br><span class="muted">${escapeHtml(pm.suspension?.detail||"")}</span></div>`:""}<p><strong>Discipline:</strong> ${Number(pm.discipline?.seasonYellowCards||0)} yellow${Number(pm.discipline?.seasonYellowCards||0)===1?"":"s"} this season · ${Number(pm.discipline?.careerRedCards||0)} career red${Number(pm.discipline?.careerRedCards||0)===1?"":"s"}</p><p><strong>International:</strong> ${escapeHtml(pm.international.status)}</p><p><strong>Pressure:</strong> ${Math.round(pm.pressure)}/100</p><p><strong>Agent plan:</strong> ${escapeHtml(pm.agentIntent)}</p></article><article class="card"><div class="startup-kicker">CAREER TARGETS</div>${playerModePositionObjectivesHtml(career)}<button class="btn secondary small" id="playerHubAgentBtn" style="margin-top:10px">Agent & Transfers</button></article></div>`;
-      $("playerHubCalendarBtn")?.addEventListener("click",()=>switchTab("player-calendar"));$("playerHubAdvanceBtn")?.addEventListener("click",playerModeAdvanceToNextMatch);$("playerHubDevelopmentBtn")?.addEventListener("click",()=>switchTab("player-development"));$("playerHubAgentBtn")?.addEventListener("click",()=>switchTab("player-agent"));bindPlayerMatchButtons(panel);
+      const career=currentCareerSave(),panel=$("tab-player-hub");
+      if(!panel||!isPlayerMode(career))return;
+
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        club=playerModeClub(career);
+
+      if(!player||pm.retired){
+        panel.innerHTML=`<div class="card"><div class="startup-kicker">PLAYER MODE</div><h1>Career Complete</h1><p class="muted">Open Career History for the full summary.</p></div>`;
+        return;
+      }
+
+      const season=playerModeSeasonStats(career),
+        avg=playerModeAverageRating(season),
+        rep=playerModeReputationLabel(pm.reputation),
+        favoriteCount=(career.favoriteNews||[]).length;
+
+      panel.innerHTML=`
+        <section class="player-hero">
+          ${playerModeFaceHtml(career)}
+          <div>
+            <div class="startup-kicker">⭐ PLAYER MODE · ${escapeHtml(seasonDisplay(career.worldSeason||1))}</div>
+            <h1 class="player-hero-name">${escapeHtml(player.name)}</h1>
+            <div class="toolbar">
+              <span class="player-role-pill">${escapeHtml(pm.squadRole)}</span>
+              <span class="badge">${escapeHtml(player.position)}</span>
+              <span class="badge">Age ${player.age}</span>
+              <span class="badge">${escapeHtml(player.nationality)}</span>
+              <span class="badge">${escapeHtml(rep)}</span>
+              ${pm.captaincy!=="None"?`<span class="badge">© ${escapeHtml(pm.captaincy)}</span>`:""}
+            </div>
+            <p class="muted">${escapeHtml(club?.name||"Free Agent")} · #${pm.shirtNumber} · ${escapeHtml(pm.preferredFoot)} foot · ${pm.height} cm</p>
+          </div>
+          <div class="player-ovr-orb"><div><strong>${player.overall}</strong><small>OVR</small></div></div>
+        </section>
+
+        <div class="player-kpi-grid">
+          ${[
+            ["Manager Trust",pm.managerTrust],
+            ["Fitness",pm.fitness],
+            ["Sharpness",pm.sharpness],
+            ["Morale",pm.morale],
+            ["Reputation",pm.reputation],
+            ["Chemistry",pm.chemistry]
+          ].map(([label,value])=>`
+            <div class="player-kpi">
+              <small>${label}</small>
+              <strong>${Math.round(value)}</strong>
+              <div class="player-bar"><span style="width:${clamp(value,0,100)}%"></span></div>
+            </div>`).join("")}
+        </div>
+
+        <div class="player-dashboard-grid">
+          <article class="card">
+            <div class="startup-kicker">NEXT MATCH</div>
+            ${playerModeNextMatchHtml(career,true)}
+            <div class="toolbar" style="margin-top:10px">
+              <button class="btn secondary small" id="playerHubCalendarBtn">Open Calendar</button>
+              <button class="btn secondary small" id="playerHubAdvanceBtn">Advance to Match</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="startup-kicker">CURRENT SEASON</div>
+            <div class="manager-summary-grid">
+              <div class="manager-summary-card"><small>Apps</small><strong>${season.appearances}</strong></div>
+              <div class="manager-summary-card"><small>Goals</small><strong>${season.goals}</strong></div>
+              <div class="manager-summary-card"><small>Assists</small><strong>${season.assists}</strong></div>
+              <div class="manager-summary-card"><small>Avg Rating</small><strong>${avg?avg.toFixed(2):"—"}</strong></div>
+            </div>
+            <p class="muted" style="margin-top:10px">Development Points: <strong>${pm.developmentPoints}</strong> · Current Road-to-99 ceiling: <strong>${pm.roadCap}</strong></p>
+            <button class="btn secondary small" id="playerHubDevelopmentBtn">Open Development</button>
+          </article>
+
+          <article class="card">
+            <div class="startup-kicker">STATUS</div>
+            <h2>${pm.injury
+              ?`🩹 ${escapeHtml(pm.injury.type)} · ${pm.injury.days} days`
+              :pm.suspensionMatches
+                ?`🟥 Suspended · ${pm.suspensionMatches} match${Number(pm.suspensionMatches)===1?"":"es"}`
+                :`✅ Available`
+            }</h2>
+            ${pm.suspensionMatches?`
+              <div class="notice" style="margin-bottom:10px">
+                <strong>Reason:</strong> ${escapeHtml(pm.suspension?.reason||"Disciplinary suspension")}<br>
+                <span class="muted">${escapeHtml(pm.suspension?.detail||"")}</span>
+              </div>`:""}
+            <p><strong>Discipline:</strong> ${Number(pm.discipline?.seasonYellowCards||0)} yellow${Number(pm.discipline?.seasonYellowCards||0)===1?"":"s"} this season · ${Number(pm.discipline?.careerRedCards||0)} career red${Number(pm.discipline?.careerRedCards||0)===1?"":"s"}</p>
+            <p><strong>International:</strong> ${escapeHtml(pm.international.status)}</p>
+            <p><strong>Pressure:</strong> ${Math.round(pm.pressure)}/100</p>
+            <p><strong>Agent status:</strong> ${escapeHtml(playerModeTransferRequestLabel(pm))}</p>
+          </article>
+
+          <article class="card">
+            <div class="startup-kicker">CAREER TARGETS</div>
+            ${playerModePositionObjectivesHtml(career)}
+            <button class="btn secondary small" id="playerHubAgentBtn" style="margin-top:10px">Agent & Transfers</button>
+          </article>
+        </div>
+
+        <article class="card player-hub-latest-news" style="margin-top:14px">
+          <div class="archive-header">
+            <div>
+              <div class="startup-kicker">📰 LATEST NEWS</div>
+              <h2>Latest News</h2>
+            </div>
+            <div class="toolbar" style="margin:0">
+              <button type="button" class="btn secondary small" id="playerHubAllNewsBtn">All News</button>
+              <button type="button" class="btn secondary small" id="playerHubFavoriteNewsBtn">★ Favorite News · ${favoriteCount}</button>
+            </div>
+          </div>
+          ${playerModeLatestNewsPreviewHtml(career)}
+        </article>`;
+
+      $("playerHubCalendarBtn")?.addEventListener("click",()=>switchTab("player-calendar"));
+      $("playerHubAdvanceBtn")?.addEventListener("click",playerModeAdvanceToNextMatch);
+      $("playerHubDevelopmentBtn")?.addEventListener("click",()=>switchTab("player-development"));
+      $("playerHubAgentBtn")?.addEventListener("click",()=>switchTab("player-agent"));
+      $("playerHubAllNewsBtn")?.addEventListener("click",()=>switchTab("news"));
+      $("playerHubFavoriteNewsBtn")?.addEventListener("click",()=>switchTab("news-history"));
+
+      bindNewsButtons(panel);
+      bindPlayerMatchButtons(panel);
     }
     function playerModePositionObjectives(career=currentCareerSave()){
       const pm=playerModeData(career),player=playerModePlayer(career),s=playerModeSeasonStats(career),avg=playerModeAverageRating(s);if(!pm||!player)return[];
@@ -15335,9 +15537,12 @@ body.player-calendar-advancing #playerNextMatchBtn{
             <div>
               <div class="startup-kicker">🤝 AGENT & TRANSFERS</div>
               <h1>Transfer Status</h1>
-              <p class="muted">FIFA 23-style system: ask your current club for a move, then clubs contact you with actual offers.</p>
+              <p class="muted">Ask your current club for a move, then interested clubs can contact you with actual offers.</p>
             </div>
-            <span class="badge">${escapeHtml(playerModeTransferRequestLabel(pm))}</span>
+            <div class="toolbar" style="margin:0;justify-content:flex-end">
+              <span class="badge">${escapeHtml(playerModeTransferRequestLabel(pm))}</span>
+              <button type="button" class="btn secondary small" id="playerAgentLatestTransfersBtn">🌍 Latest Transfers</button>
+            </div>
           </div>
 
           <div class="notice" style="margin-top:12px">
@@ -15458,7 +15663,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
         <article class="card" style="margin-top:14px">
           <div class="startup-kicker">HOW THIS WORKS</div>
-          <h2>FIFA 23-Style Transfer Flow</h2>
+          <h2>Transfer Flow</h2>
           <div class="player-transfer-steps" style="margin-top:12px">
             <div class="player-transfer-step ${pm.transferRequestStatus!=="none"?"done":""}">1. Request a Move</div>
             <div class="player-transfer-step ${requestActive?"done":""}">2. Club Lists You</div>
@@ -15481,6 +15686,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         };
       });
 
+      $("playerAgentLatestTransfersBtn")?.addEventListener("click",()=>switchTab("player-latest-transfers"));
       $("playerRequestTransferBtn")?.addEventListener("click",()=>playerModeRequestTransferAction("transfer"));
       $("playerRequestLoanBtn")?.addEventListener("click",()=>playerModeRequestTransferAction("loan"));
       $("playerWithdrawMoveRequestBtn")?.addEventListener("click",()=>playerModeWithdrawTransferRequest());
@@ -22213,41 +22419,80 @@ body.player-calendar-advancing #playerNextMatchBtn{
       return `<div class="news-logos">${ids.map(id => teamLogo(teamById(id))).join("") || `<div class="record-icon">${story.icon || "📰"}</div>`}</div>`;
     }
 
+    function newsInboxStory(note,world=currentWorld()){
+      if(!note)return null;
+      return {
+        id:`inbox-${note.id}`,
+        type:note.type||"news",
+        icon:
+          note.type==="transfer"?"🔄":
+          note.type==="award"?"🏆":
+          note.type==="retirement"?"👋":
+          note.type==="window"?"📅":
+          note.type==="squad"?"👥":"📰",
+        teamIds:Array.isArray(note.teamIds)?note.teamIds:[],
+        headline:note.title||"Football News",
+        competitionName:note.message||"Career News",
+        season:Number(note.season||world?.worldSeason||1),
+        createdAt:Number(note.timestamp||Date.now()),
+        inboxNoteId:note.id
+      };
+    }
+
+    function newsInboxCardHtml(note,world=currentWorld()){
+      const story=newsInboxStory(note,world);
+      return story?newsCardHtml(story):"";
+    }
+
     function isNewsFavorited(newsId) {
       return (currentWorld().favoriteNews || []).some(item => item.originalNewsId === newsId);
     }
 
     function favoriteNews(newsId) {
-      const world = currentWorld();
-      const story = (world.currentNews || []).find(item => item.id === newsId);
-      if (!story || isNewsFavorited(newsId)) return;
+      const world=currentWorld();
+      if(!world)return;
 
-      world.favoriteNews = world.favoriteNews || [];
+      let story=(world.currentNews||[]).find(item=>item.id===newsId)||null;
+
+      if(!story&&String(newsId||"").startsWith("inbox-")){
+        const noteId=String(newsId).slice(6);
+        const note=(world.manager?.inbox||[]).find(item=>String(item.id)===noteId);
+        story=newsInboxStory(note,world);
+      }
+
+      if(!story||isNewsFavorited(newsId))return;
+
+      world.favoriteNews=world.favoriteNews||[];
       world.favoriteNews.unshift({
         ...story,
         id:uid(),
         originalNewsId:story.id,
-        savedAtSeason:Number(world.worldSeason || 1),
+        savedAtSeason:Number(world.worldSeason||1),
         savedAt:Date.now()
       });
-      saveData("News story saved");
+
+      saveData("News story favorited");
       renderDashboard();
+      renderCurrentNews();
       renderNewsHistory();
+      if(isPlayerMode(world))renderPlayerHub();
     }
 
     function requestRemoveFavorite(favoriteId) {
-      const world = currentWorld();
-      const story = (world.favoriteNews || []).find(item => item.id === favoriteId);
-      if (!story) return;
+      const world=currentWorld();
+      const story=(world.favoriteNews||[]).find(item=>item.id===favoriteId);
+      if(!story)return;
 
       askDeleteConfirmation(
         "Remove Favorite?",
-        "Remove this story from News History? This saved moment will be permanently deleted.",
-        () => {
-          world.favoriteNews = world.favoriteNews.filter(item => item.id !== favoriteId);
+        "Remove this story from Favorite News? The original live news item is not deleted.",
+        ()=>{
+          world.favoriteNews=world.favoriteNews.filter(item=>item.id!==favoriteId);
           saveData("Favorite removed");
           renderNewsHistory();
+          renderCurrentNews();
           renderDashboard();
+          if(isPlayerMode(world))renderPlayerHub();
         }
       );
     }
@@ -29367,38 +29612,32 @@ function renderWorldCupQualification() {
       if(!panel||!world)return;
 
       const rows=currentFootballNewsRows(world);
+      const favorites=world.favoriteNews||[];
 
       panel.innerHTML=`
         <div class="card">
-          <div class="startup-kicker">📰 FOOTBALL NEWS</div>
-          <h1 style="margin:5px 0 6px">Latest News</h1>
-          <p class="muted">Transfers, trophies, major club stories, awards and other events from the football world around your save.</p>
+          <div class="archive-header">
+            <div>
+              <div class="startup-kicker">📰 FOOTBALL NEWS</div>
+              <h1 style="margin:5px 0 6px">Latest News</h1>
+              <p class="muted">Transfers, trophies, major club stories, awards and other events from the football world around your save.</p>
+            </div>
+            <button type="button" class="btn secondary small" id="openFavoriteNewsBtn">★ Favorite News · ${favorites.length}</button>
+          </div>
         </div>
 
         <div class="news-feed" style="margin-top:14px">
-          ${rows.length?rows.map(row=>{
-            if(row.type==="world"){
-              return newsCardHtml(row.story);
-            }
-
-            const note=row.note;
-            return `<article class="news-card news-${escapeHtml(note.type||"general")}">
-              <div class="news-logos"><div class="record-icon">${
-                note.type==="transfer"?"🔄":
-                note.type==="award"?"🏆":
-                note.type==="retirement"?"👋":
-                note.type==="window"?"📅":
-                note.type==="squad"?"👥":"📰"
-              }</div></div>
-              <div class="news-copy">
-                <div class="news-headline">${escapeHtml(note.title)}</div>
-                <div class="news-meta">${escapeHtml(note.message)} · ${escapeHtml(seasonDisplay(note.season||world.worldSeason||1))}</div>
-              </div>
-            </article>`;
-          }).join(""):`<div class="card"><p class="muted">No major football news yet. New results, transfers and awards will appear here.</p></div>`}
+          ${rows.length
+            ?rows.map(row=>row.type==="world"
+              ?newsCardHtml(row.story)
+              :newsInboxCardHtml(row.note,world)
+            ).join("")
+            :`<div class="card"><p class="muted">No major football news yet. New results, transfers and awards will appear here.</p></div>`
+          }
         </div>`;
 
       bindNewsButtons(panel);
+      $("openFavoriteNewsBtn")?.addEventListener("click",()=>switchTab("news-history"));
     }
 
     function renderPlayerLatestTransfers(){
@@ -29407,49 +29646,63 @@ function renderWorldCupQualification() {
 
       panel.innerHTML=`
         <div class="card">
-          <div class="startup-kicker">🌍 TRANSFER MARKET</div>
-          <h1 style="margin:5px 0 6px">Latest Transfers</h1>
-          <p class="muted">Completed transfers across the entire football world, not just your club.</p>
+          <div class="archive-header">
+            <div>
+              <div class="startup-kicker">🌍 TRANSFER MARKET</div>
+              <h1 style="margin:5px 0 6px">Latest Transfers</h1>
+              <p class="muted">Completed transfers across the entire football world, not just your club.</p>
+            </div>
+            <button type="button" class="btn secondary small" id="playerLatestTransfersBackBtn">← Agent & Transfers</button>
+          </div>
         </div>
         <div style="margin-top:14px">
           ${managerLatestTransfersHtml(career,60)}
         </div>`;
+
+      $("playerLatestTransfersBackBtn")?.addEventListener("click",()=>switchTab("player-agent"));
     }
 
     function renderNewsHistory() {
-      const panel = $("tab-news-history");
-      if (!panel) return;
-      const world = currentWorld();
-      const favorites = world.favoriteNews || [];
+      const panel=$("tab-news-history");
+      if(!panel)return;
 
-      panel.innerHTML = `
+      const world=currentWorld();
+      const favorites=world.favoriteNews||[];
+
+      panel.innerHTML=`
         <div class="card">
-          <div class="startup-kicker">★ Permanent Stories</div>
-          <h2 style="margin:5px 0 6px">News History</h2>
-          <p class="muted">Favorite important moments from the dashboard. Current-season news resets when the world advances, but saved stories stay here.</p>
+          <div class="archive-header">
+            <div>
+              <div class="startup-kicker">★ SAVED STORIES</div>
+              <h2 style="margin:5px 0 6px">Favorite News</h2>
+              <p class="muted">Favorite any story from Latest News and it stays here permanently, even after the season changes.</p>
+            </div>
+            <button type="button" class="btn secondary small" id="favoriteNewsBackBtn">📰 Latest News</button>
+          </div>
         </div>
 
         <div class="news-history-grid" style="margin-top:16px">
-          ${favorites.length ? favorites.map(story => `
+          ${favorites.length?favorites.map(story=>`
             <article class="saved-news-card">
               <div class="toolbar" style="justify-content:space-between;margin:0">
                 ${newsLogosHtml(story)}
-                <span class="badge">Season ${story.season}</span>
+                <span class="badge">${escapeHtml(seasonDisplay(story.season||story.savedAtSeason||world.worldSeason||1))}</span>
               </div>
               <div>
                 <div class="news-headline">${escapeHtml(story.headline)}</div>
-                <div class="news-meta">${escapeHtml(story.competitionName || "Football News")}</div>
+                <div class="news-meta">${escapeHtml(story.competitionName||"Football News")}</div>
               </div>
               <div class="toolbar" style="justify-content:space-between;margin:0">
-                <span class="muted">Saved in Season ${story.savedAtSeason}</span>
+                <span class="muted">Favorited in ${escapeHtml(seasonDisplay(story.savedAtSeason||world.worldSeason||1))}</span>
                 <button type="button" class="btn danger small" data-remove-favorite="${story.id}">Remove</button>
               </div>
             </article>
-          `).join("") : `<div class="card" style="grid-column:1/-1"><p class="muted">No saved stories yet. Press ☆ on a dashboard headline to keep it forever.</p></div>`}
+          `).join(""):`<div class="card" style="grid-column:1/-1"><p class="muted">No favorite news yet. Press ☆ on a news story to save it here.</p></div>`}
         </div>
       `;
 
       bindNewsButtons(panel);
+      $("favoriteNewsBackBtn")?.addEventListener("click",()=>switchTab("news"));
     }
 
     function renderRecords() {
