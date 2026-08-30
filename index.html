@@ -6026,6 +6026,21 @@ body.player-mode #tab-manager-player-records{
   .live-penalty-goal{grid-template-rows:repeat(2,70px)}
 }
 
+
+/* V61.20 — FIFA 23-style Player Career transfers */
+.fifa23-transfer-status{
+  border-color:rgba(96,165,250,.24);
+  background:
+    radial-gradient(circle at 90% 0%,rgba(59,130,246,.10),transparent 34%),
+    var(--panel);
+}
+.fifa23-incoming-offer{
+  border-color:rgba(59,130,246,.20);
+}
+.fifa23-incoming-offer:hover{
+  border-color:rgba(96,165,250,.42);
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -12137,11 +12152,16 @@ body.player-calendar-advancing #playerNextMatchBtn{
         captaincy:"None",
         setPieceDuty:"None",
         agentIntent:"Stay and develop",
-        agentStatus:"Your agent is keeping transfer talks quiet while you develop at your current club.",
+        agentStatus:"You are not currently listed for transfer or loan.",
         transferInterest:[],
         transferOffers:[],
         pendingOffer:null,
-        transferSystemVersion:"v61.15",
+        transferSystemVersion:"v61.20-fifa23",
+        transferRequestType:"none",
+        transferRequestStatus:"none",
+        transferRequestDate:"",
+        transferRequestCooldownMatches:0,
+        lastIncomingOfferCycle:"",
         playingTimePromiseMatches:0,
         lastAgentCheckDate:"",
         loan:null,
@@ -12240,10 +12260,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.agentStatus=pm.agentStatus||"Your agent is following your current career instruction.";
       pm.playingTimePromiseMatches=Number(pm.playingTimePromiseMatches||0);
       pm.lastAgentCheckDate=pm.lastAgentCheckDate||"";
-      if(pm.transferSystemVersion!=="v61.15"){
-        // V61.15 keeps existing interest instead of wiping it during the upgrade.
-        // If an older build already had personal terms waiting, preserve them as
-        // a formal offer so the user can still act on it when the window opens.
+      if(pm.transferSystemVersion!=="v61.20-fifa23"){
+        pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];
+        pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];
+
+        // Preserve any offer the user already earned in older builds.
         if(pm.pendingOffer?.clubId){
           const existing=pm.transferOffers.find(row=>row.clubId===pm.pendingOffer.clubId);
           if(!existing){
@@ -12256,10 +12277,39 @@ body.player-calendar-advancing #playerNextMatchBtn{
             });
           }
         }
-        pm.transferSystemVersion="v61.15";
+
+        // Old "career direction" choices are converted into an actual transfer
+        // or loan request so an existing save does not lose the user's intent.
+        const oldIntent=String(pm.agentIntent||"Stay and develop");
+        if(!pm.transferRequestStatus){
+          if(oldIntent==="I need more playing time"){
+            pm.transferRequestType="loan";
+            pm.transferRequestStatus="approved";
+          }else if(oldIntent!=="Stay and develop"){
+            pm.transferRequestType="transfer";
+            pm.transferRequestStatus="approved";
+          }else{
+            pm.transferRequestType="none";
+            pm.transferRequestStatus="none";
+          }
+        }
+
+        pm.transferRequestDate=pm.transferRequestDate||"";
+        pm.transferRequestCooldownMatches=Number(pm.transferRequestCooldownMatches||0);
+        pm.lastIncomingOfferCycle=pm.lastIncomingOfferCycle||"";
+
+        if(pm.transferRequestStatus==="approved"){
+          player.transferListed=true;
+          player.wantsOut=pm.transferRequestType==="transfer";
+          pm.agentIntent="Open to offers";
+        }
+
+        pm.transferSystemVersion="v61.20-fifa23";
         pm.agentStatus=pm.transferOffers.length
-          ?"Your existing transfer offer was preserved. It will remain available into the next summer window."
-          :"Transfer system upgraded: serious interest and formal offers now survive the season change.";
+          ?"Your existing offers were preserved. The transfer market now works through incoming club offers."
+          :pm.transferRequestStatus==="approved"
+            ?`Your ${pm.transferRequestType==="loan"?"loan":"transfer"} request is active. Clubs will contact you automatically.`
+            :"FIFA 23-style transfers are active: request a transfer or loan, then wait for clubs to approach you.";
       }
       playerModeSyncControlledClub(career);
       player.overall=playerModeCalculateOverallFromAttributes(player.position,pm.attributes);
@@ -13276,6 +13326,18 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(pm.pendingMatchDate){pm.currentDate=playerModeAddDays(pm.pendingMatchDate,1);pm.calendarView=pm.currentDate.slice(0,7);pm.pendingMatchDate=null}
       pm.matchPlan=null;pm.requestedSubMinute=null;pm.matchSelection="";
       playerModeUpdateRivalry(career,opponentId,comp,won);playerModeCheckMilestones(career);playerModeCheckRoadUnlocks(career);playerModeUpdateInternational(career);playerModeRefreshTransferInterest(career,false);
+
+      if(Number(pm.transferRequestCooldownMatches||0)>0){
+        pm.transferRequestCooldownMatches=Math.max(0,Number(pm.transferRequestCooldownMatches)-1);
+        if(pm.transferRequestCooldownMatches===0&&pm.transferRequestStatus==="rejected"){
+          pm.transferRequestStatus="none";
+          pm.transferRequestType="none";
+          pm.agentStatus="Your club will consider another transfer or loan request now.";
+        }
+      }
+
+      playerModeFifa23GenerateIncomingOffers(career,false);
+
       if(Number(pm.playingTimePromiseMatches||0)>0){
         pm.playingTimePromiseMatches=Math.max(0,Number(pm.playingTimePromiseMatches)-1);
       }
@@ -13845,8 +13907,12 @@ body.player-calendar-advancing #playerNextMatchBtn{
       });
 
       if(pm.transferOffers.length){
-        pm.agentStatus="The summer transfer window is open. Your carried-over formal offers are still available.";
+        pm.agentStatus="The summer transfer window is open. Your carried-over offers are still available.";
       }
+
+      // If the player is transfer/loan listed, summer opening can immediately
+      // produce fresh incoming offers.
+      playerModeFifa23GenerateIncomingOffers(career,true);
 
       return false;
     }
@@ -14029,35 +14095,277 @@ body.player-calendar-advancing #playerNextMatchBtn{
     function playerModeGenerateEndOfSeasonOffers(career=currentCareerSave()){
       if(!isPlayerMode(career)||!playerModeSeasonReadyForNext(career))return 0;
 
+      // The end of the club season is treated as the start of the Player
+      // Career summer market. Clubs now approach the player automatically.
+      playerModeRefreshTransferInterest(career,true);
+      return playerModeFifa23GenerateIncomingOffers(career,true);
+    }
+
+    function playerModeTransferRequestLabel(pm){
+      if(!pm)return "Not Listed";
+      if(pm.transferRequestStatus==="approved"){
+        return pm.transferRequestType==="loan"?"Loan Listed":"Transfer Listed";
+      }
+      if(pm.transferRequestStatus==="rejected"){
+        return pm.transferRequestType==="loan"?"Loan Request Rejected":"Transfer Request Rejected";
+      }
+      if(pm.transferRequestStatus==="pending")return "Request Submitted";
+      return "Not Listed";
+    }
+
+    function playerModeTransferRequestCopy(career=currentCareerSave()){
       const pm=playerModeData(career);
-      if(!pm)return 0;
+      if(!pm)return "";
+
+      if(pm.transferRequestStatus==="approved"){
+        return pm.transferRequestType==="loan"
+          ?"Your club approved a loan request. Clubs looking for a temporary signing can now send you offers automatically."
+          :"Your club approved your transfer request. You are transfer listed and interested clubs can now send you offers automatically.";
+      }
+
+      if(pm.transferRequestStatus==="rejected"){
+        const cooldown=Number(pm.transferRequestCooldownMatches||0);
+        return cooldown>0
+          ?`Your club rejected the request. You can ask again after ${cooldown} more match${cooldown===1?"":"es"}.`
+          :"Your previous request was rejected. You can submit another request now.";
+      }
+
+      return "You are staying at your current club. Request a transfer or loan if you want clubs to start approaching you.";
+    }
+
+    function playerModeRequestTransferAction(type){
+      const career=currentCareerSave(),
+        pm=playerModeData(career),
+        player=playerModePlayer(career),
+        club=playerModeClub(career);
+
+      if(!pm||!player||!club)return;
+
+      const requestType=type==="loan"?"loan":"transfer";
+
+      if(pm.transferRequestStatus==="approved"){
+        return showToast(
+          pm.transferRequestType==="loan"
+            ?"You are already loan listed."
+            :"You are already transfer listed.",
+          true
+        );
+      }
+
+      if(Number(pm.transferRequestCooldownMatches||0)>0){
+        return showToast(
+          `Your club will not review another request for ${pm.transferRequestCooldownMatches} more match${pm.transferRequestCooldownMatches===1?"":"es"}.`,
+          true
+        );
+      }
+
+      if(pm.loan){
+        return showToast("You cannot submit a new move request while your current loan is active.",true);
+      }
+
+      pm.transferRequestType=requestType;
+      pm.transferRequestStatus="pending";
+      pm.transferRequestDate=pm.currentDate;
+
+      const age=Number(player.age||24);
+      const years=Math.max(0,Number(player.contractYears||0));
+      const trust=Number(pm.managerTrust||50);
+      const morale=Number(pm.morale||75);
+      const role=String(pm.squadRole||"Rotation");
+
+      let approvalChance=requestType==="loan"
+        ?(age<=21?.92:age<=23?.82:age<=25?.58:.28)
+        :.76;
+
+      if(["Prospect","Rotation"].includes(role))approvalChance+=.10;
+      if(role==="Star Player")approvalChance-=.16;
+      else if(role==="Important Player")approvalChance-=.08;
+
+      if(trust>=82)approvalChance-=.08;
+      if(trust<45)approvalChance+=.08;
+      if(morale<65)approvalChance+=.08;
+      if(years<=1)approvalChance+=.10;
+
+      approvalChance=clamp(approvalChance,.25,.95);
+      const approved=Math.random()<approvalChance;
+
+      if(approved){
+        pm.transferRequestStatus="approved";
+        pm.transferRequestCooldownMatches=0;
+        pm.agentIntent="Open to offers";
+        player.transferListed=true;
+        player.wantsOut=requestType==="transfer";
+
+        playerModeRefreshTransferInterest(career,true);
+
+        pm.agentStatus=requestType==="loan"
+          ?`${club.name} accepted your loan request. You are now loan listed. Clubs will send offers to you automatically.`
+          :`${club.name} accepted your transfer request. You are now transfer listed. Clubs will send offers to you automatically.`;
+
+        saveData("Move request accepted");
+        playerModeShowCeremony(
+          requestType==="loan"?"LOAN REQUEST ACCEPTED":"TRANSFER REQUEST ACCEPTED",
+          club.name,
+          requestType==="loan"
+            ?"You are now available for a loan. Wait for clubs to approach you."
+            :"You are now transfer listed. Wait for clubs to approach you."
+        );
+
+        playerModeFifa23GenerateIncomingOffers(career,true);
+      }else{
+        pm.transferRequestStatus="rejected";
+        pm.transferRequestCooldownMatches=3;
+        player.transferListed=false;
+        player.wantsOut=false;
+        pm.agentIntent="Stay and develop";
+        pm.agentStatus=`${club.name} rejected your ${requestType==="loan"?"loan":"transfer"} request. You can ask again after 3 matches.`;
+
+        saveData("Move request rejected");
+        playerModeShowCeremony(
+          requestType==="loan"?"LOAN REQUEST REJECTED":"TRANSFER REQUEST REJECTED",
+          club.name,
+          "The manager wants you to stay for now. Perform in the next three matches, then you can submit another request."
+        );
+      }
+
+      renderPlayerAgent();
+      renderPlayerHub();
+    }
+
+    function playerModeWithdrawTransferRequest(){
+      const career=currentCareerSave(),
+        pm=playerModeData(career),
+        player=playerModePlayer(career);
+
+      if(!pm||!player)return;
+
+      if(pm.transferRequestStatus!=="approved"){
+        return showToast("You do not have an active transfer or loan request.",true);
+      }
+
+      pm.transferRequestType="none";
+      pm.transferRequestStatus="none";
+      pm.transferRequestDate="";
+      pm.agentIntent="Stay and develop";
+      player.transferListed=false;
+      player.wantsOut=false;
+
+      // Existing offers remain valid, just like an offer already received in
+      // a transfer window. Withdrawing only stops NEW clubs from approaching.
+      pm.agentStatus=(pm.transferOffers||[]).length
+        ?"Your request was withdrawn. Existing offers remain available, but no new clubs are being invited to bid."
+        :"Your request was withdrawn. You are staying with your current club.";
+
+      saveData("Move request withdrawn");
+      renderPlayerAgent();
+      renderPlayerHub();
+    }
+
+    function playerModeFifa23GenerateIncomingOffers(career=currentCareerSave(),force=false){
+      if(!isPlayerMode(career))return 0;
+
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        current=playerModeClub(career);
+
+      if(!pm||!player||!current)return 0;
+
+      playerModePruneTransferOffers(career);
+
+      if(!playerModeTransferWindowOpen(career))return 0;
+
+      const requestActive=pm.transferRequestStatus==="approved";
+      const requestType=pm.transferRequestType==="loan"?"loan":"transfer";
+      const form=playerModeTransferForm(career);
+
+      // FIFA 23-style core path: once listed, offers come to the player.
+      // A very strong player can still receive the occasional unsolicited
+      // permanent offer even without submitting a request.
+      const unsolicitedEligible=
+        !requestActive &&
+        !player.transferListed &&
+        (
+          (Number(player.overall||0)>=80&&Number(pm.reputation||0)>=62) ||
+          (form.apps>=8&&form.recentAvg>=8.0&&Number(pm.reputation||0)>=52)
+        );
+
+      if(!requestActive&&!unsolicitedEligible)return 0;
+
+      const cycle=[
+        Number(career.worldSeason||1),
+        String(pm.currentDate||""),
+        Number(pm.matchHistory?.length||0),
+        requestActive?requestType:"unsolicited"
+      ].join("|");
+
+      if(!force&&pm.lastIncomingOfferCycle===cycle)return 0;
+      pm.lastIncomingOfferCycle=cycle;
+
+      playerModeRefreshTransferInterest(career,force);
+
+      const openOffers=(pm.transferOffers||[]).filter(offer=>
+        !["rejected","withdrawn","completed"].includes(offer.status)
+      );
+
+      const room=Math.max(0,4-openOffers.length);
+      if(room<=0)return 0;
+
+      const existingClubs=new Set(openOffers.map(offer=>offer.clubId));
+      const threshold=requestActive
+        ?(requestType==="loan"?55:62)
+        :82;
+
+      let candidates=(pm.transferInterest||[])
+        .filter(row=>
+          !existingClubs.has(row.clubId) &&
+          Number(row.interest||0)>=threshold
+        )
+        .map(row=>({
+          ...row,
+          club:managerTeam(row.clubId,career)
+        }))
+        .filter(row=>row.club)
+        .sort((a,b)=>
+          Number(b.interest||0)-Number(a.interest||0) ||
+          Number(b.club?.strength||0)-Number(a.club?.strength||0)
+        )
+        .slice(0,8);
+
+      if(requestType==="loan"&&requestActive){
+        candidates=candidates.filter(row=>
+          Number(player.age||99)<=25 &&
+          ["Prospect","Rotation","Starter","Important Player"].includes(row.projectedRole)
+        );
+      }
 
       let created=0;
-
-      const candidates=(pm.transferInterest||[])
-        .filter(row=>Number(row.interest||0)>=74)
-        .sort((a,b)=>Number(b.interest||0)-Number(a.interest||0))
-        .slice(0,6);
+      let firstCreatedClub=null;
 
       for(const row of candidates){
-        if(playerModeFindFormalOffer(career,row.clubId))continue;
+        if(created>=room)break;
 
-        const club=managerTeam(row.clubId,career);
-        if(!club)continue;
+        const chance=requestActive
+          ?clamp(.34+(Number(row.interest||0)-threshold)*.018+(force?.18:0),.34,.92)
+          :clamp(.12+(Number(row.interest||0)-82)*.015,.12,.42);
 
+        if(Math.random()>chance)continue;
+
+        const loan=requestActive&&requestType==="loan";
         const agreement=playerModeTransferAgreement(
           career,
-          club,
+          row.club,
           Number(row.interest||0),
-          false
+          loan
         );
 
         if(!agreement.ok)continue;
 
-        playerModeUpsertFormalOffer(career,{
+        const offer=playerModeUpsertFormalOffer(career,{
           id:uid(),
-          clubId:club.id,
-          loan:false,
+          clubId:row.club.id,
+          loan,
+          incoming:true,
+          unsolicited:!requestActive,
           interest:Number(row.interest||0),
           fee:agreement.fee,
           wage:agreement.wage,
@@ -14065,6 +14373,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           targetRole:agreement.targetRole,
           asking:agreement.asking||agreement.fee||0,
           releaseClauseTriggered:!!agreement.releaseClauseTriggered,
+          loanWageShare:agreement.loanWageShare||null,
           targetApproved:true,
           currentApproved:true,
           stage:"personal-terms",
@@ -14074,11 +14383,72 @@ body.player-calendar-advancing #playerNextMatchBtn{
           validThroughSeason:Number(career.worldSeason||1)+1
         });
 
-        created++;
+        if(offer){
+          created++;
+          if(!firstCreatedClub)firstCreatedClub=row.club;
+        }
+      }
+
+      // A newly-approved request should not feel dead just because the random
+      // roll missed every candidate. If there is a realistic top candidate,
+      // force one offer on the first market check.
+      if(force&&created===0&&room>0&&candidates.length){
+        const row=candidates[0];
+        const loan=requestActive&&requestType==="loan";
+        const agreement=playerModeTransferAgreement(
+          career,
+          row.club,
+          Number(row.interest||0),
+          loan
+        );
+
+        if(agreement.ok){
+          playerModeUpsertFormalOffer(career,{
+            id:uid(),
+            clubId:row.club.id,
+            loan,
+            incoming:true,
+            unsolicited:!requestActive,
+            interest:Number(row.interest||0),
+            fee:agreement.fee,
+            wage:agreement.wage,
+            contractYears:agreement.contractYears,
+            targetRole:agreement.targetRole,
+            asking:agreement.asking||agreement.fee||0,
+            releaseClauseTriggered:!!agreement.releaseClauseTriggered,
+            loanWageShare:agreement.loanWageShare||null,
+            targetApproved:true,
+            currentApproved:true,
+            stage:"personal-terms",
+            status:"ready",
+            createdDate:pm.currentDate,
+            createdSeason:Number(career.worldSeason||1),
+            validThroughSeason:Number(career.worldSeason||1)+1
+          });
+          created=1;
+          firstCreatedClub=row.club;
+        }
       }
 
       if(created){
-        pm.agentStatus=`Your club season is finished. ${created} club${created===1?" has":"s have"} submitted formal summer offer${created===1?"":"s"}. You can move now.`;
+        pm.agentStatus=created===1
+          ?`${firstCreatedClub.name} have submitted an official ${requestType==="loan"&&requestActive?"loan":"transfer"} offer for you.`
+          :`${created} clubs have submitted official offers for you.`;
+
+        managerNotify(
+          career,
+          "New Player Career Offer",
+          created===1
+            ?`${firstCreatedClub.name} submitted an official offer for ${player.name}.`
+            :`${created} clubs submitted official offers for ${player.name}.`,
+          "transfer"
+        );
+
+        saveData("");
+      }else if(requestActive){
+        pm.agentStatus=playerModeTransferWindowOpen(career)
+          ?`You are ${requestType==="loan"?"loan listed":"transfer listed"}. No club has submitted an offer yet. Keep playing and clubs will continue evaluating you.`
+          :`Your request is active. Clubs can approach when the transfer window opens.`;
       }
 
       return created;
@@ -14238,6 +14608,12 @@ body.player-calendar-advancing #playerNextMatchBtn{
       player.releaseClause=managerReleaseClause(player);
       player.transferListed=false;
       player.wantsOut=false;
+      pm.transferRequestType="none";
+      pm.transferRequestStatus="none";
+      pm.transferRequestDate="";
+      pm.transferRequestCooldownMatches=0;
+      pm.lastIncomingOfferCycle="";
+      pm.agentIntent="Stay and develop";
 
       managerEnsureSquadDepth(career,toClub,MANAGER_EXACT_SQUAD_SIZE);
       managerRecalculateTeam(toClub);
@@ -14941,59 +15317,73 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const career=currentCareerSave(),panel=$("tab-player-agent");
       if(!panel||!isPlayerMode(career))return;
 
-      const pm=playerModeData(career),player=playerModePlayer(career),current=playerModeClub(career);
+      const pm=playerModeData(career),
+        player=playerModePlayer(career),
+        current=playerModeClub(career);
+
       playerModeRefreshTransferInterest(career,false);
-      playerModeGenerateEndOfSeasonOffers(career);
+      playerModeFifa23GenerateIncomingOffers(career,false);
 
       const pending=pm.pendingOffer;
       const offerClub=pending?managerTeam(pending.clubId,career):null;
-      const planDescription=playerModeAgentIntentDescription(career);
+      const requestActive=pm.transferRequestStatus==="approved";
+      const cooldown=Number(pm.transferRequestCooldownMatches||0);
 
       panel.innerHTML=`
-        <div class="card">
-          <div class="startup-kicker">🤝 AGENT & TRANSFERS</div>
-          <h1>Career Direction</h1>
-          <p class="muted">Your instruction now changes who your agent contacts, your projected role, and whether a playing-time discussion happens with your manager.</p>
-
-          <div class="toolbar">
-            ${["Stay and develop","Find a bigger club","I need more playing time","Try another league"].map(intent=>`
-              <button class="btn ${pm.agentIntent===intent?'':'secondary'} small" data-player-agent-intent="${escapeHtml(intent)}">
-                ${escapeHtml(intent)}
-              </button>`).join("")}
+        <div class="card fifa23-transfer-status">
+          <div class="archive-header">
+            <div>
+              <div class="startup-kicker">🤝 AGENT & TRANSFERS</div>
+              <h1>Transfer Status</h1>
+              <p class="muted">FIFA 23-style system: ask your current club for a move, then clubs contact you with actual offers.</p>
+            </div>
+            <span class="badge">${escapeHtml(playerModeTransferRequestLabel(pm))}</span>
           </div>
 
           <div class="notice" style="margin-top:12px">
-            <strong>${escapeHtml(pm.agentIntent)}</strong><br>
-            ${escapeHtml(planDescription)}
-            ${Number(pm.playingTimePromiseMatches||0)>0
-              ?`<br><strong>Manager opportunity:</strong> ${pm.playingTimePromiseMatches} match${pm.playingTimePromiseMatches===1?"":"es"} remaining.`
-              :""
+            <strong>${escapeHtml(playerModeTransferRequestLabel(pm))}</strong><br>
+            ${escapeHtml(playerModeTransferRequestCopy(career))}
+          </div>
+
+          <div style="margin-top:12px">${playerModeTransferWindowBanner(career)}</div>
+
+          <div class="toolbar" style="margin-top:14px">
+            ${requestActive
+              ?`<button class="btn danger" id="playerWithdrawMoveRequestBtn">Withdraw ${pm.transferRequestType==="loan"?"Loan":"Transfer"} Request</button>`
+              :`
+                <button class="btn" id="playerRequestTransferBtn" ${cooldown>0?"disabled":""}>🔄 Request Transfer</button>
+                <button class="btn secondary" id="playerRequestLoanBtn" ${cooldown>0?"disabled":""}>📤 Request Loan</button>
+              `
             }
           </div>
 
+          ${cooldown>0?`
+            <p class="muted" style="margin-top:10px">
+              Your club rejected the previous request. ${cooldown} match${cooldown===1?"":"es"} until you can ask again.
+            </p>`:""}
+
           <p class="muted" style="margin-top:10px">${escapeHtml(pm.agentStatus||"")}</p>
-          <div style="margin-top:12px">${playerModeTransferWindowBanner(career)}</div>
         </div>
 
         ${pending&&offerClub?`
           <article class="card" style="margin-top:14px;border-color:rgba(139,92,246,.42)">
-            <div class="startup-kicker">📄 PERSONAL TERMS READY</div>
+            <div class="startup-kicker">📄 OFFICIAL CLUB OFFER</div>
 
             <div class="player-transfer-steps">
-              <div class="player-transfer-step done">✓ Target Club Approval</div>
+              <div class="player-transfer-step done">✓ Club Wants You</div>
               <div class="player-transfer-step done">✓ Club-to-Club Agreement</div>
-              <div class="player-transfer-step">3. Your Signature</div>
+              <div class="player-transfer-step">3. Your Decision</div>
             </div>
 
             <div class="player-next-match">
               ${current?teamLogo(current):`<strong>FREE AGENT</strong>`}
               <div>
-                <h2>${pending.loan?'Loan':'Transfer'} Agreement</h2>
-                <strong>${pending.loan?'Season loan':money(pending.fee)}</strong>
-                <div class="muted">${money(pending.wage)}/week · ${pending.loan?"1 season":`${pending.contractYears||4} years`}</div>
+                <h2>${pending.loan?"Loan Offer":"Transfer Offer"}</h2>
+                <strong>${escapeHtml(offerClub.name)}</strong>
+                <div class="muted">${pending.loan?"Season loan":money(pending.fee)} · ${money(pending.wage)}/week</div>
                 <div class="muted">Projected role: ${escapeHtml(pending.targetRole||"Squad player")}</div>
+                ${pending.loanWageShare?`<div class="muted">Loan club pays about ${pending.loanWageShare}% of salary</div>`:""}
                 ${pending.releaseClauseTriggered?`<div class="muted">Release clause activated</div>`:""}
-                ${pending.loanWageShare?`<div class="muted">Loan club covers about ${pending.loanWageShare}% of salary</div>`:""}
               </div>
               ${teamLogo(offerClub)}
             </div>
@@ -15001,111 +15391,84 @@ body.player-calendar-advancing #playerNextMatchBtn{
             <div class="notice" style="margin-top:12px">
               <strong>${playerModeTransferWindowOpen(career)?"Transfer window open":"Transfer window closed"}</strong><br>
               ${playerModeTransferWindowOpen(career)
-                ?"You can complete this move immediately."
-                :"You can agree the move now. It will stay saved and can be completed when the next window opens."}
+                ?"Accept and the move can be completed now."
+                :"You can agree to the move now. It will stay saved until the window opens."}
             </div>
-            <div class="toolbar" style="margin-top:12px">
-              <button class="btn success" id="playerAcceptOfferBtn">${playerModeTransferWindowOpen(career)?"✍️ Sign & Complete Transfer":"🤝 Agree Move for Summer"}</button>
-              <button class="btn danger" id="playerRejectOfferBtn">Reject Offer</button>
-            </div>
-          </article>`
-          :""
-        }
 
-        ${(pm.transferOffers||[]).length?`
-          <article class="card" style="margin-top:14px">
-            <div class="archive-header">
-              <div>
-                <div class="startup-kicker">📨 FORMAL OFFERS</div>
-                <h2>Offers That Stay on File</h2>
-                <p class="muted">Formal offers stay on file. Once your club season is finished, you can complete a summer move immediately.</p>
-              </div>
-              <span class="badge">${pm.transferOffers.length} offer${pm.transferOffers.length===1?"":"s"}</span>
-            </div>
-            <div class="player-transfer-interest">
-              ${pm.transferOffers.map(offer=>{
-                const club=managerTeam(offer.clubId,career);
-                if(!club)return "";
-                const accepted=offer.status==="accepted-waiting-window";
-                return `<div class="player-interest-row">
-                  ${teamLogoForSave(club)}
-                  <div>
-                    <strong>${escapeHtml(club.name)}</strong>
-                    <small class="muted" style="display:block">
-                      ${escapeHtml(playerModeFormalOfferStatus(career,offer))} ·
-                      ${offer.loan?"Season loan":money(offer.fee)}
-                    </small>
-                    <small class="muted" style="display:block;margin-top:3px">
-                      ${money(offer.wage)}/week · ${escapeHtml(offer.targetRole||"Squad role")}
-                    </small>
-                  </div>
-                  <div>
-                    <button
-                      class="btn ${accepted&&playerModeTransferWindowOpen(career)?"success":"secondary"} small"
-                      data-player-review-offer="${offer.id}"
-                      data-player-offer-action="${accepted&&playerModeTransferWindowOpen(career)?"complete":"review"}"
-                    >
-                      ${accepted&&playerModeTransferWindowOpen(career)?"Complete Move":"Review Offer"}
-                    </button>
-                  </div>
-                </div>`;
-              }).join("")}
+            <div class="toolbar" style="margin-top:12px">
+              <button class="btn success" id="playerAcceptOfferBtn">
+                ${playerModeTransferWindowOpen(career)?"✓ Accept Offer":"🤝 Agree Move"}
+              </button>
+              <button class="btn danger" id="playerRejectOfferBtn">✕ Reject Offer</button>
             </div>
           </article>`:""}
 
         <article class="card" style="margin-top:14px">
           <div class="archive-header">
             <div>
-              <div class="startup-kicker">CLUB INTEREST</div>
-              <h2>${pm.agentIntent==="Stay and develop"?"Transfer Activity Paused":"Realistic Clubs on Your Radar"}</h2>
+              <div class="startup-kicker">📨 INCOMING OFFERS</div>
+              <h2>Clubs That Want You</h2>
+              <p class="muted">These are real offers. You do not choose the clubs first. Interested clubs approach you.</p>
             </div>
-            <button class="btn secondary small" id="playerRefreshInterestBtn" ${pm.agentIntent==="Stay and develop"?"disabled":""}>Ask Agent</button>
+            <span class="badge">${(pm.transferOffers||[]).length} offer${(pm.transferOffers||[]).length===1?"":"s"}</span>
           </div>
 
           <div class="player-transfer-interest">
-            ${pm.transferInterest.map(item=>{
-              const club=managerTeam(item.clubId,career);
-              if(!club)return "";
-              const canLoan=Number(player?.age||99)<=23 && ["Prospect","Rotation","Starter"].includes(item.projectedRole);
+            ${(pm.transferOffers||[]).length
+              ?pm.transferOffers.map(offer=>{
+                const club=managerTeam(offer.clubId,career);
+                if(!club)return "";
 
-              return `<div class="player-interest-row">
-                ${teamLogoForSave(club)}
-                <div>
-                  <strong>${escapeHtml(club.name)}</strong>
-                  <small class="muted" style="display:block">
-                    ${escapeHtml(item.interestLabel||playerModeTransferInterestLabel(item.interest))} · ${escapeHtml(item.projectedRole||"Squad role")}
-                    ${item.leagueName?` · ${escapeHtml(item.leagueName)}`:""}
-                  </small>
-                  <small class="muted" style="display:block;margin-top:3px">
-                    ${escapeHtml(item.reason||"The club is monitoring your situation.")}
-                  </small>
-                </div>
-                <div>
-                  <button class="btn secondary small" data-player-consider-club="${club.id}">
-                    ${playerModeFindFormalOffer(career,club.id)?"Review Formal Offer":"Request Formal Offer"}
-                  </button>
-                  ${canLoan?`<button class="btn secondary small" data-player-loan-club="${club.id}" style="margin-top:5px">Ask About Loan</button>`:""}
-                </div>
-              </div>`;
-            }).join("") || `<p class="muted">${
-              pm.agentIntent==="Stay and develop"
-                ?"Your agent is not shopping you around. Change the career direction when you want to explore a move."
-                :"No realistic club matches your instruction right now. Improve your OVR, reputation and performances."
-            }</p>`}
+                const accepted=offer.status==="accepted-waiting-window";
+                const readyToComplete=accepted&&playerModeTransferWindowOpen(career);
+
+                return `<div class="player-interest-row fifa23-incoming-offer">
+                  ${teamLogoForSave(club)}
+                  <div>
+                    <strong>${escapeHtml(club.name)}</strong>
+                    <small class="muted" style="display:block">
+                      ${offer.loan?"Loan Offer":"Transfer Offer"} · ${escapeHtml(offer.targetRole||"Squad role")}
+                    </small>
+                    <small class="muted" style="display:block;margin-top:3px">
+                      ${offer.loan?"Season loan":money(offer.fee)} · ${money(offer.wage)}/week
+                    </small>
+                    ${offer.unsolicited?`<small class="muted" style="display:block;margin-top:3px">Unsolicited offer — they approached you without a transfer request.</small>`:""}
+                  </div>
+                  <div>
+                    <button
+                      class="btn ${readyToComplete?"success":"secondary"} small"
+                      data-player-review-offer="${offer.id}"
+                    >
+                      ${readyToComplete?"Complete Move":"View Offer"}
+                    </button>
+                  </div>
+                </div>`;
+              }).join("")
+              :`<div class="notice">
+                  <strong>No offers right now.</strong><br>
+                  ${
+                    requestActive
+                      ?`You are ${pm.transferRequestType==="loan"?"loan listed":"transfer listed"}. Keep playing and clubs will approach you automatically.`
+                      :"If you want to leave, request a transfer or loan above. Strong performances can also attract an occasional unsolicited offer."
+                  }
+                </div>`
+            }
           </div>
+        </article>
+
+        <article class="card" style="margin-top:14px">
+          <div class="startup-kicker">HOW THIS WORKS</div>
+          <h2>FIFA 23-Style Transfer Flow</h2>
+          <div class="player-transfer-steps" style="margin-top:12px">
+            <div class="player-transfer-step ${pm.transferRequestStatus!=="none"?"done":""}">1. Request a Move</div>
+            <div class="player-transfer-step ${requestActive?"done":""}">2. Club Lists You</div>
+            <div class="player-transfer-step ${(pm.transferOffers||[]).length?"done":""}">3. Offers Arrive</div>
+            <div class="player-transfer-step">4. Accept or Reject</div>
+          </div>
+          <p class="muted" style="margin-top:10px">
+            There is no target-club list and no “Request Formal Offer” button anymore. Clubs decide whether they want you based on your OVR, form, age, reputation, projected role, contract, and their budget.
+          </p>
         </article>`;
-
-      panel.querySelectorAll("[data-player-agent-intent]").forEach(
-        button=>button.onclick=()=>playerModeSetAgentIntent(button.dataset.playerAgentIntent)
-      );
-
-      panel.querySelectorAll("[data-player-consider-club]").forEach(
-        button=>button.onclick=()=>playerModeConsiderMove(button.dataset.playerConsiderClub,false)
-      );
-
-      panel.querySelectorAll("[data-player-loan-club]").forEach(
-        button=>button.onclick=()=>playerModeConsiderMove(button.dataset.playerLoanClub,true)
-      );
 
       panel.querySelectorAll("[data-player-review-offer]").forEach(button=>{
         button.onclick=()=>{
@@ -15118,11 +15481,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
         };
       });
 
-      $("playerRefreshInterestBtn")?.addEventListener("click",()=>{
-        playerModeRefreshTransferInterest(career,true);
-        saveData("");
-        renderPlayerAgent();
-      });
+      $("playerRequestTransferBtn")?.addEventListener("click",()=>playerModeRequestTransferAction("transfer"));
+      $("playerRequestLoanBtn")?.addEventListener("click",()=>playerModeRequestTransferAction("loan"));
+      $("playerWithdrawMoveRequestBtn")?.addEventListener("click",()=>playerModeWithdrawTransferRequest());
 
       $("playerAcceptOfferBtn")?.addEventListener("click",()=>playerModeResolveOffer(true));
       $("playerRejectOfferBtn")?.addEventListener("click",()=>playerModeResolveOffer(false));
