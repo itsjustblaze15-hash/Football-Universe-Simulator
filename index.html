@@ -5910,6 +5910,122 @@ body.player-mode #tab-manager-player-records{
   --manager-money:#c4b5fd;
 }
 
+
+/* V61.19 — knockout extra time + interactive Player Career penalties */
+.live-penalty-panel{
+  margin-top:12px;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid rgba(139,92,246,.38);
+  background:
+    radial-gradient(circle at 50% 0%,rgba(124,58,237,.20),transparent 38%),
+    linear-gradient(180deg,rgba(17,24,39,.98),rgba(10,15,31,.98));
+  animation:playerRise .28s ease both;
+}
+.live-penalty-panel.hidden{display:none!important}
+.live-penalty-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+}
+.live-penalty-head strong{display:block;font-size:22px}
+.live-penalty-score{
+  display:grid;
+  grid-template-columns:auto auto auto;
+  gap:8px;
+  align-items:center;
+  padding:8px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.035);
+  font-size:26px;
+  font-weight:1000;
+}
+.live-penalty-score small{
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:.14em;
+}
+.live-penalty-goal{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:repeat(2,86px);
+  gap:7px;
+  max-width:620px;
+  margin:16px auto 12px;
+  padding:8px;
+  border:6px solid rgba(241,245,249,.90);
+  border-bottom-width:8px;
+  background:
+    linear-gradient(90deg,transparent 32.7%,rgba(255,255,255,.10) 33%,rgba(255,255,255,.10) 33.5%,transparent 33.8%,transparent 66.2%,rgba(255,255,255,.10) 66.5%,rgba(255,255,255,.10) 67%,transparent 67.3%),
+    linear-gradient(180deg,rgba(9,77,65,.78),rgba(5,48,43,.90));
+  box-shadow:0 18px 34px rgba(0,0,0,.25);
+}
+.live-penalty-goal button{
+  min-width:0;
+  border:1px dashed rgba(255,255,255,.20);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+  color:white;
+  cursor:pointer;
+  font:inherit;
+  transition:transform .12s ease,background .12s ease,border-color .12s ease;
+}
+.live-penalty-goal button:hover{
+  transform:scale(1.025);
+  background:rgba(139,92,246,.18);
+  border-color:rgba(196,181,253,.58);
+}
+.live-penalty-goal button:disabled{opacity:.45;cursor:wait}
+.live-penalty-goal button span{display:block;font-size:27px;font-weight:1000}
+.live-penalty-goal button small{display:block;margin-top:4px;font-size:10px;font-weight:900}
+.live-penalty-kicks{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.live-penalty-kicks>div{
+  padding:10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+}
+.live-penalty-dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.live-penalty-dot{
+  width:20px;height:20px;border-radius:50%;
+  display:grid;place-items:center;
+  font-size:10px;font-weight:1000;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(148,163,184,.14);
+}
+.live-penalty-dot.goal{
+  background:rgba(34,197,94,.24);
+  border-color:rgba(34,197,94,.55);
+  color:#86efac;
+}
+.live-penalty-dot.miss{
+  background:rgba(239,68,68,.22);
+  border-color:rgba(239,68,68,.50);
+  color:#fca5a5;
+}
+.live-match-phase.extra-time{color:#facc15}
+.live-match-phase.penalties{
+  color:#c4b5fd;
+  animation:playerPulse .8s ease-in-out infinite;
+}
+.player-calendar-score small{
+  display:block;
+  margin-top:3px;
+  font-size:8px;
+  color:inherit;
+}
+@media(max-width:650px){
+  .live-penalty-head{grid-template-columns:1fr}
+  .live-penalty-score{justify-self:start}
+  .live-penalty-goal{grid-template-rows:repeat(2,70px)}
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -9329,6 +9445,41 @@ body.player-calendar-advancing #playerNextMatchBtn{
           <button type="button" class="btn secondary" data-live-decision="balanced">⚖️ Stay Balanced</button>
           <button type="button" class="btn" data-live-decision="protect">🛡️ Protect Result</button>
           <button type="button" class="btn secondary player-live-only hidden" data-live-decision="sub">🔁 Request Sub</button>
+        </div>
+      </div>
+
+      <div id="livePenaltyPanel" class="live-penalty-panel hidden">
+        <div class="live-penalty-head">
+          <div>
+            <div class="startup-kicker">⚽ PENALTY SHOOTOUT</div>
+            <strong id="livePenaltyTitle">Choose your spot</strong>
+            <p class="muted" id="livePenaltyCopy">Pick where you want to shoot. The goalkeeper commits at the same time.</p>
+          </div>
+          <div class="live-penalty-score">
+            <span id="livePenaltyHome">0</span>
+            <small>PENS</small>
+            <span id="livePenaltyAway">0</span>
+          </div>
+        </div>
+
+        <div class="live-penalty-goal" aria-label="Choose your penalty placement">
+          <button type="button" data-penalty-zone="top-left"><span>↖</span><small>Top Left</small></button>
+          <button type="button" data-penalty-zone="top-center"><span>↑</span><small>Top Center</small></button>
+          <button type="button" data-penalty-zone="top-right"><span>↗</span><small>Top Right</small></button>
+          <button type="button" data-penalty-zone="bottom-left"><span>↙</span><small>Bottom Left</small></button>
+          <button type="button" data-penalty-zone="bottom-center"><span>↓</span><small>Bottom Center</small></button>
+          <button type="button" data-penalty-zone="bottom-right"><span>↘</span><small>Bottom Right</small></button>
+        </div>
+
+        <div class="live-penalty-kicks">
+          <div>
+            <strong id="livePenaltyHomeName">Home</strong>
+            <div id="livePenaltyHomeKicks" class="live-penalty-dots"></div>
+          </div>
+          <div>
+            <strong id="livePenaltyAwayName">Away</strong>
+            <div id="livePenaltyAwayKicks" class="live-penalty-dots"></div>
+          </div>
         </div>
       </div>
 
@@ -12948,6 +13099,15 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(row.sub)return "Substitute appearance";
       return row.selection==="injured"?"Not available · Injured":row.selection==="suspended"?`Suspended · ${row.suspensionReason||"Disciplinary suspension"}`:"Unused substitute";
     }
+    function playerModeMatchDecisionText(row){
+      if(row?.decidedBy==="penalties"){
+        const verb=row.outcome==="win"?"Won":row.outcome==="loss"?"Lost":"Drew";
+        return ` · ${verb} ${row.penaltyFor}–${row.penaltyAgainst} on pens`;
+      }
+      if(row?.wentExtraTime)return " · AET";
+      return "";
+    }
+
     function playerModeSeasonStats(career=currentCareerSave(),season=Number(career?.worldSeason||1)){
       const pm=playerModeData(career);if(!pm)return null;
       const key=String(season);pm.seasonStats[key]=pm.seasonStats[key]||{season,appearances:0,starts:0,subApps:0,goals:0,assists:0,motm:0,ratingTotal:0,ratedMatches:0,cleanSheets:0,tackles:0,saves:0};return pm.seasonStats[key];
@@ -12979,15 +13139,23 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(started)subOffMinute=Number(pm.requestedSubMinute||plan.subOffMinute||0)||null;
       else if(sub&&Number(pm.requestedSubMinute||0)>Number(subOnMinute||0))subOffMinute=Number(pm.requestedSubMinute);
 
+      const matchMinutes=Number(game.matchMinutes||90);
       const minutesPlayed=appeared
         ? started
-          ? clamp(Number(subOffMinute||90),1,90)
-          : clamp(Number((subOffMinute||90)-(subOnMinute||90)),1,90)
+          ? clamp(Number(subOffMinute||matchMinutes),1,matchMinutes)
+          : clamp(Number((subOffMinute||matchMinutes)-(subOnMinute||matchMinutes)),1,matchMinutes)
         : 0;
 
       const goals=Number(perGameGoals[player.id]||0),assists=Number(perGameAssists[player.id]||0);
-      const isHome=game.homeId===teamId,forGoals=isHome?Number(game.homeGoals??0):Number(game.awayGoals??0),against=isHome?Number(game.awayGoals??0):Number(game.homeGoals??0);
-      const won=forGoals>against,draw=forGoals===against;
+      const isHome=game.homeId===teamId,
+        forGoals=isHome?Number(game.homeGoals??0):Number(game.awayGoals??0),
+        against=isHome?Number(game.awayGoals??0):Number(game.homeGoals??0);
+
+      const opponentTeamId=isHome?game.awayId:game.homeId;
+      const knockoutWinnerId=game.penaltyWinnerId||
+        (forGoals!==against?(forGoals>against?teamId:opponentTeamId):null);
+      const won=knockoutWinnerId?knockoutWinnerId===teamId:forGoals>against;
+      const draw=!knockoutWinnerId&&forGoals===against;
       let rating=0;
       const metrics=playerModePositionMetrics(player.position,won,against);
       if(appeared){
@@ -13067,7 +13235,39 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
       const opponentId=isHome?game.awayId:game.homeId;
       const date=pm.pendingMatchDate||plan.date||pm.currentDate;
-      const historyRow={id:uid(),season:Number(career.worldSeason||1),date,competitionId:comp.id,competition:comp.name,opponentId,home:isHome,forGoals,against,appeared,started,sub,selection,subOnMinute,subOffMinute,minutesPlayed,goals,assists,rating,cleanSheet:metrics.cleanSheet,tackles:metrics.tackles,saves:metrics.saves,disciplineEvent,suspensionReason:suspensionReasonAtKickoff};
+      const penaltyFor=isHome?game.penaltyHomeGoals:game.penaltyAwayGoals;
+      const penaltyAgainst=isHome?game.penaltyAwayGoals:game.penaltyHomeGoals;
+      const historyRow={
+        id:uid(),
+        season:Number(career.worldSeason||1),
+        date,
+        competitionId:comp.id,
+        competition:comp.name,
+        opponentId,
+        home:isHome,
+        forGoals,
+        against,
+        appeared,
+        started,
+        sub,
+        selection,
+        subOnMinute,
+        subOffMinute,
+        minutesPlayed,
+        goals,
+        assists,
+        rating,
+        cleanSheet:metrics.cleanSheet,
+        tackles:metrics.tackles,
+        saves:metrics.saves,
+        disciplineEvent,
+        suspensionReason:suspensionReasonAtKickoff,
+        outcome:won?"win":draw?"draw":"loss",
+        wentExtraTime:!!game.wentExtraTime,
+        decidedBy:game.decidedBy||"regulation",
+        penaltyFor:game.decidedBy==="penalties"?Number(penaltyFor||0):null,
+        penaltyAgainst:game.decidedBy==="penalties"?Number(penaltyAgainst||0):null
+      };
       pm.matchHistory.unshift(historyRow);
       pm.lastMatchStatus={...historyRow};
       if(selection==="suspended"&&Number(pm.suspensionMatches||0)<=0){
@@ -14316,6 +14516,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
       });
 
       const resultClass=row=>{
+        if(row?.outcome==="win")return "result-win";
+        if(row?.outcome==="loss")return "result-loss";
+        if(row?.outcome==="draw")return "result-draw";
         const gf=Number(row?.forGoals||0),ga=Number(row?.against||0);
         return gf>ga?"result-win":gf<ga?"result-loss":"result-draw";
       };
@@ -14355,7 +14558,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
                 <strong>${result.home?'HOME':'AWAY'} · ${escapeHtml(teamName(resultOpponentId))}</strong>
                 <span>${escapeHtml(result.competition||"Match")}</span>
               </div>
-              <strong class="player-calendar-score">${Number(result.forGoals||0)}–${Number(result.against||0)}</strong>
+              <strong class="player-calendar-score">${Number(result.forGoals||0)}–${Number(result.against||0)}${
+                result.decidedBy==="penalties"
+                  ?` <small>${Number(result.penaltyFor||0)}–${Number(result.penaltyAgainst||0)} pens</small>`
+                  :result.wentExtraTime?" <small>AET</small>":""
+              }</strong>
             </div></div>`
           :"";
 
@@ -14461,7 +14668,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const career=currentCareerSave(),panel=$("tab-player-development");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career);if(!pm||!player)return;playerModeCheckRoadUnlocks(career);const groups=Object.entries(PLAYER_MODE_ATTRIBUTE_GROUPS).filter(([group])=>player.position==="GK"||group!=="Goalkeeping");const gates=playerModeRoadObjectives(career);panel.innerHTML=`<section class="player-hero"><div><div class="player-ovr-orb"><div><strong>${player.overall}</strong><small>OVR</small></div></div></div><div><div class="startup-kicker">📈 PLAYER DEVELOPMENT</div><h1 class="player-hero-name">Road to 99</h1><p class="muted">Spend Development Points on individual attributes. Your overall is calculated from your attributes and weighted for ${escapeHtml(player.position)}.</p><div class="toolbar"><span class="badge">${pm.developmentPoints} Development Points</span><span class="badge">Current OVR Ceiling ${pm.roadCap}</span><span class="badge">${"★".repeat(pm.skillMoves)}${"☆".repeat(5-pm.skillMoves)} Skills</span><span class="badge">${"★".repeat(pm.weakFoot)}${"☆".repeat(5-pm.weakFoot)} Weak Foot</span></div></div><div><button class="btn secondary small" id="playerSkillUpgradeBtn">Skill Moves +★</button><button class="btn secondary small" id="playerWeakFootUpgradeBtn" style="margin-top:7px">Weak Foot +★</button></div></section><div class="player-development-layout" style="margin-top:14px"><div class="player-attribute-grid">${groups.map(([group,attrs])=>`<article class="player-attribute-card"><h3>${escapeHtml(group)}</h3>${attrs.map(attr=>{const value=Number(pm.attributes[attr]||0),cost=playerModeAttributeCost(value);return `<div class="player-attribute-row"><span>${escapeHtml(attr)}<small class="muted" style="display:block">Cost ${cost}</small></span><span class="player-attribute-value">${value}</span><button data-player-upgrade-attr="${escapeHtml(attr)}" ${value>=99||pm.developmentPoints<cost?"disabled":""}>＋</button></div>`}).join("")}</article>`).join("")}</div><aside><article class="card"><div class="startup-kicker">ROAD TO 99</div><div class="player-road-list">${gates.map(g=>`<div class="player-road-gate ${g.cap<=pm.roadCap?'unlocked':''}"><strong>${g.cap<=pm.roadCap?'✅':'🔒'} ${escapeHtml(g.title)} · ${g.cap} OVR</strong>${g.objectives.map(o=>`<div class="player-road-objective ${o.done?'done':''}">${o.done?'✅':'⬜'} <span>${escapeHtml(o.text)}</span></div>`).join("")}</div>`).join("")}</div></article><article class="card" style="margin-top:12px"><div class="startup-kicker">TRAINING</div><p class="muted">One session per calendar day. Training costs fitness, raises sharpness and gives +1 Development Point.</p><div class="toolbar">${groups.map(([group])=>`<button class="btn secondary small" data-player-train="${escapeHtml(group)}">${escapeHtml(group)}</button>`).join("")}</div></article></aside></div>`;panel.querySelectorAll("[data-player-upgrade-attr]").forEach(b=>b.onclick=()=>playerModeUpgradeAttribute(b.dataset.playerUpgradeAttr));panel.querySelectorAll("[data-player-train]").forEach(b=>b.onclick=()=>playerModeTrain(b.dataset.playerTrain));$("playerSkillUpgradeBtn").onclick=()=>playerModeUpgradeSpecial("skillMoves");$("playerWeakFootUpgradeBtn").onclick=()=>playerModeUpgradeSpecial("weakFoot");
     }
     function renderPlayerStats(){
-      const career=currentCareerSave(),panel=$("tab-player-stats");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),season=playerModeSeasonStats(career),avg=playerModeAverageRating(season),careerAvg=playerModeAverageRating(pm.stats);panel.innerHTML=`<div class="card"><div class="startup-kicker">📊 PLAYER STATS</div><h1>${escapeHtml(player?.name||'Player')}</h1><div class="manager-summary-grid"><div class="manager-summary-card"><small>Career Apps</small><strong>${pm.stats.appearances}</strong></div><div class="manager-summary-card"><small>Career Goals</small><strong>${pm.stats.goals}</strong></div><div class="manager-summary-card"><small>Career Assists</small><strong>${pm.stats.assists}</strong></div><div class="manager-summary-card"><small>Career Avg Rating</small><strong>${careerAvg?careerAvg.toFixed(2):"—"}</strong></div><div class="manager-summary-card"><small>Player of Match</small><strong>${pm.stats.motm}</strong></div><div class="manager-summary-card"><small>Clean Sheets</small><strong>${pm.stats.cleanSheets}</strong></div></div></div><div class="player-dashboard-grid"><article class="card"><div class="startup-kicker">${escapeHtml(seasonDisplay(career.worldSeason||1))}</div><div class="manager-summary-grid"><div class="manager-summary-card"><small>Apps</small><strong>${season.appearances}</strong></div><div class="manager-summary-card"><small>Starts</small><strong>${season.starts}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${season.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${season.assists}</strong></div><div class="manager-summary-card"><small>Avg Rating</small><strong>${avg?avg.toFixed(2):"—"}</strong></div><div class="manager-summary-card"><small>${player?.position==="GK"?"Saves":"Tackles"}</small><strong>${player?.position==="GK"?season.saves:season.tackles}</strong></div></div></article><article class="card"><div class="startup-kicker">POSITION OBJECTIVES</div>${playerModePositionObjectivesHtml(career)}</article></div><article class="card" style="margin-top:14px"><h2>Recent Matches</h2><div class="player-match-history">${pm.matchHistory.slice(0,18).map(row=>`<div class="player-match-row"><div class="player-rating ${row.rating>=8?'elite':row.rating&&row.rating<6?'bad':''}">${row.appeared?row.rating.toFixed(1):'—'}</div><div><strong>${escapeHtml(row.competition)} · ${escapeHtml(teamName(row.opponentId))}</strong><small class="muted" style="display:block">${escapeHtml(row.date)} · ${row.forGoals}–${row.against} · ${escapeHtml(playerModeHistoryStatus(row))}</small></div><strong>${row.goals?`${row.goals}G `:''}${row.assists?`${row.assists}A`:''}</strong></div>`).join("")||`<p class="muted">No Player Mode matches recorded yet.</p>`}</div></article>`;
+      const career=currentCareerSave(),panel=$("tab-player-stats");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career),player=playerModePlayer(career),season=playerModeSeasonStats(career),avg=playerModeAverageRating(season),careerAvg=playerModeAverageRating(pm.stats);panel.innerHTML=`<div class="card"><div class="startup-kicker">📊 PLAYER STATS</div><h1>${escapeHtml(player?.name||'Player')}</h1><div class="manager-summary-grid"><div class="manager-summary-card"><small>Career Apps</small><strong>${pm.stats.appearances}</strong></div><div class="manager-summary-card"><small>Career Goals</small><strong>${pm.stats.goals}</strong></div><div class="manager-summary-card"><small>Career Assists</small><strong>${pm.stats.assists}</strong></div><div class="manager-summary-card"><small>Career Avg Rating</small><strong>${careerAvg?careerAvg.toFixed(2):"—"}</strong></div><div class="manager-summary-card"><small>Player of Match</small><strong>${pm.stats.motm}</strong></div><div class="manager-summary-card"><small>Clean Sheets</small><strong>${pm.stats.cleanSheets}</strong></div></div></div><div class="player-dashboard-grid"><article class="card"><div class="startup-kicker">${escapeHtml(seasonDisplay(career.worldSeason||1))}</div><div class="manager-summary-grid"><div class="manager-summary-card"><small>Apps</small><strong>${season.appearances}</strong></div><div class="manager-summary-card"><small>Starts</small><strong>${season.starts}</strong></div><div class="manager-summary-card"><small>Goals</small><strong>${season.goals}</strong></div><div class="manager-summary-card"><small>Assists</small><strong>${season.assists}</strong></div><div class="manager-summary-card"><small>Avg Rating</small><strong>${avg?avg.toFixed(2):"—"}</strong></div><div class="manager-summary-card"><small>${player?.position==="GK"?"Saves":"Tackles"}</small><strong>${player?.position==="GK"?season.saves:season.tackles}</strong></div></div></article><article class="card"><div class="startup-kicker">POSITION OBJECTIVES</div>${playerModePositionObjectivesHtml(career)}</article></div><article class="card" style="margin-top:14px"><h2>Recent Matches</h2><div class="player-match-history">${pm.matchHistory.slice(0,18).map(row=>`<div class="player-match-row"><div class="player-rating ${row.rating>=8?'elite':row.rating&&row.rating<6?'bad':''}">${row.appeared?row.rating.toFixed(1):'—'}</div><div><strong>${escapeHtml(row.competition)} · ${escapeHtml(teamName(row.opponentId))}</strong><small class="muted" style="display:block">${escapeHtml(row.date)} · ${row.forGoals}–${row.against}${escapeHtml(playerModeMatchDecisionText(row))} · ${escapeHtml(playerModeHistoryStatus(row))}</small></div><strong>${row.goals?`${row.goals}G `:''}${row.assists?`${row.assists}A`:''}</strong></div>`).join("")||`<p class="muted">No Player Mode matches recorded yet.</p>`}</div></article>`;
     }
     function playerModeClubHasPhoto(career,squadPlayer,userPlayer){
       if(squadPlayer?.id===userPlayer?.id&&playerModeFaceSource(career,userPlayer))return true;
@@ -24468,35 +24675,419 @@ body.player-calendar-advancing #playerNextMatchBtn{
       }
     }
 
+    function liveExtraTimeGoalEvents(homeGoals,awayGoals,scorerIds=null){
+      const sides=[
+        ...Array(Math.max(0,Number(homeGoals||0))).fill("home"),
+        ...Array(Math.max(0,Number(awayGoals||0))).fill("away")
+      ].sort(()=>Math.random()-.5);
+
+      const minutes=[94,98,102,108,112,116,119];
+      const used=[];
+      let hi=0,ai=0;
+
+      return sides.map(side=>{
+        let minute=minutes[Math.floor(Math.random()*minutes.length)];
+        let guard=0;
+        while(used.includes(minute)&&guard<20){
+          minute=minutes[Math.floor(Math.random()*minutes.length)];
+          guard++;
+        }
+        used.push(minute);
+        return {
+          minute,
+          type:"goal",
+          side,
+          scorerId:side==="home"?scorerIds?.home?.[hi++]:scorerIds?.away?.[ai++]
+        };
+      }).sort((a,b)=>a.minute-b.minute);
+    }
+
+    function beginLiveExtraTime(){
+      const state=liveMatchState;
+      if(!state||state.committed)return;
+
+      clearInterval(liveMatchTimer);
+      liveMatchTimer=null;
+
+      state.wentExtraTime=true;
+      state.matchMinutes=120;
+      state.regulationHomeGoals=state.displayHomeGoals;
+      state.regulationAwayGoals=state.displayAwayGoals;
+
+      const comp=currentWorld()?.competitions?.find(c=>c.id===state.compId);
+      const [eth,eta]=simulateExtraTimeGoals(state.game.homeId,state.game.awayId,comp);
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      const extraScorers=isManagerMode(career)
+        ?{
+          home:managerScorerIds(state.game.homeId,eth,career),
+          away:managerScorerIds(state.game.awayId,eta,career)
+        }
+        :null;
+
+      state.goalEvents=state.goalEvents
+        .filter(event=>event.minute<=90)
+        .concat(liveExtraTimeGoalEvents(eth,eta,extraScorers));
+
+      state.finalHomeGoals=state.displayHomeGoals+eth;
+      state.finalAwayGoals=state.displayAwayGoals+eta;
+      state.scorerIds=state.scorerIds||{home:[],away:[]};
+      state.scorerIds.home=(state.scorerIds.home||[]).concat(extraScorers?.home||[]);
+      state.scorerIds.away=(state.scorerIds.away||[]).concat(extraScorers?.away||[]);
+
+      $("liveMatchPhase").textContent="EXTRA TIME";
+      $("liveMatchPhase").classList.add("extra-time");
+      $("liveMatchClock").textContent="ET";
+      $("liveMatchProgress").style.width="75%";
+      $("liveMatchFooterText").textContent="Thirty more minutes. If it stays level, penalties decide it.";
+
+      addLiveMatchFeed("90'","⏱️ LEVEL AFTER 90 — EXTRA TIME!","major");
+
+      if(state.playerCareer?.onPitch){
+        $("livePlayerStatusText").textContent="Still On Pitch · Extra Time";
+        $("livePlayerStatusMinute").textContent="90+ MIN";
+      }
+
+      setTimeout(()=>{
+        if(!liveMatchState||liveMatchState.committed)return;
+        state.minute=90;
+        liveMatchTimer=setInterval(tickLiveMatch,200);
+      },650);
+    }
+
+    function livePenaltyPlayerRating(player,career){
+      if(!player)return 68;
+
+      const pm=isPlayerMode(career)?playerModeData(career):null;
+      if(pm&&player.id===pm.playerId){
+        return clamp(Number(pm.attributes?.["Penalties"]||player.overall||70),35,99);
+      }
+
+      const pos=String(player.position||"").toUpperCase();
+      const bonus=["ST","CF","CAM","LW","RW"].includes(pos)?5:["CM","CDM"].includes(pos)?2:0;
+      return clamp(Number(player.overall||70)+bonus,45,94);
+    }
+
+    function livePenaltyShooters(teamId,state){
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      const team=managerTeam(teamId,career);
+      if(!team)return [];
+
+      const userId=isPlayerMode(career)?playerModeData(career)?.playerId:null;
+      const userTeam=career?.controlledTeamId===teamId;
+      const userEligible=!!(userTeam&&state.playerCareer?.onPitch&&userId);
+
+      let players=(team.managerSquad||[])
+        .filter(player=>player.isStarter)
+        .sort((a,b)=>livePenaltyPlayerRating(b,career)-livePenaltyPlayerRating(a,career));
+
+      if(players.length<11){
+        const used=new Set(players.map(p=>p.id));
+        (team.managerSquad||[])
+          .filter(player=>!used.has(player.id))
+          .sort((a,b)=>livePenaltyPlayerRating(b,career)-livePenaltyPlayerRating(a,career))
+          .forEach(player=>players.push(player));
+      }
+
+      players=players.slice(0,11);
+
+      if(userEligible){
+        const user=managerPlayerById(userId,career);
+        if(user){
+          players=players.filter(player=>player.id!==user.id);
+          players.splice(Math.min(3,players.length),0,user);
+        }
+      }
+
+      return players;
+    }
+
+    function livePenaltyRenderDots(){
+      const state=liveMatchState,shootout=state?.shootout;
+      if(!shootout)return;
+
+      $("livePenaltyHome").textContent=String(shootout.homeScore);
+      $("livePenaltyAway").textContent=String(shootout.awayScore);
+      $("livePenaltyHomeName").textContent=teamName(state.game.homeId);
+      $("livePenaltyAwayName").textContent=teamName(state.game.awayId);
+
+      const html=results=>results.map(goal=>
+        `<span class="live-penalty-dot ${goal?"goal":"miss"}">${goal?"✓":"×"}</span>`
+      ).join("");
+
+      $("livePenaltyHomeKicks").innerHTML=html(shootout.homeResults);
+      $("livePenaltyAwayKicks").innerHTML=html(shootout.awayResults);
+    }
+
+    function livePenaltyShootoutFinished(shootout){
+      const hk=shootout.homeResults.length,ak=shootout.awayResults.length;
+      const hs=shootout.homeScore,as=shootout.awayScore;
+
+      if(hk<=5&&ak<=5){
+        const hr=Math.max(0,5-hk),ar=Math.max(0,5-ak);
+        if(hs>as+ar)return true;
+        if(as>hs+hr)return true;
+      }
+
+      if(hk>=5&&ak>=5&&hk===ak&&hs!==as)return true;
+      return false;
+    }
+
+    function livePenaltyKeeperGuess(){
+      const zones=["top-left","top-center","top-right","bottom-left","bottom-center","bottom-right"];
+      return zones[Math.floor(Math.random()*zones.length)];
+    }
+
+    function livePenaltyResolveKick(side,kicker,chosenZone=null){
+      const state=liveMatchState,shootout=state?.shootout;
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      if(!shootout||!kicker)return false;
+
+      const rating=livePenaltyPlayerRating(kicker,career);
+      const keeperTeam=managerTeam(side==="home"?state.game.awayId:state.game.homeId,career);
+      const keeper=(keeperTeam?.managerSquad||[])
+        .filter(player=>player.position==="GK")
+        .sort((a,b)=>Number(b.overall||0)-Number(a.overall||0))[0];
+
+      const keeperRating=Number(keeper?.overall||70);
+      const zone=chosenZone||livePenaltyKeeperGuess();
+      const keeperZone=livePenaltyKeeperGuess();
+      const topCorner=zone==="top-left"||zone==="top-right";
+      const center=zone==="top-center"||zone==="bottom-center";
+
+      const missChance=clamp(
+        .085-(rating-70)*.0025+(topCorner?.045:0)-(center?.015:0),
+        .025,
+        .16
+      );
+
+      const guessed=zone===keeperZone;
+      const saveChance=guessed
+        ?clamp(.43+(keeperRating-rating)*.007+(center?.08:0),.22,.72)
+        :clamp(.035+(keeperRating-rating)*.0015,.01,.09);
+
+      let goal=true,detail="";
+      if(Math.random()<missChance){
+        goal=false;
+        detail=Math.random()<.55?"OFF THE POST!":"OVER THE BAR!";
+      }else if(Math.random()<saveChance){
+        goal=false;
+        detail=`SAVED by ${keeper?.name||"the goalkeeper"}!`;
+      }else{
+        detail=guessed
+          ?"GOAL! The keeper guessed right but couldn't reach it!"
+          :"GOAL! Sent the keeper the wrong way!";
+      }
+
+      if(side==="home"){
+        shootout.homeResults.push(goal);
+        if(goal)shootout.homeScore++;
+      }else{
+        shootout.awayResults.push(goal);
+        if(goal)shootout.awayScore++;
+      }
+
+      livePenaltyRenderDots();
+      addLiveMatchFeed("PEN",`${goal?"⚽":"❌"} ${kicker.name} — ${detail}`,goal?"goal":"major");
+      return goal;
+    }
+
+    function livePenaltyCurrentKicker(){
+      const shootout=liveMatchState?.shootout;
+      if(!shootout)return null;
+
+      const side=shootout.turn;
+      const results=side==="home"?shootout.homeResults:shootout.awayResults;
+      const shooters=side==="home"?shootout.homeShooters:shootout.awayShooters;
+
+      return shooters[results.length%Math.max(1,shooters.length)]||shooters[0]||null;
+    }
+
+    function finishLivePenaltyShootout(){
+      const state=liveMatchState,shootout=state?.shootout;
+      if(!state||!shootout)return;
+
+      clearTimeout(shootout.timer);
+      $("livePenaltyPanel").classList.add("hidden");
+
+      state.penaltyHomeGoals=shootout.homeScore;
+      state.penaltyAwayGoals=shootout.awayScore;
+      state.penaltyWinnerId=shootout.homeScore>shootout.awayScore?state.game.homeId:state.game.awayId;
+      state.winnerId=state.penaltyWinnerId;
+      state.decidedBy="penalties";
+
+      $("liveMatchPhase").textContent="SHOOTOUT OVER";
+      $("liveMatchPhase").classList.remove("penalties");
+
+      addLiveMatchFeed(
+        "PENS",
+        `🏆 ${teamName(state.penaltyWinnerId)} WIN ${shootout.homeScore}–${shootout.awayScore} ON PENALTIES!`,
+        "major"
+      );
+
+      setTimeout(()=>finishLiveMatchAnimation(),750);
+    }
+
+    function processNextLivePenalty(){
+      const state=liveMatchState,shootout=state?.shootout;
+      if(!state||!shootout||state.committed)return;
+
+      if(livePenaltyShootoutFinished(shootout)){
+        finishLivePenaltyShootout();
+        return;
+      }
+
+      const side=shootout.turn;
+      const kicker=livePenaltyCurrentKicker();
+      if(!kicker){
+        finishLivePenaltyShootout();
+        return;
+      }
+
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      const userId=isPlayerMode(career)?playerModeData(career)?.playerId:null;
+      const userSide=career?.controlledTeamId===(side==="home"?state.game.homeId:state.game.awayId);
+      const isUserKick=!!(state.playerCareer?.onPitch&&userSide&&kicker.id===userId);
+      const kickNumber=(side==="home"?shootout.homeResults.length:shootout.awayResults.length)+1;
+
+      $("livePenaltyTitle").textContent=isUserKick
+        ?`${kicker.name}: choose your penalty`
+        :`${kicker.name} steps up`;
+      $("livePenaltyCopy").textContent=isUserKick
+        ?`Kick ${kickNumber}. Pick your spot. Your Penalties attribute affects accuracy.`
+        :"The stadium holds its breath...";
+
+      if(isUserKick){
+        shootout.waitingForUser=true;
+        document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.disabled=false);
+        $("liveMatchFooterText").textContent="This penalty is YOURS. Choose where to shoot.";
+        return;
+      }
+
+      shootout.waitingForUser=false;
+      document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.disabled=true);
+
+      shootout.timer=setTimeout(()=>{
+        if(!liveMatchState?.shootout)return;
+        livePenaltyResolveKick(side,kicker,null);
+        shootout.turn=side==="home"?"away":"home";
+        processNextLivePenalty();
+      },620);
+    }
+
+    function livePenaltyChoose(zone){
+      const state=liveMatchState,shootout=state?.shootout;
+      if(!state||!shootout||!shootout.waitingForUser)return;
+
+      const kicker=livePenaltyCurrentKicker();
+      if(!kicker)return;
+
+      shootout.waitingForUser=false;
+      document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.disabled=true);
+
+      livePenaltyResolveKick(shootout.turn,kicker,zone);
+      shootout.turn=shootout.turn==="home"?"away":"home";
+
+      setTimeout(()=>processNextLivePenalty(),650);
+    }
+
+    function beginLivePenaltyShootout(){
+      const state=liveMatchState;
+      if(!state||state.committed)return;
+
+      clearInterval(liveMatchTimer);
+      liveMatchTimer=null;
+
+      state.decidedBy="penalties";
+      state.shootout={
+        homeScore:0,
+        awayScore:0,
+        homeResults:[],
+        awayResults:[],
+        homeShooters:livePenaltyShooters(state.game.homeId,state),
+        awayShooters:livePenaltyShooters(state.game.awayId,state),
+        turn:"home",
+        waitingForUser:false,
+        timer:null
+      };
+
+      $("liveMatchPhase").textContent="PENALTIES";
+      $("liveMatchPhase").classList.remove("extra-time");
+      $("liveMatchPhase").classList.add("penalties");
+      $("liveMatchClock").textContent="PENS";
+      $("livePenaltyPanel").classList.remove("hidden");
+      $("liveMatchFooterText").textContent="Five kicks each. Sudden death if needed.";
+
+      addLiveMatchFeed("120'","😰 STILL LEVEL — PENALTY SHOOTOUT!","major");
+
+      livePenaltyRenderDots();
+      setTimeout(()=>processNextLivePenalty(),650);
+    }
+
     function finishLiveMatchAnimation() {
       if (!liveMatchState || liveMatchState.committed) return;
+
       clearInterval(liveMatchTimer);
       liveMatchTimer = null;
 
-      const state = liveMatchState;
-      state.minute = 90;
-      $("liveMatchClock").textContent = "90'";
-      $("liveMatchProgress").style.width = "100%";
-      $("liveMatchPhase").textContent = "FULL TIME";
+      const state=liveMatchState;
+      const endMinute=state.wentExtraTime?120:90;
+      state.minute=endMinute;
+      state.matchMinutes=endMinute;
+
+      $("liveMatchClock").textContent=state.decidedBy==="penalties"?"PENS":`${endMinute}'`;
+      $("liveMatchProgress").style.width="100%";
+      $("liveMatchPhase").classList.remove("extra-time","penalties");
+      $("liveMatchPhase").textContent=
+        state.decidedBy==="penalties"
+          ?"FULL TIME · PENALTIES"
+          :state.wentExtraTime
+            ?"FULL TIME · AET"
+            :"FULL TIME";
+
       setLiveMatchScore(state.finalHomeGoals,state.finalAwayGoals);
-      addLiveMatchFeed("FT",`${teamName(state.game.homeId)} ${state.finalHomeGoals}–${state.finalAwayGoals} ${teamName(state.game.awayId)}`,"major");
+
+      const penaltyText=state.decidedBy==="penalties"
+        ?` · ${state.penaltyHomeGoals}–${state.penaltyAwayGoals} pens`
+        :"";
+
+      addLiveMatchFeed(
+        state.wentExtraTime?"AET":"FT",
+        `${teamName(state.game.homeId)} ${state.finalHomeGoals}–${state.finalAwayGoals} ${teamName(state.game.awayId)}${penaltyText}`,
+        "major"
+      );
+
       if(state.playerCareer){
         const pc=state.playerCareer;
-        if(pc.selection==="starter"&&pc.onPitch){
-          $("livePlayerStatusText").textContent="Full Match";
-          $("livePlayerStatusMinute").textContent="90 MIN";
+        if(pc.onPitch){
+          $("livePlayerStatusText").textContent=state.wentExtraTime?"Full Match · Extra Time":"Full Match";
+          $("livePlayerStatusMinute").textContent=`${endMinute} MIN`;
         }else if(pc.selection==="bench"&&!pc.subbedOnMinute){
           $("livePlayerStatusText").textContent="Unused Substitute";
           $("livePlayerStatusMinute").textContent="BENCH";
         }
       }
 
-      const forcedResults = {
-        [liveMatchResultKey(state.game)]: {
+      const winnerId=state.decidedBy==="penalties"
+        ?state.penaltyWinnerId
+        :state.finalHomeGoals>state.finalAwayGoals
+          ?state.game.homeId
+          :state.game.awayId;
+
+      const forcedResults={
+        [liveMatchResultKey(state.game)]:{
           homeGoals:state.finalHomeGoals,
           awayGoals:state.finalAwayGoals,
+          regulationHomeGoals:Number(state.regulationHomeGoals??state.finalHomeGoals),
+          regulationAwayGoals:Number(state.regulationAwayGoals??state.finalAwayGoals),
           scorerIds:state.scorerIds,
-          watchedLive:true
+          watchedLive:true,
+          wentExtraTime:!!state.wentExtraTime,
+          matchMinutes:endMinute,
+          decidedBy:state.decidedBy||"regulation",
+          penaltyHomeGoals:state.penaltyHomeGoals??null,
+          penaltyAwayGoals:state.penaltyAwayGoals??null,
+          penaltyWinnerId:state.penaltyWinnerId||null,
+          winnerId
         }
       };
 
@@ -24507,21 +25098,30 @@ body.player-calendar-advancing #playerNextMatchBtn{
         suppressEliminationNotice:true,
         deferWorldCupFinalization:true
       });
+
       if(isPlayerMode(currentCareerSave())){
         const playerCareerNow=currentCareerSave();
         const pmNow=playerModeData(playerCareerNow);
         const last=pmNow?.lastMatchStatus;
+
         if(pmNow?.suspension&&last&&pmNow.suspension.issuedDate===last.date){
           addLiveMatchFeed("FT",`🟥 DISCIPLINARY REPORT — ${pmNow.suspension.reason}. ${pmNow.suspension.detail||""}`,"major");
         }else if(last?.disciplineEvent?.type==="yellow"){
           addLiveMatchFeed("FT","🟨 DISCIPLINARY REPORT — Yellow card recorded.","major");
         }
+
         playerModeAdvanceBackgroundWorld(playerCareerNow,state.compId);
         saveData("");
       }
 
-      state.committed = true;
-      $("liveMatchFooterText").textContent = "The rest of the matchday has now been simulated.";
+      state.committed=true;
+      $("liveMatchFooterText").textContent=
+        state.decidedBy==="penalties"
+          ?`${teamName(winnerId)} survive the shootout.`
+          :state.wentExtraTime
+            ?`${teamName(winnerId)} win after extra time.`
+            :"The rest of the matchday has now been simulated.";
+
       $("liveMatchContinueBtn").classList.remove("hidden");
     }
 
@@ -24577,45 +25177,108 @@ body.player-calendar-advancing #playerNextMatchBtn{
     }
 
     function tickLiveMatch() {
-      const state = liveMatchState;
-      if (!state || state.committed) return;
+      const state=liveMatchState;
+      if(!state||state.committed||state.shootout)return;
 
       state.minute++;
-      const minute = state.minute;
-      $("liveMatchClock").textContent = `${Math.min(minute,90)}'`;
-      $("liveMatchProgress").style.width = `${Math.min(100,(minute/90)*100)}%`;
+      const minute=state.minute;
+      const matchLimit=state.wentExtraTime?120:90;
+
+      $("liveMatchClock").textContent=`${minute}'`;
+      $("liveMatchProgress").style.width=`${Math.min(100,(minute/matchLimit)*100)}%`;
 
       playerModeProcessLiveSubstitution(minute,state);
 
-      const goals = state.goalEvents.filter(event => event.minute === minute);
-      goals.forEach(event => {
-        if (event.side === "home") state.displayHomeGoals++;
+      const goals=state.goalEvents.filter(event=>event.minute===minute);
+      goals.forEach(event=>{
+        if(event.side==="home")state.displayHomeGoals++;
         else state.displayAwayGoals++;
+
         setLiveMatchScore(state.displayHomeGoals,state.displayAwayGoals);
-        const scorerTeamId = event.side === "home" ? state.game.homeId : state.game.awayId;
-        const scorerName = event.scorerId ? managerPlayerById(event.scorerId,currentCareerSave())?.name : null;
-        addLiveMatchFeed(`${minute}'`,`⚽ GOAL — ${scorerName?`${scorerName} · `:""}${teamName(scorerTeamId)}`,"goal");
+
+        const teamId=event.side==="home"?state.game.homeId:state.game.awayId;
+        const scorerName=event.scorerId
+          ?managerPlayerById(event.scorerId,currentCareerSave())?.name
+          :null;
+
+        addLiveMatchFeed(
+          `${minute}'`,
+          `⚽ GOAL — ${scorerName?`${scorerName} · `:""}${teamName(teamId)}`,
+          "goal"
+        );
       });
 
-      if (minute === 1) {
-        $("liveMatchPhase").textContent = "FIRST HALF";
+      if(minute===1){
+        $("liveMatchPhase").textContent="FIRST HALF";
         addLiveMatchFeed("1'","Kick off.","major");
-      } else if (minute === 45) {
-        $("liveMatchPhase").textContent = "HALF TIME";
+      }else if(minute===45){
+        $("liveMatchPhase").textContent="HALF TIME";
         addLiveMatchFeed("HT",`Half time: ${state.displayHomeGoals}–${state.displayAwayGoals}`,"major");
-      } else if (minute === 46) {
-        $("liveMatchPhase").textContent = "SECOND HALF";
+      }else if(minute===46){
+        $("liveMatchPhase").textContent="SECOND HALF";
         addLiveMatchFeed("46'","The second half is underway.","major");
-      } else if ([14,29,38,58,72,83].includes(minute) && !goals.length) {
-        addLiveMatchFeed(`${minute}'`,liveMatchCommentary(minute,state));
+      }else if(minute===91){
+        $("liveMatchPhase").textContent="EXTRA TIME · FIRST HALF";
+        $("liveMatchPhase").classList.add("extra-time");
+        addLiveMatchFeed("91'","Extra time is underway. One mistake can end everything.","major");
+      }else if(minute===105){
+        $("liveMatchPhase").textContent="EXTRA TIME · HALF TIME";
+        addLiveMatchFeed("105'",`Extra-time break: ${state.displayHomeGoals}–${state.displayAwayGoals}`,"major");
+      }else if(minute===106){
+        $("liveMatchPhase").textContent="EXTRA TIME · SECOND HALF";
+        addLiveMatchFeed("106'","Fifteen minutes remain before penalties.","major");
+      }else if([14,29,38,58,72,83,97,111,117].includes(minute)&&!goals.length){
+        addLiveMatchFeed(
+          `${minute}'`,
+          state.wentExtraTime
+            ?[
+              "The tension is brutal. One mistake could end the season.",
+              "Tired legs everywhere, but nobody wants penalties.",
+              "The crowd rises with every attack.",
+              "Both clubs are searching for one final opening."
+            ][minute%4]
+            :liveMatchCommentary(minute,state)
+        );
       }
 
       const canShowDecision=!state.playerCareer||state.playerCareer.onPitch;
-      if ((minute === 60 || minute === 78) && canShowDecision && !state.decisionPending && state.decisionCount < (minute===60?1:2)) {
+      if(
+        !state.wentExtraTime &&
+        (minute===60||minute===78) &&
+        canShowDecision &&
+        !state.decisionPending &&
+        state.decisionCount<(minute===60?1:2)
+      ){
         showLiveMatchDecision();
         if(state.decisionPending)return;
       }
-      if (minute >= 90) finishLiveMatchAnimation();
+
+      if(minute===90&&!state.wentExtraTime){
+        state.finalHomeGoals=state.displayHomeGoals;
+        state.finalAwayGoals=state.displayAwayGoals;
+        state.regulationHomeGoals=state.displayHomeGoals;
+        state.regulationAwayGoals=state.displayAwayGoals;
+
+        if(state.knockout&&state.displayHomeGoals===state.displayAwayGoals){
+          beginLiveExtraTime();
+        }else{
+          state.decidedBy="regulation";
+          finishLiveMatchAnimation();
+        }
+        return;
+      }
+
+      if(minute>=120&&state.wentExtraTime){
+        state.finalHomeGoals=state.displayHomeGoals;
+        state.finalAwayGoals=state.displayAwayGoals;
+
+        if(state.displayHomeGoals===state.displayAwayGoals){
+          beginLivePenaltyShootout();
+        }else{
+          state.decidedBy="extra-time";
+          finishLiveMatchAnimation();
+        }
+      }
     }
 
     function startLiveMatch(compId) {
@@ -24658,6 +25321,17 @@ body.player-calendar-advancing #playerNextMatchBtn{
         decisionCount:0, decisionPending:false,
         goalEvents:buildLiveGoalEvents(game,homeGoals,awayGoals,liveScorers),
         committed:false,
+        knockout,
+        regulationHomeGoals:homeGoals,
+        regulationAwayGoals:awayGoals,
+        wentExtraTime:false,
+        matchMinutes:90,
+        decidedBy:"regulation",
+        penaltyHomeGoals:null,
+        penaltyAwayGoals:null,
+        penaltyWinnerId:null,
+        winnerId:null,
+        shootout:null,
         competitionWasFinished:!!comp.finished,
         playerCareer:isPlayerMode(managerCareer)?{
           selection:playerModeData(managerCareer)?.matchSelection||playerModeData(managerCareer)?.matchPlan?.selection||"",
@@ -24691,6 +25365,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
       $("liveMatchFooterText").textContent = isPlayerMode(managerCareer) ? "Player Career Mode — your live status and substitution minute are tracked above." : "Only your club's match is being shown live.";
       $("liveMatchContinueBtn").classList.add("hidden");
       $("liveMatchDecision").classList.add("hidden");
+      $("livePenaltyPanel").classList.add("hidden");
+      $("liveMatchPhase").classList.remove("extra-time","penalties");
+      document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.disabled=false);
       setLiveMatchScore(0,0);
 
       $("liveMatchDialog").showModal();
@@ -25156,6 +25833,110 @@ body.player-calendar-advancing #playerNextMatchBtn{
       </section>`;
     }
 
+    function simulateExtraTimeGoals(homeId,awayId,comp=null){
+      const home=teamById(homeId),away=teamById(awayId);
+      if(!home||!away)return [0,0];
+
+      const stage=comp?.stages?.[comp.currentStageIndex]||"Knockout";
+      const neutral=!!comp?.isWorldCup||comp?.category==="world-cup"||stage==="Final";
+      const homePower=Number(home.strength||70)+(neutral?0:.5)+clamp(averageForm(homeId),-1,1);
+      const awayPower=Number(away.strength||70)+clamp(averageForm(awayId),-1,1);
+      const gap=homePower-awayPower;
+
+      return [
+        Math.min(3,poisson(clamp(.34+gap/70,.06,1.15))),
+        Math.min(3,poisson(clamp(.34-gap/70,.06,1.15)))
+      ];
+    }
+
+    function simulatePenaltyShootout(homeId,awayId,comp=null){
+      const homeWin=getMatchWinProbability(homeId,awayId,comp,comp?.stages?.[comp.currentStageIndex]||"Knockout");
+      const homeChance=clamp(.75+(homeWin-.5)*.10,.67,.85);
+      const awayChance=clamp(.75-(homeWin-.5)*.10,.67,.85);
+
+      let home=0,away=0;
+      const homeResults=[],awayResults=[];
+
+      const kick=side=>{
+        const goal=Math.random()<(side==="home"?homeChance:awayChance);
+        if(side==="home"){homeResults.push(goal);if(goal)home++}
+        else{awayResults.push(goal);if(goal)away++}
+      };
+
+      while(true){
+        if(homeResults.length===awayResults.length)kick("home");
+        else kick("away");
+
+        const hk=homeResults.length,ak=awayResults.length;
+
+        // During the first five, a shootout can end early if the trailing
+        // team can no longer catch up. In sudden death, BOTH teams must take
+        // the same number of kicks before the result can be decided.
+        if(hk<=5&&ak<=5){
+          const hr=Math.max(0,5-hk),ar=Math.max(0,5-ak);
+          if(home>away+ar)break;
+          if(away>home+hr)break;
+        }
+
+        if(hk>=5&&ak>=5&&hk===ak&&home!==away)break;
+
+        if(hk>=12&&ak>=12&&hk===ak&&home===away){
+          if(Math.random()<.5)home++;else away++;
+          break;
+        }
+      }
+
+      return {
+        home,
+        away,
+        homeResults,
+        awayResults,
+        winnerId:home>away?homeId:awayId
+      };
+    }
+
+    function resolveKnockoutTie(homeId,awayId,hg,ag,comp=null){
+      const result={
+        regulationHomeGoals:Number(hg||0),
+        regulationAwayGoals:Number(ag||0),
+        homeGoals:Number(hg||0),
+        awayGoals:Number(ag||0),
+        wentExtraTime:false,
+        matchMinutes:90,
+        decidedBy:"regulation",
+        penaltyHomeGoals:null,
+        penaltyAwayGoals:null,
+        penaltyWinnerId:null,
+        winnerId:null
+      };
+
+      if(result.homeGoals!==result.awayGoals){
+        result.winnerId=result.homeGoals>result.awayGoals?homeId:awayId;
+        return result;
+      }
+
+      result.wentExtraTime=true;
+      result.matchMinutes=120;
+      result.decidedBy="extra-time";
+
+      const [eth,eta]=simulateExtraTimeGoals(homeId,awayId,comp);
+      result.homeGoals+=eth;
+      result.awayGoals+=eta;
+
+      if(result.homeGoals!==result.awayGoals){
+        result.winnerId=result.homeGoals>result.awayGoals?homeId:awayId;
+        return result;
+      }
+
+      const pens=simulatePenaltyShootout(homeId,awayId,comp);
+      result.penaltyHomeGoals=pens.home;
+      result.penaltyAwayGoals=pens.away;
+      result.penaltyWinnerId=pens.winnerId;
+      result.winnerId=pens.winnerId;
+      result.decidedBy="penalties";
+      return result;
+    }
+
     function simulateScore(homeId, awayId, knockout=false, comp=null) {
       const home = teamById(homeId), away = teamById(awayId);
       if (!home || !away) return [0,0];
@@ -25165,7 +25946,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const category = comp?.category || "league";
       const neutral = !!comp?.isWorldCup || category === "world-cup" || (knockout && comp?.stages?.[comp.currentStageIndex] === "Final");
 
-      // League matches are the most consistent. Cups preserve slightly more upset potential.
       const variance =
         category === "league" ? 1.15 :
         ["champions-league","europa-league"].includes(category) ? 1.22 :
@@ -25177,7 +25957,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const awayPower = Number(away.strength || 0) + awayForm;
       const gap = homePower - awayPower;
 
-      // Ratings matter substantially more than before, while Poisson variance keeps upsets possible.
       const baseGoals = knockout ? 1.18 : 1.22;
       const attackSwing = gap / (category === "league" ? 22 : 20);
       const dominanceBonus = Math.max(0, Math.abs(gap) - 14) / 55;
@@ -25185,7 +25964,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
       let homeExpected = baseGoals + attackSwing + (gap > 0 ? dominanceBonus : 0);
       let awayExpected = baseGoals - attackSwing + (gap < 0 ? dominanceBonus : 0);
 
-      // A small random match-day swing, reduced in leagues and increased in cups.
       const swing = (Math.random() - .5) * variance;
       homeExpected += swing;
       awayExpected -= swing;
@@ -25193,16 +25971,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       homeExpected = clamp(homeExpected, 0.08, 5.4);
       awayExpected = clamp(awayExpected, 0.08, 5.4);
 
-      let hg = poisson(homeExpected);
-      let ag = poisson(awayExpected);
+      const hg = poisson(homeExpected);
+      const ag = poisson(awayExpected);
 
-      if (knockout && hg === ag) {
-        // Logistic tie-break probability makes large rating gaps meaningful.
-        const homeWinChance = 1 / (1 + Math.exp(-(gap) / 11));
-        if (Math.random() < homeWinChance) hg++;
-        else ag++;
-      }
-
+      // Knockout draws stay draws after 90. Extra time and penalties decide them.
       return [Math.min(hg,9), Math.min(ag,9)];
     }
 
@@ -25335,20 +26107,37 @@ body.player-calendar-advancing #playerNextMatchBtn{
       $("knockoutRevealDialog").scrollTop = 0;
 
       setTimeout(() => {
+        const resultWinner=g=>g.penaltyWinnerId||
+          (g.homeGoals>g.awayGoals?g.homeId:g.awayGoals>g.homeGoals?g.awayId:null);
+
+        const decisionText=g=>
+          g.decidedBy==="penalties"
+            ?`${g.penaltyHomeGoals}–${g.penaltyAwayGoals} on penalties`
+            :g.wentExtraTime
+              ?"After Extra Time"
+              :"Full Time";
+
         if (isFinal && afterRound.games[0]) {
           const result = afterRound.games[0];
-          const winnerId = result.homeGoals > result.awayGoals ? result.homeId : result.awayId;
+          const winnerId = resultWinner(result);
 
           $("knockoutRevealContent").innerHTML = `
             <div class="reveal-stage reveal-result">
               <div class="final-result-board">
-                <div class="reveal-title">Full Time</div>
+                <div class="reveal-title">${escapeHtml(decisionText(result))}</div>
                 <div class="final-result-matchup">
                   <div class="final-result-team ${winnerId === result.homeId ? "" : "loser"}">
                     ${teamLogo(teamById(result.homeId))}
                     <div class="final-result-team-name">${escapeHtml(teamName(result.homeId))}</div>
                   </div>
-                  <div class="final-result-score">${result.homeGoals}–${result.awayGoals}</div>
+                  <div>
+                    <div class="final-result-score">${result.homeGoals}–${result.awayGoals}</div>
+                    ${result.decidedBy==="penalties"
+                      ?`<div class="muted" style="text-align:center;margin-top:8px">${result.penaltyHomeGoals}–${result.penaltyAwayGoals} PENS</div>`
+                      :result.wentExtraTime
+                        ?`<div class="muted" style="text-align:center;margin-top:8px">AET</div>`
+                        :""}
+                  </div>
                   <div class="final-result-team ${winnerId === result.awayId ? "" : "loser"}">
                     ${teamLogo(teamById(result.awayId))}
                     <div class="final-result-team-name">${escapeHtml(teamName(result.awayId))}</div>
@@ -25369,18 +26158,25 @@ body.player-calendar-advancing #playerNextMatchBtn{
               <div style="width:100%">
                 <div class="reveal-title">${escapeHtml(afterRound.stage)} Complete</div>
                 <div class="history-match-list">
-                  ${afterRound.games.map(g=>`
-                    <div class="history-match">
-                      <div class="history-team right-side ${g.homeGoals<g.awayGoals?"eliminated":""}">
+                  ${afterRound.games.map(g=>{
+                    const winnerId=resultWinner(g);
+                    return `<div class="history-match">
+                      <div class="history-team right-side ${winnerId!==g.homeId?"eliminated":""}">
                         ${teamLogo(teamById(g.homeId))}
                         <span class="history-team-name">${escapeHtml(teamName(g.homeId))}</span>
                       </div>
-                      <div class="history-score">${g.homeGoals}–${g.awayGoals}</div>
-                      <div class="history-team ${g.awayGoals<g.homeGoals?"eliminated":""}">
+                      <div class="history-score">
+                        ${g.homeGoals}–${g.awayGoals}
+                        ${g.decidedBy==="penalties"
+                          ?`<small style="display:block">${g.penaltyHomeGoals}–${g.penaltyAwayGoals} pens</small>`
+                          :g.wentExtraTime?`<small style="display:block">AET</small>`:""}
+                      </div>
+                      <div class="history-team ${winnerId!==g.awayId?"eliminated":""}">
                         ${teamLogo(teamById(g.awayId))}
                         <span class="history-team-name">${escapeHtml(teamName(g.awayId))}</span>
                       </div>
-                    </div>`).join("")}
+                    </div>`;
+                  }).join("")}
                 </div>
                 <div class="reveal-actions">
                   <button type="button" class="btn success" id="finishRevealBtn">Continue</button>
@@ -25592,7 +26388,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const resultsBefore = comp.results.length;
 
       activeCompetitionId = compId;
-      if(isPlayerMode(currentCareerSave()))playerModePrepareForMatch(currentCareerSave(),comp,false);
+      if(isPlayerMode(currentCareerSave())){
+        const pc=currentCareerSave(),pm=playerModeData(pc);
+        if(!pm?.matchSelection&&!pm?.matchPlan)playerModePrepareForMatch(pc,comp,false);
+      }
       simulateMatchday(compId, true, options.forcedResults || null);
 
       const updated = currentWorld().competitions.find(c => c.id === compId);
@@ -25991,12 +26790,56 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
       round.forEach(game => {
         const forced = forcedResults?.[liveMatchResultKey(game)];
-        const [hg, ag] = forced
-          ? [Number(forced.homeGoals),Number(forced.awayGoals)]
-          : simulateScore(game.homeId, game.awayId, knockout, comp);
-        game.played = true;
-        game.homeGoals = hg;
-        game.awayGoals = ag;
+        const baseScore=forced
+          ?[Number(forced.homeGoals),Number(forced.awayGoals)]
+          :simulateScore(game.homeId,game.awayId,knockout,comp);
+
+        const resolution=knockout
+          ?(
+            forced
+              ?{
+                regulationHomeGoals:Number(forced.regulationHomeGoals??baseScore[0]),
+                regulationAwayGoals:Number(forced.regulationAwayGoals??baseScore[1]),
+                homeGoals:Number(baseScore[0]),
+                awayGoals:Number(baseScore[1]),
+                wentExtraTime:!!forced.wentExtraTime,
+                matchMinutes:Number(forced.matchMinutes||(forced.wentExtraTime?120:90)),
+                decidedBy:forced.decidedBy||(forced.penaltyWinnerId?"penalties":forced.wentExtraTime?"extra-time":"regulation"),
+                penaltyHomeGoals:forced.penaltyHomeGoals==null?null:Number(forced.penaltyHomeGoals),
+                penaltyAwayGoals:forced.penaltyAwayGoals==null?null:Number(forced.penaltyAwayGoals),
+                penaltyWinnerId:forced.penaltyWinnerId||null,
+                winnerId:forced.winnerId||forced.penaltyWinnerId||(baseScore[0]>baseScore[1]?game.homeId:baseScore[1]>baseScore[0]?game.awayId:null)
+              }
+              :resolveKnockoutTie(game.homeId,game.awayId,baseScore[0],baseScore[1],comp)
+          )
+          :{
+            homeGoals:Number(baseScore[0]),
+            awayGoals:Number(baseScore[1]),
+            regulationHomeGoals:Number(baseScore[0]),
+            regulationAwayGoals:Number(baseScore[1]),
+            wentExtraTime:false,
+            matchMinutes:90,
+            decidedBy:"regulation",
+            penaltyHomeGoals:null,
+            penaltyAwayGoals:null,
+            penaltyWinnerId:null,
+            winnerId:null
+          };
+
+        const hg=Number(resolution.homeGoals);
+        const ag=Number(resolution.awayGoals);
+
+        game.played=true;
+        game.homeGoals=hg;
+        game.awayGoals=ag;
+        game.regulationHomeGoals=Number(resolution.regulationHomeGoals??hg);
+        game.regulationAwayGoals=Number(resolution.regulationAwayGoals??ag);
+        game.wentExtraTime=!!resolution.wentExtraTime;
+        game.matchMinutes=Number(resolution.matchMinutes||90);
+        game.decidedBy=resolution.decidedBy||"regulation";
+        game.penaltyHomeGoals=resolution.penaltyHomeGoals;
+        game.penaltyAwayGoals=resolution.penaltyAwayGoals;
+        game.penaltyWinnerId=resolution.penaltyWinnerId||null;
         if (forced?.watchedLive) game.watchedLive = true;
         if (isManagerMode(currentCareerSave())) managerRecordMatchPlayerStats(comp,game,hg,ag,forced?.scorerIds || null);
         matchdayResult.games.push({...game});
@@ -26007,7 +26850,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
         const homeTeam = teamById(game.homeId);
         const awayTeam = teamById(game.awayId);
-        const winnerId = hg > ag ? game.homeId : ag > hg ? game.awayId : null;
+        const winnerId=knockout
+          ?(resolution.winnerId||resolution.penaltyWinnerId||null)
+          :(hg>ag?game.homeId:ag>hg?game.awayId:null);
         const loserId = winnerId === game.homeId ? game.awayId : winnerId === game.awayId ? game.homeId : null;
         if (winnerId && loserId) {
           const winnerTeam = teamById(winnerId);
@@ -26027,7 +26872,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         }
 
         if (knockout) {
-          winners.push(hg > ag ? game.homeId : game.awayId);
+          winners.push(winnerId);
         } else {
           updateTable(comp, game.homeId, game.awayId, hg, ag);
           if (stage === "Groups" && comp.groupTables) {
@@ -26154,10 +26999,26 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
     function getCompetitionFinalRanking(comp) {
       if (comp.championId && (comp.knockoutHistory || []).length) {
-        const lastRound=comp.knockoutHistory[comp.knockoutHistory.length-1]; const finalGame=lastRound?.games?.[0];
-        if(finalGame){const loserId=finalGame.homeGoals>finalGame.awayGoals?finalGame.awayId:finalGame.homeId;const others=[...new Set([...Object.keys(comp.table||{}),...comp.teamIds])].filter(id=>id!==comp.championId&&id!==loserId);return [comp.championId,loserId,...others];}
+        const lastRound=comp.knockoutHistory[comp.knockoutHistory.length-1];
+        const finalGame=lastRound?.games?.[0];
+
+        if(finalGame){
+          const winnerId=finalGame.penaltyWinnerId||
+            (finalGame.homeGoals>finalGame.awayGoals?finalGame.homeId:
+             finalGame.awayGoals>finalGame.homeGoals?finalGame.awayId:
+             comp.championId);
+
+          const loserId=winnerId===finalGame.homeId?finalGame.awayId:finalGame.homeId;
+          const others=[...new Set([...Object.keys(comp.table||{}),...comp.teamIds])]
+            .filter(id=>id!==comp.championId&&id!==loserId);
+
+          return [comp.championId,loserId,...others];
+        }
       }
-      const sorted=getSortedTable(comp).map(row=>row.teamId); if(comp.championId&&!sorted.includes(comp.championId))sorted.unshift(comp.championId); return sorted;
+
+      const sorted=getSortedTable(comp).map(row=>row.teamId);
+      if(comp.championId&&!sorted.includes(comp.championId))sorted.unshift(comp.championId);
+      return sorted;
     }
 
     function superLeagueSourceCompetition(world,superLeague,category,preferredId=""){
@@ -26357,7 +27218,13 @@ body.player-calendar-advancing #playerNextMatchBtn{
         championId: comp.championId, championName: champion?.name || "Unknown",
         runnerUpId, runnerUpName: runnerUp?.name || "Unknown", finalRanking,
         roundCount: (comp.results || []).length,
-        finalScore: finalGame ? `${finalGame.homeGoals}–${finalGame.awayGoals}` : "",
+        finalScore: finalGame
+          ?`${finalGame.homeGoals}–${finalGame.awayGoals}${
+            finalGame.decidedBy==="penalties"
+              ?` (${finalGame.penaltyHomeGoals}–${finalGame.penaltyAwayGoals} pens)`
+              :finalGame.wentExtraTime?" AET":""
+          }`
+          :"",
         timestamp: Date.now()
       });
       if (champion) {
@@ -28749,6 +29616,7 @@ function renderWorldCupQualification() {
 
     $("liveMatchContinueBtn").addEventListener("click",continueAfterLiveMatch);
     document.querySelectorAll("[data-live-decision]").forEach(button=>button.addEventListener("click",()=>applyLiveMatchDecision(button.dataset.liveDecision)));
+    document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.addEventListener("click",()=>livePenaltyChoose(button.dataset.penaltyZone)));
     $("liveMatchDialog").addEventListener("cancel",event => {
       if (liveMatchState) event.preventDefault();
     });
