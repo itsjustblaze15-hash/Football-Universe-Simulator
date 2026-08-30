@@ -19999,7 +19999,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         </div>`;
     }
 
-    function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null){
+    function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null,forcedGoalEvents=null){
       const career=currentCareerSave();
       if(!isManagerMode(career))return;
       const compBook=managerCompetitionStatBook(career,comp);
@@ -20037,11 +20037,15 @@ body.player-calendar-advancing #playerNextMatchBtn{
           totals[p.id].appearances++;
         });
 
-        const scorerIds=forcedScorers?.[sideIndex===0?'home':'away']||managerScorerIds(teamId,goals,career);
+        const sideKey=sideIndex===0?"home":"away";
+        const scorerIds=forcedScorers?.[sideKey]||managerScorerIds(teamId,goals,career);
+        const sideGoalEvents=(forcedGoalEvents||[])
+          .filter(event=>event.side===sideKey)
+          .sort((a,b)=>Number(a.minute||0)-Number(b.minute||0));
         const perGameGoals={};
         const perGameAssists={};
 
-        scorerIds.filter(Boolean).forEach(id=>{
+        scorerIds.filter(Boolean).forEach((id,goalIndex)=>{
           const scorer=managerPlayerById(id,career);
           if(!scorer)return;
 
@@ -20065,7 +20069,24 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
           // Most goals in modern football are assisted, but not every goal is.
           if(Math.random()<.84){
-            const assister=managerPickAssister(teamId,id,career);
+            let assister=managerPickAssister(teamId,id,career);
+
+            // For a watched Player Career match we know the actual goal minute.
+            // Do not award the controlled player an assist if they were already
+            // subbed off or had not entered the match yet.
+            const goalMinute=Number(sideGoalEvents[goalIndex]?.minute||0);
+            const userId=isPlayerMode(career)?playerModeData(career)?.playerId:null;
+
+            if(
+              assister &&
+              userId &&
+              assister.id===userId &&
+              goalMinute>0 &&
+              !livePlayerCareerOnPitchAtMinute(career,goalMinute)
+            ){
+              assister=managerPickAssisterExcluding(teamId,id,userId,career);
+            }
+
             if(assister){
               assister.assistsSeason=(assister.assistsSeason||0)+1;
               assister.assistsCareer=(assister.assistsCareer||0)+1;
@@ -24670,6 +24691,16 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(pc.onPitch&&!pc.subbedOffMinute&&Number(pc.subOffMinute||0)===minute){
         pc.onPitch=false;pc.subbedOffMinute=minute;
         if(pm?.matchPlan)pm.matchPlan.subOffMinute=minute;
+
+        // Scorers were originally generated before kickoff. Once you leave
+        // the pitch, strip your ID from every future goal event.
+        const userId=pm?.playerId;
+        (state.goalEvents||[])
+          .filter(event=>Number(event.minute||0)>=Number(minute||0)&&event.scorerId===userId)
+          .forEach(event=>liveResolveGoalScorer(event,state,event.minute));
+
+        liveRebuildActualScorerIds(state);
+
         addLiveMatchFeed(`${minute}'`,"🔁 SUB OFF — Your match is finished.","major");
         updateLivePlayerStatus(state);
       }
@@ -25073,6 +25104,18 @@ body.player-calendar-advancing #playerNextMatchBtn{
           ?state.game.homeId
           :state.game.awayId;
 
+      // Use the scorers that actually remained eligible when each goal
+      // occurred, not the pre-kickoff scorer lottery.
+      liveRebuildActualScorerIds(state);
+
+      const forcedGoalEvents=(state.goalEvents||[])
+        .filter(event=>event.type==="goal"&&Number(event.minute||0)<=Number(state.matchMinutes||90))
+        .map(event=>({
+          minute:Number(event.minute||0),
+          side:event.side,
+          scorerId:event.scorerId||null
+        }));
+
       const forcedResults={
         [liveMatchResultKey(state.game)]:{
           homeGoals:state.finalHomeGoals,
@@ -25080,6 +25123,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           regulationHomeGoals:Number(state.regulationHomeGoals??state.finalHomeGoals),
           regulationAwayGoals:Number(state.regulationAwayGoals??state.finalAwayGoals),
           scorerIds:state.scorerIds,
+          goalEvents:forcedGoalEvents,
           watchedLive:true,
           wentExtraTime:!!state.wentExtraTime,
           matchMinutes:endMinute,
@@ -25176,6 +25220,117 @@ body.player-calendar-advancing #playerNextMatchBtn{
       liveMatchTimer=setInterval(tickLiveMatch,180);
     }
 
+    function livePickScorerExcluding(teamId,excludedId,career=currentCareerSave()){
+      const squad=managerSquad(teamId,career);
+      const starters=squad.filter(player=>player.isStarter);
+      const pool=(starters.length?starters:squad).filter(player=>player.id!==excludedId);
+      if(!pool.length)return null;
+
+      const weight=player=>
+        ({ST:6,RW:4.2,LW:4.2,CAM:3.2,CM:1.8,RB:.7,LB:.7,CB:.45,GK:.03}[player.position]||1)*
+        (.8+Number(player.overall||70)/100);
+
+      const total=pool.reduce((sum,player)=>sum+weight(player),0);
+      let roll=Math.random()*Math.max(.01,total);
+
+      for(const player of pool){
+        roll-=weight(player);
+        if(roll<=0)return player;
+      }
+
+      return pool[pool.length-1];
+    }
+
+    function livePlayerCareerOnPitchAtMinute(career,minute){
+      if(!isPlayerMode(career))return true;
+
+      const pm=playerModeData(career);
+      if(!pm)return false;
+
+      const plan=pm.matchPlan||{};
+      const selection=pm.matchSelection||plan.selection||"";
+
+      if(selection==="starter"){
+        const off=Number(pm.requestedSubMinute||plan.subOffMinute||0);
+        return !off||Number(minute)<off;
+      }
+
+      if(selection==="bench"){
+        const on=Number(plan.subOnMinute||0);
+        const off=Number(pm.requestedSubMinute||plan.subOffMinute||0);
+        if(!on||Number(minute)<on)return false;
+        return !off||Number(minute)<off;
+      }
+
+      return false;
+    }
+
+    function liveResolveGoalScorer(event,state,minute){
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      if(!career||!isPlayerMode(career)||!event)return event?.scorerId||null;
+
+      const pm=playerModeData(career);
+      const userId=pm?.playerId;
+      if(!userId||event.scorerId!==userId)return event.scorerId||null;
+
+      // playerModeProcessLiveSubstitution runs before goal events at a minute,
+      // so onPitch is the authoritative live status here.
+      if(state?.playerCareer?.onPitch)return event.scorerId;
+
+      const teamId=event.side==="home"?state.game.homeId:state.game.awayId;
+      const replacement=livePickScorerExcluding(teamId,userId,career);
+
+      event.originalScorerId=userId;
+      event.scorerId=replacement?.id||null;
+      event.scorerReassigned=true;
+
+      return event.scorerId;
+    }
+
+    function liveRebuildActualScorerIds(state=liveMatchState){
+      if(!state)return {home:[],away:[]};
+
+      const limit=Number(state.matchMinutes||state.minute||90);
+      const occurred=(state.goalEvents||[])
+        .filter(event=>event.type==="goal"&&Number(event.minute||0)<=limit);
+
+      state.scorerIds={
+        home:occurred
+          .filter(event=>event.side==="home")
+          .map(event=>event.scorerId)
+          .filter(Boolean),
+        away:occurred
+          .filter(event=>event.side==="away")
+          .map(event=>event.scorerId)
+          .filter(Boolean)
+      };
+
+      return state.scorerIds;
+    }
+
+    function managerPickAssisterExcluding(teamId,scorerId,excludedId,career=currentCareerSave()){
+      const squad=managerSquad(teamId,career);
+      const starters=squad.filter(player=>player.isStarter);
+      const pool=(starters.length?starters:squad)
+        .filter(player=>player.id!==scorerId&&player.id!==excludedId);
+
+      if(!pool.length)return null;
+
+      const weight=player=>
+        ({CAM:6,RW:5,LW:5,CM:4,ST:2.8,RB:1.4,LB:1.4,CB:.65,GK:.08}[player.position]||1)*
+        (.75+Number(player.overall||70)/105);
+
+      const total=pool.reduce((sum,player)=>sum+weight(player),0);
+      let roll=Math.random()*Math.max(.01,total);
+
+      for(const player of pool){
+        roll-=weight(player);
+        if(roll<=0)return player;
+      }
+
+      return pool[pool.length-1];
+    }
+
     function tickLiveMatch() {
       const state=liveMatchState;
       if(!state||state.committed||state.shootout)return;
@@ -25191,6 +25346,10 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
       const goals=state.goalEvents.filter(event=>event.minute===minute);
       goals.forEach(event=>{
+        // A scorer was selected before kickoff. Re-check that the controlled
+        // Player Career footballer is still physically on the pitch now.
+        liveResolveGoalScorer(event,state,minute);
+
         if(event.side==="home")state.displayHomeGoals++;
         else state.displayAwayGoals++;
 
@@ -26841,7 +27000,14 @@ body.player-calendar-advancing #playerNextMatchBtn{
         game.penaltyAwayGoals=resolution.penaltyAwayGoals;
         game.penaltyWinnerId=resolution.penaltyWinnerId||null;
         if (forced?.watchedLive) game.watchedLive = true;
-        if (isManagerMode(currentCareerSave())) managerRecordMatchPlayerStats(comp,game,hg,ag,forced?.scorerIds || null);
+        if (isManagerMode(currentCareerSave())) managerRecordMatchPlayerStats(
+          comp,
+          game,
+          hg,
+          ag,
+          forced?.scorerIds||null,
+          forced?.goalEvents||null
+        );
         matchdayResult.games.push({...game});
         recordRivalryMatch(comp, { ...game, homeGoals:hg, awayGoals:ag }, stage);
         if (currentGameMode === "club-career") {
