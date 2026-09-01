@@ -12325,7 +12325,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         transferInterest:[],
         transferOffers:[],
         pendingOffer:null,
-        transferSystemVersion:"v61.20-fifa23",
+        transferSystemVersion:"v61.23-market-balance",
         transferRequestType:"none",
         transferRequestStatus:"none",
         transferRequestDate:"",
@@ -12429,7 +12429,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.agentStatus=pm.agentStatus||"Your agent is following your current career instruction.";
       pm.playingTimePromiseMatches=Number(pm.playingTimePromiseMatches||0);
       pm.lastAgentCheckDate=pm.lastAgentCheckDate||"";
-      if(pm.transferSystemVersion!=="v61.20-fifa23"){
+      if(pm.transferSystemVersion!=="v61.23-market-balance"){
         pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];
         pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];
 
@@ -12473,7 +12473,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
           pm.agentIntent="Open to offers";
         }
 
-        pm.transferSystemVersion="v61.20-fifa23";
+        pm.transferSystemVersion="v61.23-market-balance";
+        pm.lastIncomingOfferCycle="";
+        if(pm.transferRequestStatus==="approved"){
+          playerModeRefreshTransferInterest(career,true);
+        }
         pm.agentStatus=pm.transferOffers.length
           ?"Your existing offers were preserved. The transfer market now works through incoming club offers."
           :pm.transferRequestStatus==="approved"
@@ -13687,91 +13691,135 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const budget=Number(targetFin?.budget||0);
       const affordable=!targetFin||budget>=Math.max(expectedValue*.82,12_000_000);
 
-      // Base interest is driven by whether the player is good enough for the
-      // club while still having a sensible role there.
+      // A club can realistically want a player who is a few OVR below its
+      // team rating. The old formula punished that gap too heavily and caused
+      // 80 OVR players to receive almost nothing except bottom-club offers.
       const qualityGap=playerOvr-targetOvr;
-      let score=54 + qualityGap*3.1;
+      let score=62;
 
-      // Recent form and actual production now matter.
-      if(form.apps>=5){
-        score+=(form.recentAvg-6.5)*6.2;
-        score+=Math.min(7,form.contributions*.65);
-      }else if(playerAge>23){
-        score-=5;
+      if(qualityGap>=0){
+        score+=Math.min(20,qualityGap*2.15);
+      }else{
+        // Being 1-5 OVR below the club is still a very normal Starter/Rotation
+        // recruitment profile.
+        score+=Math.max(-18,qualityGap*1.35);
       }
 
-      // Reputation matters, but it no longer overwhelms football performance.
-      score+=(playerRep-targetRep)*.30;
+      // 80+ OVR is established first-team quality. Give that status some
+      // independent market weight so low reputation cannot erase the OVR.
+      if(playerOvr>=85)score+=7;
+      else if(playerOvr>=82)score+=5;
+      else if(playerOvr>=80)score+=4;
+      else if(playerOvr>=77)score+=2;
 
-      // Young elite-potential players can attract bigger clubs before they are
-      // finished products, but a 68 OVR teenager still will not get Real Madrid.
+      // Recent form and actual production matter.
+      if(form.apps>=5){
+        score+=(form.recentAvg-6.5)*5.5;
+        score+=Math.min(8,form.contributions*.7);
+      }else if(playerAge>23){
+        score-=3;
+      }
+
+      // Reputation is a modifier, not a hidden hard requirement.
+      score+=clamp((playerRep-targetRep)*.18,-8,8);
+
       if(playerAge<=21&&potential>=88)score+=6;
       else if(playerAge<=23&&potential>=85)score+=3;
 
-      // Role fit. Clubs are less likely to spend heavily on someone projected
-      // to sit at the bottom of the squad.
-      if(role==="Important Player")score+=9;
-      else if(role==="Starter")score+=7;
-      else if(role==="Rotation")score+=1;
-      else if(role==="Prospect")score+=playerAge<=21?1:-8;
-      else score-=14;
+      // Projected role.
+      if(role==="Important Player")score+=8;
+      else if(role==="Starter")score+=8;
+      else if(role==="Rotation")score+=5;
+      else if(role==="Prospect")score+=playerAge<=21?2:-6;
+      else score-=12;
 
-      // Contract situation makes a deal easier or harder.
+      // Contract situation.
       if(contractYears<=1)score+=6;
-      else if(contractYears>=4)score-=4;
+      else if(contractYears>=4)score-=3;
 
       // Financial realism.
-      if(!affordable)score-=30;
-      else if(targetFin&&budget<expectedValue*1.15)score-=6;
+      if(!affordable)score-=28;
+      else if(targetFin&&budget<expectedValue*1.15)score-=4;
 
-      // Club trajectory and European football.
       const targetEurope=managerClubEuropeanStatus(career,team.id);
-      if(targetEurope==="champions")score+=3;
       const currentEurope=current?managerClubEuropeanStatus(career,current.id):"none";
 
-      // Agent instruction.
-      if(pm.agentIntent==="Find a bigger club"){
-        const reputationStep=targetRep-currentRep;
-        if(reputationStep>=5&&targetOvr>=currentOvr+1)score+=10;
-        else if(targetOvr<=currentOvr&&targetRep<=currentRep)score-=28;
-        if(targetOvr-currentOvr>=10)score-=8;
-      }else if(pm.agentIntent==="I need more playing time"){
-        if(["Important Player","Starter"].includes(role))score+=13;
-        else if(role==="Rotation")score+=2;
-        else score-=22;
-      }else if(pm.agentIntent==="Try another league"){
-        if(differentLeague)score+=11;
-        else score-=34;
-      }else if(pm.agentIntent==="Stay and develop"){
-        score-=60;
+      if(targetEurope==="champions")score+=3;
+      else if(targetEurope==="europa")score+=1;
+
+      // Current transfer request status. Once the player has officially asked
+      // to leave, clubs do not need the old career-direction filters.
+      if(pm.transferRequestStatus!=="approved"){
+        if(pm.agentIntent==="Find a bigger club"){
+          const reputationStep=targetRep-currentRep;
+          if(reputationStep>=5&&targetOvr>=currentOvr+1)score+=10;
+          else if(targetOvr<=currentOvr&&targetRep<=currentRep)score-=24;
+          if(targetOvr-currentOvr>=10)score-=7;
+        }else if(pm.agentIntent==="I need more playing time"){
+          if(["Important Player","Starter"].includes(role))score+=12;
+          else if(role==="Rotation")score+=3;
+          else score-=18;
+        }else if(pm.agentIntent==="Try another league"){
+          if(differentLeague)score+=10;
+          else score-=28;
+        }else if(pm.agentIntent==="Stay and develop"){
+          score-=55;
+        }
       }
 
-      // Hard realism gates for major clubs.
+      // Elite-club realism. An 80 OVR player can now attract strong clubs.
+      // Absolute superclubs remain selective unless form/reputation also back
+      // the move up.
       if(targetRep>=82){
-        if(playerOvr<76&&!(playerAge<=20&&potential>=91))score=Math.min(score,22);
-        if(playerOvr<80&&form.apps>=8&&form.recentAvg<7.2)score=Math.min(score,38);
-        if(playerRep<48&&playerOvr<82)score=Math.min(score,43);
-      }
-      if(targetRep>=90&&playerOvr<80)score=Math.min(score,25);
-
-      // A star at an elite club rarely moves sideways unless unhappy or asking
-      // for a different league.
-      if(currentRep>=78&&targetRep<currentRep-8&&pm.agentIntent!=="I need more playing time"){
-        score-=18;
+        if(playerOvr<74&&!(playerAge<=20&&potential>=91)){
+          score=Math.min(score,24);
+        }else if(playerOvr<77&&form.apps>=8&&form.recentAvg<7.3){
+          score=Math.min(score,40);
+        }else if(playerOvr<79&&playerRep<40){
+          score=Math.min(score,50);
+        }
       }
 
-      // Stable club-specific noise avoids identical interest every refresh.
+      if(targetRep>=92){
+        if(playerOvr<78){
+          score=Math.min(score,30);
+        }else if(playerOvr<82){
+          const eliteForm=form.apps>=6&&form.recentAvg>=7.8;
+          const eliteRep=playerRep>=58;
+          score=Math.min(score,(eliteForm||eliteRep)?72:61);
+        }
+      }
+
+      // A star at a major club rarely moves far downward unless the player is
+      // explicitly asking to leave for minutes.
+      if(
+        currentRep>=78 &&
+        targetRep<currentRep-10 &&
+        pm.transferRequestStatus!=="approved" &&
+        pm.agentIntent!=="I need more playing time"
+      ){
+        score-=14;
+      }
+
+      // Stable club-specific noise keeps the market from being identical.
       score+=(playerModeStableClubNoise(team.id,career.worldSeason||1)-.5)*5;
 
       score=clamp(Math.round(score),0,96);
 
       let reason="";
-      if(!affordable)reason="Budget is currently too tight for a realistic bid.";
-      else if(targetRep>=82&&playerOvr<76)reason="The club sees you as a future prospect, not a first-team signing yet.";
-      else if(["Important Player","Starter"].includes(role)&&form.label==="Strong")reason="Your form and projected playing role fit their recruitment plan.";
-      else if(["Important Player","Starter"].includes(role))reason="You project to have a genuine first-team role.";
-      else if(role==="Rotation")reason="They are monitoring you as a rotation option.";
-      else reason="They like the profile, but your pathway to minutes is not clear.";
+      if(!affordable){
+        reason="Budget is currently too tight for a realistic bid.";
+      }else if(targetRep>=92&&playerOvr<82&&score<62){
+        reason="They like you, but want stronger elite-level form or reputation before making a bid.";
+      }else if(["Important Player","Starter"].includes(role)&&form.label==="Strong"){
+        reason="Your form and projected first-team role make you a strong target.";
+      }else if(["Important Player","Starter"].includes(role)){
+        reason="You project to have a genuine first-team role.";
+      }else if(role==="Rotation"){
+        reason="They see you as a realistic rotation player who can compete for a starting place.";
+      }else{
+        reason="They like your profile, but your pathway to minutes is less certain.";
+      }
 
       return {
         score,
@@ -14271,7 +14319,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           return Number(teamB?.strength||0)-Number(teamA?.strength||0) ||
             String(teamA?.name||"").localeCompare(String(teamB?.name||""));
         })
-        .slice(0,10);
+        .slice(0,20);
 
       const serious=pm.transferInterest.filter(r=>Number(r.interest||0)>=74).length;
       const formal=(pm.transferOffers||[]).length;
@@ -14499,7 +14547,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         !["rejected","withdrawn","completed"].includes(offer.status)
       );
 
-      const room=Math.max(0,4-openOffers.length);
+      const room=Math.max(0,5-openOffers.length);
       if(room<=0)return 0;
 
       const existingClubs=new Set(openOffers.map(offer=>offer.clubId));
@@ -14512,16 +14560,39 @@ body.player-calendar-advancing #playerNextMatchBtn{
           !existingClubs.has(row.clubId) &&
           Number(row.interest||0)>=threshold
         )
-        .map(row=>({
-          ...row,
-          club:managerTeam(row.clubId,career)
-        }))
-        .filter(row=>row.club)
+        .map(row=>{
+          const club=managerTeam(row.clubId,career);
+          if(!club)return null;
+
+          const strength=Number(club.strength||70);
+          const playerOvr=Number(player.overall||0);
+          const repStep=Number(row.targetRep||0)-Number(row.currentRep||0);
+
+          // Prioritize realistic career steps. This prevents a good player's
+          // incoming offers from being filled entirely by bottom clubs simply
+          // because those clubs have the highest raw interest score.
+          let offerPriority=Number(row.interest||0);
+
+          if(strength>=playerOvr-3&&strength<=playerOvr+5)offerPriority+=18;
+          else if(strength>=playerOvr-5&&strength<=playerOvr+7)offerPriority+=11;
+          else if(strength<playerOvr-7)offerPriority-=10;
+
+          if(repStep>=8)offerPriority+=9;
+          else if(repStep>=3)offerPriority+=5;
+
+          if(row.targetEurope==="champions")offerPriority+=5;
+          else if(row.targetEurope==="europa")offerPriority+=2;
+
+          if(playerOvr>=80&&strength>=78)offerPriority+=5;
+
+          return {...row,club,offerPriority};
+        })
+        .filter(Boolean)
         .sort((a,b)=>
-          Number(b.interest||0)-Number(a.interest||0) ||
-          Number(b.club?.strength||0)-Number(a.club?.strength||0)
+          Number(b.offerPriority||0)-Number(a.offerPriority||0) ||
+          Number(b.interest||0)-Number(a.interest||0)
         )
-        .slice(0,8);
+        .slice(0,12);
 
       if(requestType==="loan"&&requestActive){
         candidates=candidates.filter(row=>
@@ -14536,9 +14607,15 @@ body.player-calendar-advancing #playerNextMatchBtn{
       for(const row of candidates){
         if(created>=room)break;
 
+        const stepBonus=
+          Number(player.overall||0)>=80 &&
+          Number(row.club?.strength||0)>=Number(player.overall||0)-3
+            ?.10
+            :0;
+
         const chance=requestActive
-          ?clamp(.34+(Number(row.interest||0)-threshold)*.018+(force?.18:0),.34,.92)
-          :clamp(.12+(Number(row.interest||0)-82)*.015,.12,.42);
+          ?clamp(.38+(Number(row.interest||0)-threshold)*.017+(force?.16:0)+stepBonus,.38,.94)
+          :clamp(.12+(Number(row.interest||0)-82)*.015+stepBonus*.45,.12,.46);
 
         if(Math.random()>chance)continue;
 
