@@ -12325,7 +12325,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         transferInterest:[],
         transferOffers:[],
         pendingOffer:null,
-        transferSystemVersion:"v61.23-market-balance",
+        transferSystemVersion:"v61.24-team-rating-fix",
         transferRequestType:"none",
         transferRequestStatus:"none",
         transferRequestDate:"",
@@ -12429,7 +12429,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.agentStatus=pm.agentStatus||"Your agent is following your current career instruction.";
       pm.playingTimePromiseMatches=Number(pm.playingTimePromiseMatches||0);
       pm.lastAgentCheckDate=pm.lastAgentCheckDate||"";
-      if(pm.transferSystemVersion!=="v61.23-market-balance"){
+      if(pm.transferSystemVersion!=="v61.24-team-rating-fix"){
         pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];
         pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];
 
@@ -12473,7 +12473,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           pm.agentIntent="Open to offers";
         }
 
-        pm.transferSystemVersion="v61.23-market-balance";
+        pm.transferSystemVersion="v61.24-team-rating-fix";
         pm.lastIncomingOfferCycle="";
         if(pm.transferRequestStatus==="approved"){
           playerModeRefreshTransferInterest(career,true);
@@ -14830,6 +14830,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const pm=playerModeData(career),player=playerModePlayer(career),from=playerModeClub(career);
       if(!pm||!player||!toClub)return false;
 
+      const toStrengthBefore=Number(toClub.strength||70);
       const fee=Number(offer.fee||0);
 
       if(from){
@@ -14869,7 +14870,25 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(!toClub.managerSquad.some(p=>p.id===player.id))toClub.managerSquad.push(player);
 
       player.clubId=toClub.id;
-      player.isStarter=false;
+
+      const existingStarters=(toClub.managerSquad||[])
+        .filter(p=>p.id!==player.id&&p.isStarter)
+        .sort((a,b)=>Number(a.overall||0)-Number(b.overall||0));
+
+      const lowestStarter=existingStarters[0]||null;
+      const shouldStart=
+        existingStarters.length<11 ||
+        (
+          lowestStarter &&
+          Number(player.overall||0)>=Number(lowestStarter.overall||0)
+        );
+
+      player.isStarter=!!shouldStart;
+
+      if(shouldStart&&existingStarters.length>=11&&lowestStarter){
+        lowestStarter.isStarter=false;
+      }
+
       player.contractYears=offer.loan
         ?Math.max(1,Number(player.contractYears||1))
         :Number(offer.contractYears||4);
@@ -14886,6 +14905,15 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
       managerEnsureSquadDepth(career,toClub,MANAGER_EXACT_SQUAD_SIZE);
       managerRecalculateTeam(toClub);
+
+      // Signing the controlled player must never make the destination club
+      // worse. If the player improves the XI, the calibrated squad system can
+      // raise the rating; otherwise the club keeps its pre-transfer rating.
+      if(Number(toClub.strength||0)<toStrengthBefore){
+        toClub.strength=toStrengthBefore;
+        toClub.lastStrengthChange=0;
+      }
+
       career.controlledTeamId=toClub.id;
 
       pm.managerTrust=48;
@@ -16772,10 +16800,45 @@ body.player-calendar-advancing #playerNextMatchBtn{
     function managerInitialBudget(team){return Math.round(clamp(70_000_000+(Number(team.strength||70)-55)*11_500_000,70_000_000,620_000_000)/5_000_000)*5_000_000}
     function managerRecalculateTeam(team){
       if(!team?.managerSquad?.length)return;
-      let starters=team.managerSquad.filter(p=>p.isStarter).sort((a,b)=>b.overall-a.overall);
-      if(starters.length<11){const fill=team.managerSquad.filter(p=>!starters.includes(p)).sort((a,b)=>b.overall-a.overall).slice(0,11-starters.length);fill.forEach(p=>p.isStarter=true);starters=team.managerSquad.filter(p=>p.isStarter).sort((a,b)=>b.overall-a.overall)}
-      if(starters.length>11){starters.slice(11).forEach(p=>p.isStarter=false);starters=starters.slice(0,11)}
-      const old=Number(team.strength||70);team.strength=clamp(Math.round(starters.reduce((s,p)=>s+Number(p.overall||0),0)/Math.max(1,starters.length)),50,96);team.lastStrengthChange=team.strength-old;
+
+      let starters=team.managerSquad
+        .filter(p=>p.isStarter)
+        .sort((a,b)=>b.overall-a.overall);
+
+      if(starters.length<11){
+        const fill=team.managerSquad
+          .filter(p=>!starters.includes(p))
+          .sort((a,b)=>b.overall-a.overall)
+          .slice(0,11-starters.length);
+        fill.forEach(p=>p.isStarter=true);
+        starters=team.managerSquad
+          .filter(p=>p.isStarter)
+          .sort((a,b)=>b.overall-a.overall);
+      }
+
+      if(starters.length>11){
+        starters.slice(11).forEach(p=>p.isStarter=false);
+        starters=starters.slice(0,11);
+      }
+
+      const old=Number(team.strength||70);
+      const rawSquadOverall=starters.reduce(
+        (sum,p)=>sum+Number(p.overall||0),0
+      )/Math.max(1,starters.length);
+
+      // Built-in squad player OVRs and the club's stored team rating use
+      // different scales. Calibrate them the first time instead of replacing
+      // an 84-rated club with a raw 78 starter average.
+      if(!Number.isFinite(Number(team.managerSquadStrengthOffset))){
+        team.managerSquadStrengthOffset=old-rawSquadOverall;
+      }
+
+      const calibrated=Math.round(
+        rawSquadOverall+Number(team.managerSquadStrengthOffset||0)
+      );
+
+      team.strength=clamp(calibrated,50,96);
+      team.lastStrengthChange=team.strength-old;
     }
     function managerRecalculateAll(career=currentCareerSave()){if(!isManagerMode(career))return;(career.teams||[]).forEach(managerRecalculateTeam)}
     function managerAddLedger(career,teamId,amount,text,type='general'){
@@ -28869,7 +28932,12 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
 
     function evolveWorldTeamStrengths(world) {
-      if (isManagerMode(world)) { managerRecalculateAll(world); return; }
+      // Player Career stores Manager systems internally, but its club ratings
+      // should evolve from football results, not be overwritten by squad OVR.
+      if (isManagerMode(world) && !isPlayerMode(world)) {
+        managerRecalculateAll(world);
+        return;
+      }
       const season = Number(world.worldSeason || 1);
       const finished = (world.competitions || []).filter(comp =>
         !isWorldCupCompetition(comp) &&
