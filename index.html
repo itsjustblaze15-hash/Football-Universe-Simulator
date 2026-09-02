@@ -6917,6 +6917,44 @@ body.player-mode #tab-manager-player-records{
   }
 }
 
+
+/* V62.8 — Trophy interviews */
+.player-interview-question{
+  margin:12px 0;
+  padding:14px 15px;
+  border-radius:14px;
+  border:1px solid rgba(96,165,250,.20);
+  background:rgba(59,130,246,.055);
+  font-size:16px;
+  font-weight:900;
+  line-height:1.45;
+}
+.player-interview-answers{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+}
+.player-interview-answers .btn{
+  width:100%;
+  justify-content:flex-start;
+  text-align:left;
+  white-space:normal;
+  line-height:1.35;
+}
+.player-calendar-interview{
+  margin-top:5px;
+  border-color:rgba(168,85,247,.30)!important;
+  background:rgba(126,34,206,.10)!important;
+  color:#e9d5ff;
+}
+.player-calendar-interview strong,
+.player-calendar-interview span{display:block}
+.player-calendar-interview span{
+  margin-top:2px;
+  font-size:9px;
+  color:#c4b5fd;
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -13106,7 +13144,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         formStreak:{label:"Normal",score:0},
         personalRecords:{},
         peakOverall:overall,
-        expansionVersion:"v62.7-realistic-29-offers",
+        expansionVersion:"v62.9-performance-only-team-ratings",
         retirementEligible:false,
         retired:false,
         pendingIntroCeremony:true
@@ -13116,6 +13154,13 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
     function playerModeRepairCareer(career){
       if(!isPlayerMode(career))return;
+
+      // Lock Player Career club ratings before any Manager-system squad repair
+      // can run. Player Career still uses Manager systems internally.
+      (career.teams||[]).forEach(team=>{
+        team.playerModeResultStrengthLocked=true;
+      });
+
       career.managerMode=true;
       managerRepairCareer(career);
 
@@ -13144,6 +13189,30 @@ body.player-calendar-advancing #playerNextMatchBtn{
       if(typeof managerImportantPopupOpen!=="undefined")managerImportantPopupOpen=false;
 
       const pm=career.playerCareer=career.playerCareer||{};
+
+      if(pm.clubStrengthSystemVersion!=="v62.9-performance-only"){
+        (career.teams||[]).forEach(team=>{
+          team.playerModeResultStrengthLocked=true;
+
+          const history=(team.strengthHistory||[])
+            .filter(row=>Number.isFinite(Number(row?.strength)));
+
+          if(history.length){
+            const latest=history[history.length-1];
+            const previous=history.length>1?history[history.length-2]:null;
+            const officialStrength=clamp(Number(latest.strength),50,96);
+
+            // Restore any unrecorded squad/formation recalculation change.
+            team.strength=officialStrength;
+            team.lastStrengthChange=previous
+              ?officialStrength-Number(previous.strength||officialStrength)
+              :0;
+          }
+        });
+
+        pm.clubStrengthSystemVersion="v62.9-performance-only";
+      }
+
       playerModeEnsureCompetitionPack(career);
       const player=managerPlayerById(pm.playerId,career);
       if(!player){pm.retired=true;return}
@@ -13153,7 +13222,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.managerTrust=Number(pm.managerTrust??50);
       pm.fitness=Number(pm.fitness??100);pm.sharpness=Number(pm.sharpness??70);pm.morale=Number(pm.morale??75);pm.pressure=Number(pm.pressure??20);pm.reputation=Number(pm.reputation??35);pm.chemistry=Number(pm.chemistry??50);
       pm.stats=pm.stats||{appearances:0,starts:0,subApps:0,goals:0,assists:0,motm:0,cleanSheets:0,tackles:0,saves:0,ratingTotal:0,ratedMatches:0};
-      pm.seasonStats=pm.seasonStats||{};pm.matchHistory=Array.isArray(pm.matchHistory)?pm.matchHistory:[];pm.milestones=Array.isArray(pm.milestones)?pm.milestones:[];pm.trophyCabinet=Array.isArray(pm.trophyCabinet)?pm.trophyCabinet:[];pm.awards=Array.isArray(pm.awards)?pm.awards:[];pm.careerTimeline=Array.isArray(pm.careerTimeline)?pm.careerTimeline:[];pm.monthlyReviews=Array.isArray(pm.monthlyReviews)?pm.monthlyReviews:[];pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];pm.rivals=pm.rivals||{};pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];pm.calendarAssignments=pm.calendarAssignments||{};pm.trainingDates=Array.isArray(pm.trainingDates)?pm.trainingDates:[];pm.international=pm.international||{status:"Not called up",appearances:0,goals:0,captain:false};
+      pm.seasonStats=pm.seasonStats||{};pm.matchHistory=Array.isArray(pm.matchHistory)?pm.matchHistory:[];pm.milestones=Array.isArray(pm.milestones)?pm.milestones:[];pm.trophyCabinet=Array.isArray(pm.trophyCabinet)?pm.trophyCabinet:[];pm.awards=Array.isArray(pm.awards)?pm.awards:[];pm.careerTimeline=Array.isArray(pm.careerTimeline)?pm.careerTimeline:[];pm.monthlyReviews=Array.isArray(pm.monthlyReviews)?pm.monthlyReviews:[];pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];pm.rivals=pm.rivals||{};pm.transferInterest=Array.isArray(pm.transferInterest)?pm.transferInterest:[];pm.transferOffers=Array.isArray(pm.transferOffers)?pm.transferOffers:[];pm.calendarAssignments=pm.calendarAssignments||{};pm.trainingDates=Array.isArray(pm.trainingDates)?pm.trainingDates:[];
       pm.currentDate=pm.currentDate||`${SEASON_START_YEAR+Number(career.worldSeason||1)-1}-08-01`;pm.calendarView=pm.calendarView||pm.currentDate.slice(0,7);pm.roadCap=Number(pm.roadCap||playerModeStartingRoadCap(player.overall));pm.skillMoves=Number(pm.skillMoves||positionSkillBase(player.position));pm.weakFoot=Number(pm.weakFoot||3);pm.squadRole=playerModeRoleFromTrust(pm.managerTrust,player.overall,playerModeClub(career)?.strength||70);pm.setPieceDuty=pm.setPieceDuty||"None";
 
       // V62 Player Career expansion. All additions are backward-compatible.
@@ -13166,6 +13235,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.positionHistory=Array.isArray(pm.positionHistory)?pm.positionHistory:[{season:Number(career.worldSeason||1),position:player.position,date:pm.currentDate}];
       pm.interviews=Array.isArray(pm.interviews)?pm.interviews:[];
       pm.pendingInterview=pm.pendingInterview||null;
+      pm.interviewQueue=Array.isArray(pm.interviewQueue)?pm.interviewQueue:[];
+      pm.interviewedTrophyIds=Array.isArray(pm.interviewedTrophyIds)?pm.interviewedTrophyIds:[];
       pm.contractProposal=pm.contractProposal||null;
       pm.transferRumors=Array.isArray(pm.transferRumors)?pm.transferRumors:[];
       pm.agentProfile=pm.agentProfile||{level:1,relationship:55,successfulMoves:0};
@@ -13178,7 +13249,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.peakOverall=Math.max(Number(pm.peakOverall||player.overall||0),Number(player.overall||0));
       // International Player Career system removed in V62.6. Old save data is ignored.
       career.playerHallOfFame=Array.isArray(career.playerHallOfFame)?career.playerHallOfFame:[];
-      pm.expansionVersion="v62.7-realistic-29-offers";
+      pm.expansionVersion="v62.9-performance-only-team-ratings";
       pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
       pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
       pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0);
@@ -14652,11 +14723,231 @@ body.player-calendar-advancing #playerNextMatchBtn{
       player.shirtNumber=wanted;
     }
 
-    function playerModeAnswerInterview(choice){
+    
+    function playerModeInterviewDateDiffDays(a,b){
+      try{
+        return Math.round((playerModeDate(a)-playerModeDate(b))/86400000);
+      }catch(_){
+        return 9999;
+      }
+    }
+
+    function playerModeTrophyInterviewProfile(trophy){
+      const name=String(trophy?.name||"the trophy");
+      const category=String(trophy?.category||"").toLowerCase();
+
+      if(category==="champions-league"||/champions league/i.test(name)){
+        return {
+          kicker:"🏆 CHAMPIONS LEAGUE WINNER INTERVIEW",
+          headline:`Champions of Europe: ${name}`,
+          question:"You have just reached the top of European football. When you look back at this entire run, what made this team capable of winning the biggest club trophy?",
+          answers:[
+            {id:"team",label:"“Everyone accepted their role. This belongs to the whole squad.”"},
+            {id:"confident",label:"“We believed we were the best team in Europe, and tonight we proved it.”"},
+            {id:"ambitious",label:"“This is massive, but one Champions League is not enough for me.”"}
+          ]
+        };
+      }
+
+      if(category==="europa-league"||/europa league/i.test(name)){
+        return {
+          kicker:"🏆 EUROPA LEAGUE WINNER INTERVIEW",
+          headline:`European champions: ${name}`,
+          question:"This competition demanded you survive different opponents, different countries and knockout pressure. What does finishing the job mean to you?",
+          answers:[
+            {id:"team",label:"“We fought through every round together. The team earned this.”"},
+            {id:"confident",label:"“We came into this competition expecting to win it.”"},
+            {id:"ambitious",label:"“I’m proud, but now I want to prove myself at the very highest level.”"}
+          ]
+        };
+      }
+
+      if(category==="league"||/serie a|premier league|la liga|bundesliga|ligue 1|league/i.test(name)){
+        return {
+          kicker:"🏆 LEAGUE CHAMPIONS INTERVIEW",
+          headline:`League champions: ${name}`,
+          question:"A cup can be decided in one night, but a league title takes consistency for an entire season. What was the biggest reason your team finished on top?",
+          answers:[
+            {id:"team",label:"“Our consistency came from the whole squad, not one player.”"},
+            {id:"confident",label:"“Over a full season, the best team usually ends up on top.”"},
+            {id:"ambitious",label:"“Winning the league is the standard now. We have to defend it.”"}
+          ]
+        };
+      }
+
+      if(category==="super-league"||/super league/i.test(name)){
+        return {
+          kicker:"👑 SUPER LEAGUE WINNER INTERVIEW",
+          headline:`Super League champions: ${name}`,
+          question:"You have just beaten an elite field to lift this trophy. What separated your team from the other top clubs?",
+          answers:[
+            {id:"team",label:"“We stayed together when the pressure was highest.”"},
+            {id:"confident",label:"“Against the best teams, we showed exactly where we belong.”"},
+            {id:"ambitious",label:"“This is another trophy, but I still want more.”"}
+          ]
+        };
+      }
+
+      if(category==="world-cup"||/world cup/i.test(name)){
+        return {
+          kicker:"🌍 WORLD CUP WINNER INTERVIEW",
+          headline:`World Cup champions: ${name}`,
+          question:"You have just won one of the biggest trophies in the entire FUS world. Can you even put this moment into words?",
+          answers:[
+            {id:"team",label:"“You cannot win something this big without everyone giving everything.”"},
+            {id:"confident",label:"“These are the moments I prepare my whole career for.”"},
+            {id:"ambitious",label:"“I want this to be remembered as the start of something historic.”"}
+          ]
+        };
+      }
+
+      return {
+        kicker:"🏆 DOMESTIC CUP WINNER INTERVIEW",
+        headline:`Cup winners: ${name}`,
+        question:`You have just lifted the ${name}. Knockout football gives you almost no room for mistakes. What does winning this cup say about your team?`,
+        answers:[
+          {id:"team",label:"“Every round demanded something different. The whole squad deserves this.”"},
+          {id:"confident",label:"“When the pressure got higher, we got better.”"},
+          {id:"ambitious",label:"“I’m enjoying this tonight, but I want more trophies.”"}
+        ]
+      };
+    }
+
+    function playerModeQueueInterview(career,interview,priority=false){
+      const pm=playerModeData(career);
+      if(!pm||!interview)return false;
+
+      pm.interviewQueue=Array.isArray(pm.interviewQueue)?pm.interviewQueue:[];
+      pm.interviews=Array.isArray(pm.interviews)?pm.interviews:[];
+
+      const key=String(interview.key||interview.id||"");
+      const duplicate=
+        (pm.pendingInterview&&String(pm.pendingInterview.key||pm.pendingInterview.id||"")===key) ||
+        pm.interviewQueue.some(row=>String(row.key||row.id||"")===key) ||
+        pm.interviews.some(row=>String(row.key||row.id||"")===key);
+
+      if(duplicate)return false;
+
+      if(!pm.pendingInterview){
+        pm.pendingInterview=interview;
+      }else if(priority&&pm.pendingInterview.type!=="trophy"){
+        pm.interviewQueue.unshift(pm.pendingInterview);
+        pm.pendingInterview=interview;
+      }else{
+        pm.interviewQueue.push(interview);
+      }
+
+      return true;
+    }
+
+    function playerModeQueueTrophyInterview(career,trophy,catchup=false){
+      const pm=playerModeData(career);
+      if(!pm||!trophy)return false;
+
+      pm.interviewedTrophyIds=Array.isArray(pm.interviewedTrophyIds)?pm.interviewedTrophyIds:[];
+      if(pm.interviewedTrophyIds.includes(trophy.id))return false;
+
+      const key=`trophy-interview:${trophy.id}`;
+      if(
+        pm.pendingInterview?.key===key ||
+        (pm.interviewQueue||[]).some(row=>row.key===key) ||
+        (pm.interviews||[]).some(row=>row.key===key)
+      )return false;
+
+      const profile=playerModeTrophyInterviewProfile(trophy);
+      const interview={
+        id:uid(),
+        key,
+        type:"trophy",
+        trophyId:trophy.id,
+        trophyName:trophy.name,
+        trophyCategory:trophy.category||"",
+        competition:trophy.name,
+        date:catchup?pm.currentDate:(trophy.date||pm.currentDate),
+        scheduledDate:catchup?pm.currentDate:(trophy.date||pm.currentDate),
+        headline:profile.headline,
+        kicker:profile.kicker,
+        question:profile.question,
+        answers:profile.answers,
+        catchup:!!catchup
+      };
+
+      const queued=playerModeQueueInterview(career,interview,true);
+
+      if(queued){
+        pm.mediaNotes=Array.isArray(pm.mediaNotes)?pm.mediaNotes:[];
+        pm.mediaNotes.unshift({
+          date:pm.currentDate,
+          text:catchup
+            ?`Media interview scheduled to revisit the ${trophy.name} triumph.`
+            :`Winner interview scheduled after lifting the ${trophy.name}.`
+        });
+      }
+
+      return queued;
+    }
+
+    function playerModeEnsureMissedTrophyInterview(career=currentCareerSave()){
+      if(!isPlayerMode(career))return false;
+
+      const pm=playerModeData(career);
+      if(!pm)return false;
+
+      pm.interviewedTrophyIds=Array.isArray(pm.interviewedTrophyIds)?pm.interviewedTrophyIds:[];
+      pm.interviewQueue=Array.isArray(pm.interviewQueue)?pm.interviewQueue:[];
+
+      const eligible=(pm.trophyCabinet||[])
+        .filter(trophy=>{
+          if(!trophy?.id||pm.interviewedTrophyIds.includes(trophy.id))return false;
+          const key=`trophy-interview:${trophy.id}`;
+          if(pm.pendingInterview?.key===key)return false;
+          if(pm.interviewQueue.some(row=>row.key===key))return false;
+          if((pm.interviews||[]).some(row=>row.key===key))return false;
+
+          const diff=Math.abs(playerModeInterviewDateDiffDays(pm.currentDate,trophy.date||pm.currentDate));
+          return diff<=14;
+        })
+        .sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+
+      if(!eligible.length)return false;
+      return playerModeQueueTrophyInterview(career,eligible[0],true);
+    }
+
+    function playerModeInterviewDisplay(interview){
+      if(!interview)return null;
+
+      if(interview.type==="trophy"){
+        return {
+          kicker:interview.kicker||"🏆 TROPHY INTERVIEW",
+          headline:interview.headline||"Winner Interview",
+          meta:interview.catchup
+            ?`${interview.competition||"Trophy"} · Media catch-up`
+            :`${interview.competition||"Trophy"} · Champions`,
+          question:interview.question||"What does this trophy mean to you?",
+          answers:Array.isArray(interview.answers)?interview.answers:[]
+        };
+      }
+
+      return {
+        kicker:"🎙 POST-MATCH INTERVIEW",
+        headline:interview.headline||"Media Interview",
+        meta:`${interview.competition||"Football"}${Number(interview.rating||0)>0?` · ${Number(interview.rating).toFixed(1)} rating`:""}`,
+        question:interview.question||"How do you assess your performance and the team's result?",
+        answers:[
+          {id:"humble",label:"“The team deserves the credit.”"},
+          {id:"confident",label:"“I know what I can do.”"},
+          {id:"team",label:"“We win together.”"}
+        ]
+      };
+    }
+
+function playerModeAnswerInterview(choice){
       const career=currentCareerSave(),pm=playerModeData(career);
       if(!pm?.pendingInterview)return;
+
       const interview=pm.pendingInterview;
       let result="";
+
       if(choice==="humble"){
         pm.managerTrust=clamp(pm.managerTrust+3,0,100);
         pm.chemistry=clamp(pm.chemistry+3,0,100);
@@ -14665,18 +14956,37 @@ body.player-calendar-advancing #playerNextMatchBtn{
         pm.reputation=clamp(pm.reputation+4,0,100);
         pm.pressure=clamp(pm.pressure+4,0,100);
         result="Your confidence made headlines and raised expectations.";
+      }else if(choice==="ambitious"){
+        pm.reputation=clamp(pm.reputation+3,0,100);
+        pm.pressure=clamp(pm.pressure+2,0,100);
+        pm.managerTrust=clamp(pm.managerTrust+1,0,100);
+        result="Your ambition made headlines. Expectations are higher now.";
       }else{
         pm.chemistry=clamp(pm.chemistry+5,0,100);
-        Object.values(pm.relationships||{}).filter(r=>!r.former).forEach(r=>r.chemistry=clamp(Number(r.chemistry||50)+2,0,100));
+        Object.values(pm.relationships||{}).filter(r=>!r.former).forEach(r=>
+          r.chemistry=clamp(Number(r.chemistry||50)+2,0,100)
+        );
         result="Your teammates loved the team-first answer.";
       }
+
+      if(interview.type==="trophy"&&interview.trophyId){
+        pm.interviewedTrophyIds=Array.isArray(pm.interviewedTrophyIds)?pm.interviewedTrophyIds:[];
+        if(!pm.interviewedTrophyIds.includes(interview.trophyId)){
+          pm.interviewedTrophyIds.push(interview.trophyId);
+        }
+      }
+
+      pm.interviews=Array.isArray(pm.interviews)?pm.interviews:[];
       pm.interviews.unshift({...interview,choice,result,answeredDate:pm.currentDate});
-      pm.pendingInterview=null;
+
+      pm.interviewQueue=Array.isArray(pm.interviewQueue)?pm.interviewQueue:[];
+      pm.pendingInterview=pm.interviewQueue.shift()||null;
+
       saveData("Interview answered");
       showToast(result);
       renderPlayerHub();
+      renderPlayerCalendar();
     }
-
     function playerModeCreateTransferRumors(career=currentCareerSave()){
       const pm=playerModeData(career),player=playerModePlayer(career);
       if(!pm||!player)return;
@@ -16539,6 +16849,8 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
 
       pm.trophyCabinet.unshift(trophy);
 
+      playerModeQueueTrophyInterview(career,trophy,false);
+
       const reputationGain=
         category==="world-cup"?10:
         category==="champions-league"?7:
@@ -16680,6 +16992,7 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
       const career=currentCareerSave(),panel=$("tab-player-hub");
       if(!panel||!isPlayerMode(career))return;
       const pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);
+      playerModeEnsureMissedTrophyInterview(career);
       if(!player||pm.retired){
         const legacy=playerModeLegacyScore(career);
         panel.innerHTML=`<div class="card"><div class="startup-kicker">PLAYER MODE</div><h1>Career Complete</h1><p class="muted">${escapeHtml(playerModeLegacyTier(legacy))} · Legacy Score ${legacy}</p><button class="btn" id="retiredCareerBtn">Open Career History</button></div>`;
@@ -16727,17 +17040,20 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
           ].map(([label,value])=>`<div class="player-kpi"><small>${label}</small><strong>${Math.round(value)}</strong><div class="player-bar"><span style="width:${clamp(value,0,100)}%"></span></div></div>`).join("")}
         </div>
 
-        ${pm.pendingInterview?`
-          <article class="card player-interview-card" style="margin-top:14px">
-            <div class="startup-kicker">🎙 POST-MATCH INTERVIEW</div>
-            <h2>${escapeHtml(pm.pendingInterview.headline||"Media Interview")}</h2>
-            <p class="muted">${escapeHtml(pm.pendingInterview.competition||"Football")} · ${Number(pm.pendingInterview.rating||0).toFixed(1)} rating</p>
-            <div class="toolbar">
-              <button class="btn secondary" data-player-interview="humble">“The team deserves the credit.”</button>
-              <button class="btn secondary" data-player-interview="confident">“I know what I can do.”</button>
-              <button class="btn secondary" data-player-interview="team">“We win together.”</button>
+        ${pm.pendingInterview?(()=>{
+          const interviewView=playerModeInterviewDisplay(pm.pendingInterview);
+          return `<article class="card player-interview-card" style="margin-top:14px">
+            <div class="startup-kicker">${escapeHtml(interviewView.kicker)}</div>
+            <h2>${escapeHtml(interviewView.headline)}</h2>
+            <p class="muted">${escapeHtml(interviewView.meta)}</p>
+            <div class="player-interview-question">${escapeHtml(interviewView.question)}</div>
+            <div class="player-interview-answers">
+              ${interviewView.answers.map(answer=>`
+                <button class="btn secondary" data-player-interview="${escapeHtml(answer.id)}">${escapeHtml(answer.label)}</button>
+              `).join("")}
             </div>
-          </article>`:""}
+          </article>`;
+        })():""}
 
         <div class="player-dashboard-grid" style="margin-top:14px">
           <article class="card">
@@ -16857,6 +17173,7 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
     function renderPlayerCalendar(){
       const career=currentCareerSave(),panel=$("tab-player-calendar");if(!panel||!isPlayerMode(career))return;
       const pm=playerModeData(career);if(!pm)return;
+      playerModeEnsureMissedTrophyInterview(career);
       pm.calendarView=pm.calendarView||pm.currentDate.slice(0,7);
 
       const [year,month]=pm.calendarView.split("-").map(Number);
@@ -16865,6 +17182,16 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
       const fixtures=playerModeUpcomingFixtures(career);
       const upcomingByDate={};
       const completedByDate={};
+      const interviewsByDate={};
+
+      [
+        ...(pm.pendingInterview?[pm.pendingInterview]:[]),
+        ...(pm.interviewQueue||[])
+      ].forEach(interview=>{
+        const date=interview?.scheduledDate||interview?.date;
+        if(!date)return;
+        (interviewsByDate[date]=interviewsByDate[date]||[]).push(interview);
+      });
 
       fixtures.forEach(row=>{
         (upcomingByDate[row.date]=upcomingByDate[row.date]||[]).push(row);
@@ -16890,6 +17217,7 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
         const same=d.getMonth()===month-1;
         const match=upcomingByDate[key]?.[0]||null;
         const result=completedByDate[key]?.[0]||null;
+        const interview=interviewsByDate[key]?.[0]||null;
         const hasFootball=!!(match||result);
         const training=same&&!hasFootball&&d.getDay()===2;
         const recovery=same&&!hasFootball&&d.getDay()===1;
@@ -16926,9 +17254,17 @@ function playerModeRefreshTransferInterest(career=currentCareerSave(),force=fals
             </div></div>`
           :"";
 
+        const interviewHtml=interview
+          ?`<div class="player-day-event player-calendar-interview">
+              <strong>🎙 ${interview.type==="trophy"?"Winner Interview":"Media Interview"}</strong>
+              <span>${escapeHtml(interview.competition||interview.headline||"Press")}</span>
+            </div>`
+          :"";
+
         cells.push(`<div class="player-day ${same?'':'outside'} ${key===pm.currentDate?'today':''} ${match?'has-match':''} ${result?'has-result':''}" ${match?`data-player-open-match="${match.comp.id}" data-player-match-key="${escapeHtml(match.key)}" data-player-match-date="${match.date}"`:''}>
           <span class="player-day-number">${d.getDate()}</span>
           ${match?upcomingHtml:result?resultHtml:training?`<div class="player-day-event training"><strong>Training</strong>Development day</div>`:recovery?`<div class="player-day-event recovery"><strong>Recovery</strong>Fitness +</div>`:agent?`<div class="player-day-event agent"><strong>Agent</strong>Career check-in</div>`:''}
+          ${interviewHtml}
         </div>`);
       }
 
@@ -17924,7 +18260,19 @@ function playerModeBuildFormationXI(career,club,options={}){
         squadPlayer.isStarter=xiIds.has(squadPlayer.id);
       });
 
+      const strengthBefore=Number(club?.strength||70);
+      const lastStrengthChangeBefore=Number(club?.lastStrengthChange||0);
+
+      if(club)club.playerModeResultStrengthLocked=true;
       managerRecalculateTeam(club);
+
+      // Never let formation/Starting XI selection change the Player Career
+      // world rating, even if an old save reached this function before repair.
+      if(club){
+        club.strength=strengthBefore;
+        club.lastStrengthChange=lastStrengthChangeBefore;
+      }
+
       return view;
     }
 
@@ -18280,7 +18628,7 @@ function playerModeBuildFormationXI(career,club,options={}){
       $("playerFreeAgentBtn")?.addEventListener("click",()=>switchTab("player-agent"));
     }
     function renderPlayerAwards(){
-      const career=currentCareerSave(),panel=$("tab-player-awards");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">🏆 AWARDS & TROPHIES</div><h1>Your Trophy Cabinet</h1><p class="muted">Club trophies and individual awards stay on your Player Mode career permanently.</p></div><div class="player-dashboard-grid"><article class="card"><h2>Trophies</h2><div class="player-trophy-grid">${pm.trophyCabinet.map(t=>`<div class="player-trophy"><div class="icon">🏆</div><strong>${escapeHtml(t.name)}</strong><small class="muted" style="display:block">${escapeHtml(seasonDisplay(t.season))}</small></div>`).join("")||`<p class="muted">No trophies yet.</p>`}</div></article><article class="card"><h2>Individual Awards</h2><div class="player-trophy-grid">${pm.awards.map(a=>`<div class="player-trophy"><div class="icon">${a.type==='ballon-dor'?'🥇':'⭐'}</div><strong>${escapeHtml(a.name)}</strong><small class="muted" style="display:block">${escapeHtml(seasonDisplay(a.season))}</small></div>`).join("")||`<p class="muted">No individual awards yet.</p>`}</div></article></div><article class="card" style="margin-top:14px"><div class="startup-kicker">INTERNATIONAL CAREER</div><h2>${escapeHtml(pm.international.status)}</h2><p>Appearances: <strong>${pm.international.appearances}</strong> · Goals: <strong>${pm.international.goals}</strong>${pm.international.captain?' · © National captain':''}</p></article>`;
+      const career=currentCareerSave(),panel=$("tab-player-awards");if(!panel||!isPlayerMode(career))return;const pm=playerModeData(career);panel.innerHTML=`<div class="card"><div class="startup-kicker">🏆 AWARDS & TROPHIES</div><h1>Your Trophy Cabinet</h1><p class="muted">Club trophies and individual awards stay on your Player Mode career permanently.</p></div><div class="player-dashboard-grid"><article class="card"><h2>Trophies</h2><div class="player-trophy-grid">${pm.trophyCabinet.map(t=>`<div class="player-trophy"><div class="icon">🏆</div><strong>${escapeHtml(t.name)}</strong><small class="muted" style="display:block">${escapeHtml(seasonDisplay(t.season))}</small></div>`).join("")||`<p class="muted">No trophies yet.</p>`}</div></article><article class="card"><h2>Individual Awards</h2><div class="player-trophy-grid">${pm.awards.map(a=>`<div class="player-trophy"><div class="icon">${a.type==='ballon-dor'?'🥇':'⭐'}</div><strong>${escapeHtml(a.name)}</strong><small class="muted" style="display:block">${escapeHtml(seasonDisplay(a.season))}</small></div>`).join("")||`<p class="muted">No individual awards yet.</p>`}</div></article></div>`;
     }
     function renderPlayerCareer(){
       const career=currentCareerSave(),panel=$("tab-player-career");
@@ -18764,14 +19112,22 @@ function playerModeBuildFormationXI(career,club,options={}){
         starters=starters.slice(0,11);
       }
 
-      const old=Number(team.strength||70);
       const rawSquadOverall=starters.reduce(
         (sum,p)=>sum+Number(p.overall||0),0
       )/Math.max(1,starters.length);
 
-      // Built-in squad player OVRs and the club's stored team rating use
-      // different scales. Calibrate them the first time instead of replacing
-      // an 84-rated club with a raw 78 starter average.
+      // PLAYER CAREER:
+      // The visible club rating is a WORLD / SEASON PERFORMANCE rating.
+      // Squad building, transfers, real-life formations and Starting XI changes
+      // are allowed to change the XI, but they must never overwrite club OVR.
+      if(team.playerModeResultStrengthLocked){
+        team.playerModeSquadOverall=Number(rawSquadOverall.toFixed(2));
+        return;
+      }
+
+      const old=Number(team.strength||70);
+
+      // Manager Mode still uses the calibrated squad-based club rating.
       if(!Number.isFinite(Number(team.managerSquadStrengthOffset))){
         team.managerSquadStrengthOffset=old-rawSquadOverall;
       }
@@ -31555,6 +31911,10 @@ function tickLiveMatch() {
       );
 
       world.teams.forEach(team => {
+        if(isPlayerMode(world)){
+          team.playerModeResultStrengthLocked=true;
+        }
+
         const oldStrength = Number(team.strength ?? 70);
         const baseline = Number(team.startingOverall ?? team.developmentProfile?.baseline ?? oldStrength);
 
