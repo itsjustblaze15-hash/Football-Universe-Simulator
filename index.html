@@ -13106,24 +13106,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         formStreak:{label:"Normal",score:0},
         personalRecords:{},
         peakOverall:overall,
-        international:{
-          status:"Not called up",
-          appearances:0,
-          goals:0,
-          assists:0,
-          captain:false,
-          seasonMatches:0,
-          seasonWins:0,
-          seasonPoints:0,
-          tournamentActive:false,
-          tournamentName:"",
-          tournamentStage:"",
-          eliminated:false,
-          history:[],
-          trophies:[],
-          nextFixture:null
-        },
-        expansionVersion:"v62.5-real-club-formations",
+        expansionVersion:"v62.7-realistic-29-offers",
         retirementEligible:false,
         retired:false,
         pendingIntroCeremony:true
@@ -13193,24 +13176,9 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.formStreak=pm.formStreak||{label:"Normal",score:0};
       pm.personalRecords=pm.personalRecords||{};
       pm.peakOverall=Math.max(Number(pm.peakOverall||player.overall||0),Number(player.overall||0));
-      pm.international=pm.international||{};
-      pm.international.status=pm.international.status||"Not called up";
-      pm.international.appearances=Number(pm.international.appearances||0);
-      pm.international.goals=Number(pm.international.goals||0);
-      pm.international.assists=Number(pm.international.assists||0);
-      pm.international.captain=!!pm.international.captain;
-      pm.international.seasonMatches=Number(pm.international.seasonMatches||0);
-      pm.international.seasonWins=Number(pm.international.seasonWins||0);
-      pm.international.seasonPoints=Number(pm.international.seasonPoints||0);
-      pm.international.tournamentActive=!!pm.international.tournamentActive;
-      pm.international.tournamentName=pm.international.tournamentName||"";
-      pm.international.tournamentStage=pm.international.tournamentStage||"";
-      pm.international.eliminated=!!pm.international.eliminated;
-      pm.international.history=Array.isArray(pm.international.history)?pm.international.history:[];
-      pm.international.trophies=Array.isArray(pm.international.trophies)?pm.international.trophies:[];
-      pm.international.nextFixture=pm.international.nextFixture||null;
+      // International Player Career system removed in V62.6. Old save data is ignored.
       career.playerHallOfFame=Array.isArray(career.playerHallOfFame)?career.playerHallOfFame:[];
-      pm.expansionVersion="v62.5-real-club-formations";
+      pm.expansionVersion="v62.7-realistic-29-offers";
       pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
       pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
       pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0);
@@ -14386,7 +14354,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
       playerModePersonalRecords(career);
       playerModeCheckMilestones(career);
       playerModeCheckRoadUnlocks(career);
-      playerModeUpdateInternational(career);
       playerModeUpdateAgentProfile(career);
 
       if(appeared && (rating>=8.6 || (playerModeIsBigMatch(comp)&&rating>=7.6)) && !pm.pendingInterview){
@@ -14444,8 +14411,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
       [[200,"ga-200","200 career goal contributions"],[300,"ga-300","300 career goal contributions"],[500,"ga-500","500 career goal contributions"]].forEach(([n,k,t])=>{if(Number(s.goals||0)+Number(s.assists||0)>=n)playerModeMilestone(career,k,t)});
       if(pm.trophyCabinet.length>=5)playerModeMilestone(career,"trophies-5","Won 5 club trophies");
       if(pm.trophyCabinet.length>=10)playerModeMilestone(career,"trophies-10","Won 10 club trophies");
-      if((pm.international?.appearances||0)>=25)playerModeMilestone(career,"intl-25","25 international appearances");
-      if((pm.international?.goals||0)>=10)playerModeMilestone(career,"intl-goals-10","10 international goals");
       const records=playerModePersonalRecords(career);
       if(Number(records.hatTricks||0)>=1)playerModeMilestone(career,"hat-trick-1","First career hat trick");
       if(Number(records.longestScoringStreak||0)>=5)playerModeMilestone(career,"score-streak-5","Scored in 5 consecutive matches");
@@ -14455,11 +14420,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       const row=pm.rivals[opponentId]=pm.rivals[opponentId]||{clubId:opponentId,meetings:0,intensity:0,rivalPlayerId:null};row.meetings++;row.intensity+=comp.category==="champions-league"||comp.category==="super-league"?2:1;if(!won)row.intensity++;
       if(row.meetings>=3&&!row.rivalPlayerId){row.rivalPlayerId=[...(opp.managerSquad||[])].sort((a,b)=>b.overall-a.overall)[0]?.id||null}
     }
-    function playerModeUpdateInternational(career){
-      const pm=playerModeData(career),player=playerModePlayer(career);if(!pm||!player)return;
-      if(player.overall>=82&&pm.reputation>=58)pm.international.status=`Called up for ${player.nationality}`;
-      if(player.overall>=88&&pm.reputation>=82){pm.international.status=`Key player for ${player.nationality}`;if(pm.stats.appearances>=120)pm.international.captain=true}
-    }
+    
 
     
     const PLAYER_MODE_TRAITS=[
@@ -14493,12 +14454,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
       RW:["RW","LW","CAM","ST","RB"],
       ST:["ST","LW","RW","CAM"]
     };
-
-    const PLAYER_MODE_INTL_OPPONENTS=[
-      "Argentina","Brazil","France","Spain","England","Germany","Italy","Portugal",
-      "Netherlands","Belgium","Croatia","Uruguay","Colombia","Mexico","Japan",
-      "South Korea","Morocco","Switzerland","Denmark","United States"
-    ];
 
     function playerModeHasTrait(career,id){
       return !!playerModeData(career)?.traits?.includes(id);
@@ -14842,10 +14797,6 @@ body.player-calendar-advancing #playerNextMatchBtn{
           t.category==="cup"?18:10;
       });
 
-      (pm.international?.trophies||[]).forEach(t=>{
-        score+=String(t.name||"").includes("World Cup")?160:80;
-      });
-
       (pm.awards||[]).forEach(a=>{
         score+=a.type==="ballon-dor"?180:a.type==="player-of-season"?45:25;
       });
@@ -14904,149 +14855,18 @@ body.player-calendar-advancing #playerNextMatchBtn{
         appearances:pm.stats.appearances,
         goals:pm.stats.goals,
         assists:pm.stats.assists,
-        trophies:pm.trophyCabinet.length+(pm.international?.trophies?.length||0),
+        trophies:pm.trophyCabinet.length,
         awards:pm.awards.length,
         retiredSeason:Number(career.worldSeason||1)
       });
       return true;
     }
 
-    function playerModeInternationalTournamentName(career){
-      const season=Number(career.worldSeason||1);
-      const player=playerModePlayer(career);
-      if(season%4===0)return "World Cup";
-      if(season%2!==0)return "International Qualifiers";
+    
 
-      const nation=String(player?.nationality||"");
-      const southAmerica=["Argentina","Brazil","Uruguay","Colombia","Chile","Peru","Ecuador","Paraguay","Bolivia","Venezuela"];
-      const northAmerica=["United States","USA","Mexico","Canada","Costa Rica","Jamaica","Panama"];
-      const asia=["Japan","South Korea","China","Australia","Saudi Arabia","Iran","Iraq","Qatar"];
-      const africa=["Morocco","Egypt","Nigeria","Ghana","Senegal","Cameroon","Algeria","Tunisia","Ivory Coast","South Africa"];
+    
 
-      if(southAmerica.includes(nation))return "Copa América";
-      if(northAmerica.includes(nation))return "Gold Cup";
-      if(asia.includes(nation))return "Asian Cup";
-      if(africa.includes(nation))return "AFCON";
-      return "European Championship";
-    }
-
-    function playerModeEnsureInternationalFixture(career=currentCareerSave()){
-      const pm=playerModeData(career),player=playerModePlayer(career);
-      if(!pm||!player)return null;
-      playerModeUpdateInternational(career);
-      if(!String(pm.international.status||"").includes(player.nationality))return null;
-      if(pm.international.eliminated)return null;
-      if(pm.international.nextFixture)return pm.international.nextFixture;
-
-      const name=playerModeInternationalTournamentName(career);
-      const tournament=name!=="International Qualifiers";
-      pm.international.tournamentName=name;
-      pm.international.tournamentActive=tournament;
-
-      let stage="";
-      if(name==="World Cup"||name==="Continental Championship"){
-        const played=Number(pm.international.seasonMatches||0);
-        stage=played===0?"Group Match 1":played===1?"Group Match 2":played===2?"Semifinal":"Final";
-      }else{
-        stage=`Qualifier ${Number(pm.international.seasonMatches||0)+1}`;
-      }
-
-      const pool=PLAYER_MODE_INTL_OPPONENTS.filter(country=>country!==player.nationality);
-      const seed=(Number(career.worldSeason||1)*11+Number(pm.international.seasonMatches||0)*7+String(player.id).length)%pool.length;
-      pm.international.nextFixture={
-        id:uid(),
-        opponent:pool[seed],
-        competition:name,
-        stage,
-        createdDate:pm.currentDate
-      };
-      return pm.international.nextFixture;
-    }
-
-    function playerModePlayInternationalMatch(style="balanced"){
-      const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career);
-      if(!pm||!player)return;
-      if(pm.injury)return showToast("You cannot play internationally while injured.",true);
-      const fixture=playerModeEnsureInternationalFixture(career);
-      if(!fixture)return showToast("There is no international fixture available.",true);
-
-      const ovr=Number(player.overall||70);
-      const rep=Number(pm.reputation||30);
-      const styleMods={
-        attacking:{goal:.20,assist:.02,rating:.10,win:.03},
-        creative:{goal:.04,assist:.20,rating:.12,win:.04},
-        defensive:{goal:-.04,assist:.02,rating:.08,win:.06},
-        balanced:{goal:.08,assist:.08,rating:.08,win:.05}
-      };
-      const mod=styleMods[style]||styleMods.balanced;
-      const big=fixture.competition!=="International Qualifiers";
-      const traitBoost=playerModeHasTrait(career,"clutch")&&big?.08:0;
-
-      const winChance=clamp(.45+(ovr-78)*.015+(rep-55)*.003+mod.win+traitBoost,.28,.78);
-      const won=Math.random()<winChance;
-      const draw=!won&&Math.random()<.30&&fixture.stage!=="Semifinal"&&fixture.stage!=="Final";
-      const lost=!won&&!draw;
-
-      let goals=Math.random()<clamp(.16+(ovr-72)*.018+mod.goal+(playerModeHasTrait(career,"finesse-shot")?.05:0),.05,.72)?1:0;
-      if(goals&&Math.random()<.13+(ovr-80)*.01)goals++;
-      const assists=Math.random()<clamp(.14+(ovr-72)*.012+mod.assist+(playerModeHasTrait(career,"playmaker")?.09:0),.05,.65)?1:0;
-      let rating=6.4+(won?.55:draw?.12:-.35)+goals*1.05+assists*.75+mod.rating+traitBoost+(Math.random()*.6-.2);
-      rating=clamp(Number(rating.toFixed(1)),5,10);
-
-      pm.international.appearances++;
-      const oldIntlGoals=Number(pm.international.goals||0);
-      pm.international.goals+=goals;
-      pm.international.assists+=assists;
-      if(goals>0&&oldIntlGoals===0){
-        playerModeMilestone(career,"intl-goal-1",`Scored the first international goal for ${player.nationality}.`);
-      }
-      pm.international.seasonMatches++;
-      if(won)pm.international.seasonWins++;
-      pm.international.seasonPoints+=won?3:draw?1:0;
-      pm.reputation=clamp(pm.reputation+(big?2:1)+(rating>=8.5?2:0),0,100);
-      pm.developmentPoints+=big?12:7;
-
-      const row={
-        id:uid(),season:Number(career.worldSeason||1),date:pm.currentDate,
-        opponent:fixture.opponent,competition:fixture.competition,stage:fixture.stage,
-        style,goals,assists,rating,outcome:won?"win":draw?"draw":"loss"
-      };
-      pm.international.history.unshift(row);
-      pm.international.nextFixture=null;
-
-      const knockout=["Semifinal","Final"].includes(fixture.stage);
-      if(knockout&&lost){
-        pm.international.eliminated=true;
-      }else if(fixture.stage==="Final"&&won){
-        const trophy={id:uid(),name:fixture.competition,season:Number(career.worldSeason||1),nationality:player.nationality};
-        pm.international.trophies.unshift(trophy);
-        const reward=fixture.competition==="World Cup"?90:45;
-        pm.developmentPoints+=reward;
-        pm.reputation=clamp(pm.reputation+(fixture.competition==="World Cup"?12:7),0,100);
-        playerModeMilestone(career,`intl-trophy-${career.worldSeason}-${fixture.competition}`,`Won the ${fixture.competition} with ${player.nationality}.`);
-        playerModeShowCeremony("INTERNATIONAL CHAMPION",fixture.competition,`Won with ${player.nationality} · +${reward} Development Points`);
-        pm.international.eliminated=true;
-      }
-
-      if(!pm.international.eliminated&&pm.international.seasonMatches<4){
-        playerModeEnsureInternationalFixture(career);
-      }
-
-      addFootballNews({
-        key:`intl-${player.id}-${Date.now()}`,
-        type:"news",
-        icon:"🌍",
-        teamIds:[],
-        headline:`${player.name}: ${goals} goal${goals===1?"":"s"}, ${assists} assist${assists===1?"":"s"} for ${player.nationality} against ${fixture.opponent}.`,
-        competitionName:`${fixture.competition} · ${fixture.stage}`
-      });
-
-      saveData("International match played");
-      showToast(`${player.nationality} ${won?"won":draw?"drew":"lost"} · ${rating.toFixed(1)} rating · ${goals}G ${assists}A`);
-      renderPlayerHub();
-      renderPlayerCareer();
-      renderPlayerStats();
-    }
+    
 
     function playerModeContractNegotiate(preference){
       const career=currentCareerSave(),pm=playerModeData(career),player=playerModePlayer(career),club=playerModeClub(career);
@@ -15763,7 +15583,9 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       renderPlayerAgent();
     }
 
-    function playerModeRefreshTransferInterest(career=currentCareerSave(),force=false){
+        const PLAYER_MODE_MAX_ACTIVE_OFFERS=29;
+
+function playerModeRefreshTransferInterest(career=currentCareerSave(),force=false){
       if(!isPlayerMode(career))return;
 
       const pm=playerModeData(career),
@@ -15867,7 +15689,7 @@ function playerModeRoadObjectives(career=currentCareerSave()){
           return Number(teamB?.strength||0)-Number(teamA?.strength||0) ||
             String(teamA?.name||"").localeCompare(String(teamB?.name||""));
         })
-        .slice(0,20);
+        .slice(0,PLAYER_MODE_MAX_ACTIVE_OFFERS);
 
       const serious=pm.transferInterest.filter(r=>Number(r.interest||0)>=74).length;
       const formal=(pm.transferOffers||[]).length;
@@ -16095,8 +15917,35 @@ function playerModeRoadObjectives(career=currentCareerSave()){
         !["rejected","withdrawn","completed"].includes(offer.status)
       );
 
-      const room=Math.max(0,5-openOffers.length);
+      const room=Math.max(0,PLAYER_MODE_MAX_ACTIVE_OFFERS-openOffers.length);
       if(room<=0)return 0;
+
+      // 29 is the absolute ceiling, not a target. Each market check only
+      // allows a realistic number of fresh bids based on how established and
+      // desirable the player currently is.
+      const playerOvr=Number(player.overall||0);
+      const playerRep=Number(pm.reputation||0);
+      const agentLevel=Number(playerModeUpdateAgentProfile(career)?.level||1);
+      const hotForm=form.apps>=5&&form.recentAvg>=7.8;
+
+      let cycleOfferLimit=
+        playerOvr>=90?7:
+        playerOvr>=87?6:
+        playerOvr>=84?5:
+        playerOvr>=81?4:
+        playerOvr>=77?3:
+        playerOvr>=73?2:1;
+
+      if(playerRep>=80)cycleOfferLimit+=1;
+      if(hotForm)cycleOfferLimit+=1;
+      if(agentLevel>=4)cycleOfferLimit+=1;
+
+      if(!requestActive){
+        // Unsolicited approaches should stay rare even for stars.
+        cycleOfferLimit=Math.min(cycleOfferLimit,playerOvr>=88?3:2);
+      }
+
+      cycleOfferLimit=Math.min(room,Math.max(1,cycleOfferLimit));
 
       const existingClubs=new Set(openOffers.map(offer=>offer.clubId));
       const threshold=requestActive
@@ -16140,7 +15989,7 @@ function playerModeRoadObjectives(career=currentCareerSave()){
           Number(b.offerPriority||0)-Number(a.offerPriority||0) ||
           Number(b.interest||0)-Number(a.interest||0)
         )
-        .slice(0,12);
+        .slice(0,PLAYER_MODE_MAX_ACTIVE_OFFERS);
 
       if(requestType==="loan"&&requestActive){
         candidates=candidates.filter(row=>
@@ -16153,7 +16002,7 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       let firstCreatedClub=null;
 
       for(const row of candidates){
-        if(created>=room)break;
+        if(created>=cycleOfferLimit)break;
 
         const stepBonus=
           Number(player.overall||0)>=80 &&
@@ -16164,9 +16013,29 @@ function playerModeRoadObjectives(career=currentCareerSave()){
         const agent=playerModeUpdateAgentProfile(career);
         const agentOfferBoost=(Number(agent.level||1)-1)*.025;
 
-        const chance=requestActive
-          ?clamp(.38+(Number(row.interest||0)-threshold)*.017+(force?.16:0)+stepBonus+agentOfferBoost,.38,.96)
-          :clamp(.12+(Number(row.interest||0)-82)*.015+stepBonus*.45+agentOfferBoost*.7,.12,.50);
+        // As more offers are already on the table, additional clubs become
+        // less likely to pile in. This prevents "the whole game wants me".
+        const saturationMultiplier=clamp(
+          1-(openOffers.length+created)*.035,
+          .28,
+          1
+        );
+
+        const fitAboveThreshold=Math.max(0,Number(row.interest||0)-threshold);
+        const formOfferBoost=
+          form.apps>=5
+            ?clamp((Number(form.recentAvg||6.5)-6.7)*.045,0,.09)
+            :0;
+
+        const rawChance=requestActive
+          ?(.18+fitAboveThreshold*.011+stepBonus*.55+agentOfferBoost+formOfferBoost+(force?.08:0))
+          :(.07+fitAboveThreshold*.010+stepBonus*.28+agentOfferBoost*.55+formOfferBoost*.55);
+
+        const chance=clamp(
+          rawChance*saturationMultiplier,
+          requestActive?.10:.04,
+          requestActive?.72:.32
+        );
 
         if(Math.random()>chance)continue;
 
@@ -16212,7 +16081,7 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       // A newly-approved request should not feel dead just because the random
       // roll missed every candidate. If there is a realistic top candidate,
       // force one offer on the first market check.
-      if(force&&created===0&&room>0&&candidates.length){
+      if(force&&requestActive&&created===0&&room>0&&candidates.length){
         const row=candidates[0];
         const loan=requestActive&&requestType==="loan";
         const agreement=playerModeTransferAgreement(
@@ -16726,15 +16595,6 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       if(player.age>=35)pm.retirementEligible=true;
       if(pm.loan&&Number(career.worldSeason||1)>=Number(pm.loan.returnSeason||999)){const parent=managerTeam(pm.loan.fromClubId,career);if(parent){playerModeMovePlayer(career,parent,{loan:false,fee:0,wage:player.wage});pm.careerTimeline.unshift({season:Number(career.worldSeason||1),date:pm.currentDate,type:"loan-return",clubId:parent.id,text:`Returned to ${parent.name} after loan.`})}pm.loan=null}
       pm.currentDate=`${SEASON_START_YEAR+Number(career.worldSeason||1)}-08-01`;pm.calendarView=pm.currentDate.slice(0,7);pm.calendarAssignments={};pm.calendarScheduleVersion="v61.9";pm.trainingDates=[];pm.fitness=100;pm.sharpness=68;pm.pressure=Math.max(10,pm.pressure-8);pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};pm.discipline.seasonYellowCards=0;
-      pm.international.seasonMatches=0;
-      pm.international.seasonWins=0;
-      pm.international.seasonPoints=0;
-      pm.international.tournamentActive=false;
-      pm.international.tournamentName="";
-      pm.international.tournamentStage="";
-      pm.international.eliminated=false;
-      pm.international.nextFixture=null;
-      playerModeEnsureInternationalFixture(career);
       playerModeCheckRoadUnlocks(career);
       // Keep late-season interest and convert serious clubs into formal
       // offers so the player can move during the summer immediately.
@@ -16831,7 +16691,6 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       const rivalData=playerModeUpdatePositionalRival(career);
       const streak=playerModeFormStreak(career);
       const agent=playerModeUpdateAgentProfile(career);
-      const intl=playerModeEnsureInternationalFixture(career);
       const season=playerModeSeasonStats(career),avg=playerModeAverageRating(season),rep=playerModeReputationLabel(pm.reputation);
       const favoriteCount=(career.favoriteNews||[]).length;
       const allowedPositions=PLAYER_MODE_POSITION_FAMILIES[player.position]||[player.position];
@@ -16943,23 +16802,6 @@ function playerModeRoadObjectives(career=currentCareerSave()){
           </article>
 
           <article class="card">
-            <div class="startup-kicker">🌍 INTERNATIONAL CAREER</div>
-            <h2>${escapeHtml(pm.international.status)}</h2>
-            <p>${pm.international.appearances} caps · ${pm.international.goals} goals · ${pm.international.assists} assists</p>
-            ${intl?`
-              <div class="notice">
-                <strong>${escapeHtml(player.nationality)} vs ${escapeHtml(intl.opponent)}</strong><br>
-                ${escapeHtml(intl.competition)} · ${escapeHtml(intl.stage)}
-              </div>
-              <div class="toolbar" style="margin-top:9px">
-                <button class="btn small" data-intl-style="attacking">Attack</button>
-                <button class="btn secondary small" data-intl-style="creative">Create</button>
-                <button class="btn secondary small" data-intl-style="balanced">Balanced</button>
-                <button class="btn secondary small" data-intl-style="defensive">Defend</button>
-              </div>`:`<p class="muted">Improve OVR and reputation to earn a national-team call-up.</p>`}
-          </article>
-
-          <article class="card">
             <div class="startup-kicker">⚔️ POSITION RIVAL</div>
             ${rival?`
               <h2>${escapeHtml(rival.name)} · ${rival.overall} OVR</h2>
@@ -17000,7 +16842,6 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       panel.querySelectorAll("[data-injury-plan]").forEach(btn=>btn.onclick=()=>playerModeSetInjuryRecovery(btn.dataset.injuryPlan));
       panel.querySelectorAll("[data-manager-talk]").forEach(btn=>btn.onclick=()=>playerModeManagerConversation(btn.dataset.managerTalk));
       $("playerPositionChangeBtn")?.addEventListener("click",()=>playerModeManagerConversation("position",$("playerPositionChangeSelect")?.value));
-      panel.querySelectorAll("[data-intl-style]").forEach(btn=>btn.onclick=()=>playerModePlayInternationalMatch(btn.dataset.intlStyle));
       bindNewsButtons(panel);
       bindPlayerMatchButtons(panel);
     }
@@ -18193,7 +18034,7 @@ function playerModeBuildFormationXI(career,club,options={}){
             <div>
               <div class="startup-kicker">🤝 AGENT & TRANSFERS</div>
               <h1>Transfer Status</h1>
-              <p class="muted">Ask your current club for a move, then interested clubs can contact you with actual offers.</p>
+              <p class="muted">Ask your current club for a move, then interested clubs can contact you with actual offers. Up to 29 official offers can stay active at once, but clubs still need realistic interest, budget and squad fit before they bid.</p>
             </div>
             <div class="toolbar" style="margin:0;justify-content:flex-end">
               <span class="badge">${escapeHtml(playerModeTransferRequestLabel(pm))}</span>
@@ -18459,7 +18300,7 @@ function playerModeBuildFormationXI(career,club,options={}){
             <div class="manager-summary-card"><small>Appearances</small><strong>${pm.stats.appearances}</strong></div>
             <div class="manager-summary-card"><small>Goals</small><strong>${pm.stats.goals}</strong></div>
             <div class="manager-summary-card"><small>Assists</small><strong>${pm.stats.assists}</strong></div>
-            <div class="manager-summary-card"><small>Trophies</small><strong>${pm.trophyCabinet.length+(pm.international?.trophies?.length||0)}</strong></div>
+            <div class="manager-summary-card"><small>Trophies</small><strong>${pm.trophyCabinet.length}</strong></div>
             <div class="manager-summary-card"><small>Awards</small><strong>${pm.awards.length}</strong></div>
             <div class="manager-summary-card"><small>Peak OVR</small><strong>${pm.peakOverall||player.overall}</strong></div>
             <div class="manager-summary-card"><small>Legacy Score</small><strong>${legacy}</strong></div>
@@ -18486,13 +18327,6 @@ function playerModeBuildFormationXI(career,club,options={}){
           <article class="card"><h2>Personal Rivalries</h2>${rivals.map(r=>{const club=managerTeam(r.clubId,career),rival=managerPlayerById(r.rivalPlayerId,career);return `<div class="stage"><strong>${escapeHtml(club?.name||'Unknown Club')}</strong><div class="muted">${r.meetings} meetings · Intensity ${r.intensity}${rival?` · Rival: ${escapeHtml(rival.name)}`:''}</div></div>`}).join("")||`<p class="muted">Rivalries build after repeated big matches.</p>`}</article>
 
           <article class="card"><h2>Teammate Relationships</h2>${teammates.map(r=>{const mate=managerPlayerById(r.playerId,career);return `<div class="stage"><strong>${escapeHtml(mate?.name||"Former Teammate")}</strong><div class="muted">${escapeHtml(r.status||"Teammate")} · Chemistry ${Math.round(r.chemistry||0)}/100 ${r.former?"· Former teammate":""}</div></div>`}).join("")||`<p class="muted">No teammate relationships recorded yet.</p>`}</article>
-
-          <article class="card">
-            <h2>International Career</h2>
-            <p><strong>${escapeHtml(pm.international.status)}</strong></p>
-            <p>${pm.international.appearances} appearances · ${pm.international.goals} goals · ${pm.international.assists} assists</p>
-            ${(pm.international.trophies||[]).map(t=>`<div class="stage">🌍 <strong>${escapeHtml(t.name)}</strong><div class="muted">${escapeHtml(seasonDisplay(t.season))} · ${escapeHtml(t.nationality)}</div></div>`).join("")||`<p class="muted">No international trophy yet.</p>`}
-          </article>
 
           <article class="card">
             <h2>Interviews & Media</h2>
