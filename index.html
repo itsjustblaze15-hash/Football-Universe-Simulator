@@ -6361,6 +6361,299 @@ body.player-mode #tab-manager-player-records{
   .live-shot-goal{min-height:145px}
 }
 
+
+/* V62.2 — Player Career post-match player ratings */
+.live-postmatch-ratings{
+  margin-top:18px;
+}
+.live-postmatch-ratings.hidden{display:none!important}
+.live-postmatch-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.live-postmatch-head h2{
+  margin:3px 0 0;
+  font-size:25px;
+}
+.live-postmatch-tabs{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.live-postmatch-tab{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:38px;
+  padding:7px 11px;
+  border-radius:11px;
+  color:var(--text);
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.10);
+  font-weight:900;
+  cursor:pointer;
+}
+.live-postmatch-tab.active{
+  color:#dcfce7;
+  background:rgba(16,185,129,.13);
+  border-color:rgba(52,211,153,.38);
+}
+.live-postmatch-tab .logo{
+  width:26px!important;
+  height:26px!important;
+  flex:0 0 26px!important;
+}
+.live-postmatch-scoreline{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:2px 0 12px;
+  font-size:13px;
+  font-weight:900;
+  color:var(--muted);
+}
+.live-postmatch-scoreline strong{
+  color:var(--text);
+  font-size:18px;
+}
+.live-ratings-pitch-wrap{
+  padding:12px;
+  border-radius:18px;
+  border:1px solid rgba(194,255,230,.18);
+  background:#06161a;
+}
+.live-ratings-pitch.manager-pitch{
+  min-height:585px;
+  aspect-ratio:1.42/1;
+  border-radius:18px;
+  border-color:rgba(210,255,235,.34);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.020) 0,
+      rgba(255,255,255,.020) 12.5%,
+      rgba(0,0,0,.020) 12.5%,
+      rgba(0,0,0,.020) 25%
+    ),
+    radial-gradient(circle at 50% 44%,rgba(16,185,129,.12),transparent 43%),
+    linear-gradient(180deg,#123b35 0%,#0c312c 49%,#082722 100%);
+  overflow:hidden;
+}
+.live-rating-player.manager-pitch-player{
+  cursor:default;
+  pointer-events:none;
+  width:122px;
+}
+.live-rating-player.manager-pitch-player:hover{
+  transform:translate(-50%,-50%);
+}
+.live-rating-player .manager-player-disc{
+  width:62px;
+  height:62px;
+}
+.live-rating-player .manager-player-disc.has-photo{
+  width:78px;
+  height:78px;
+}
+.live-rating-player .manager-player-photo.pitch{
+  width:78px;
+  height:78px;
+}
+.live-rating-player .pitch-rating{
+  position:absolute;
+  right:-14px;
+  top:-8px;
+  min-width:36px;
+  height:25px;
+  padding:0 6px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  font-size:11px;
+  font-weight:1000;
+  color:#d1fae5;
+  background:#066746;
+  border:1px solid rgba(110,231,183,.42);
+  box-shadow:0 5px 12px rgba(0,0,0,.25);
+}
+.live-rating-player .pitch-rating.good{
+  color:#ecfccb;
+  background:#3f6212;
+  border-color:rgba(190,242,100,.38);
+}
+.live-rating-player .pitch-rating.elite{
+  color:#fff7cc;
+  background:#8a5d08;
+  border-color:rgba(253,224,71,.48);
+}
+.live-rating-player .pitch-rating.poor{
+  color:#fee2e2;
+  background:#8b1e2d;
+  border-color:rgba(252,165,165,.42);
+}
+.live-rating-player .pitch-pos{
+  left:-14px;
+  top:-8px;
+}
+.live-rating-player .manager-pitch-name{
+  margin-top:2px;
+  font-size:12px;
+}
+.live-rating-player .manager-pitch-subline{
+  min-height:18px;
+}
+.live-rating-player.live-rating-you .manager-player-disc:not(.has-photo){
+  border-color:#a78bfa;
+  box-shadow:0 0 0 4px rgba(139,92,246,.24),0 10px 25px rgba(0,0,0,.32);
+}
+.live-rating-player.live-rating-you .manager-player-disc.has-photo{
+  filter:drop-shadow(0 0 8px rgba(167,139,250,.95));
+}
+.live-rating-player.live-rating-you .manager-pitch-name{
+  color:#e9ddff;
+}
+.live-rating-player.live-rating-motm .manager-pitch-name::after{
+  content:" ★";
+  color:#fde047;
+}
+.live-rating-chip-you{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:2px 6px;
+  border-radius:999px;
+  color:#fff;
+  background:#6d4ce8;
+  border:1px solid #9b87ff;
+  font-size:8px;
+  font-weight:1000;
+  letter-spacing:.06em;
+}
+.live-rating-chip-motm{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:2px 6px;
+  border-radius:999px;
+  color:#fff7cc;
+  background:rgba(161,98,7,.55);
+  border:1px solid rgba(253,224,71,.42);
+  font-size:8px;
+  font-weight:1000;
+}
+.live-rating-bench{
+  margin-top:11px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.025);
+}
+.live-rating-bench h3{
+  margin:0 0 9px;
+  font-size:14px;
+}
+.live-rating-bench-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.live-rating-bench-row{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:8px;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.025);
+}
+.live-rating-bench-row .manager-bench-photo-wrap{
+  width:38px;
+  height:38px;
+}
+.live-rating-bench-row .manager-player-photo.bench{
+  width:40px;
+  height:40px;
+}
+.live-rating-bench-copy{
+  min-width:0;
+}
+.live-rating-bench-copy strong,
+.live-rating-bench-copy small{
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.live-rating-bench-copy small{
+  color:var(--muted);
+  font-size:9px;
+  margin-top:2px;
+}
+.live-rating-bench-score{
+  min-width:36px;
+  text-align:center;
+  padding:5px 6px;
+  border-radius:8px;
+  color:#d1fae5;
+  background:#066746;
+  border:1px solid rgba(110,231,183,.30);
+  font-size:11px;
+  font-weight:1000;
+}
+.live-match-shell.post-match-ratings-active .live-match-feed-wrap,
+.live-match-shell.post-match-ratings-active #livePlayerStatus,
+.live-match-shell.post-match-ratings-active #liveMatchDecision,
+.live-match-shell.post-match-ratings-active #livePenaltyPanel,
+.live-match-shell.post-match-ratings-active #liveShotChallenge{
+  display:none!important;
+}
+.live-match-shell.post-match-ratings-active .live-match-scoreboard{
+  padding-top:18px;
+  padding-bottom:16px;
+}
+.live-match-shell.post-match-ratings-active .live-match-logo .logo{
+  width:70px!important;
+  height:70px!important;
+  flex-basis:70px!important;
+}
+.live-match-shell.post-match-ratings-active .live-match-score{
+  font-size:48px;
+}
+.live-match-dialog:has(.post-match-ratings-active){
+  width:min(1080px,calc(100% - 20px));
+  max-width:1080px;
+  max-height:95vh;
+  overflow:auto;
+}
+@media(max-width:760px){
+  .live-ratings-pitch.manager-pitch{
+    min-height:500px;
+    aspect-ratio:1/1.08;
+  }
+  .live-rating-player.manager-pitch-player{width:88px}
+  .live-rating-player .manager-player-disc{width:50px;height:50px}
+  .live-rating-player .manager-player-disc.has-photo,
+  .live-rating-player .manager-player-photo.pitch{width:60px;height:60px}
+  .live-rating-player .manager-pitch-name{font-size:10px}
+  .live-rating-bench-grid{grid-template-columns:1fr}
+}
+@media(max-width:470px){
+  .live-ratings-pitch.manager-pitch{min-height:430px}
+  .live-rating-player.manager-pitch-player{width:70px}
+  .live-rating-player .manager-player-disc{width:43px;height:43px}
+  .live-rating-player .manager-player-disc.has-photo,
+  .live-rating-player .manager-player-photo.pitch{width:52px;height:52px}
+  .live-rating-player .pitch-rating,
+  .live-rating-player .pitch-pos{transform:scale(.86)}
+  .live-rating-player .manager-pitch-name{font-size:9px}
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -9846,6 +10139,8 @@ body.player-calendar-advancing #playerNextMatchBtn{
         </div>
       </div>
 
+      <div id="livePostMatchRatings" class="live-postmatch-ratings hidden"></div>
+
       <div class="live-match-feed-wrap">
         <div class="startup-kicker">MATCH FEED</div>
         <div id="liveMatchFeed" class="live-match-feed"></div>
@@ -12565,7 +12860,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           trophies:[],
           nextFixture:null
         },
-        expansionVersion:"v62.1-shooting-challenge",
+        expansionVersion:"v62.2-post-match-ratings",
         retirementEligible:false,
         retired:false,
         pendingIntroCeremony:true
@@ -12652,7 +12947,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.international.trophies=Array.isArray(pm.international.trophies)?pm.international.trophies:[];
       pm.international.nextFixture=pm.international.nextFixture||null;
       career.playerHallOfFame=Array.isArray(career.playerHallOfFame)?career.playerHallOfFame:[];
-      pm.expansionVersion="v62.1-shooting-challenge";
+      pm.expansionVersion="v62.2-post-match-ratings";
       pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
       pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
       pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0);
@@ -27769,7 +28064,292 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       setTimeout(()=>processNextLivePenalty(),650);
     }
 
-    function finishLiveMatchAnimation() {
+    
+    function livePostMatchLineupSnapshot(career,teamId){
+      const team=managerTeam(teamId,career);
+      if(!team)return null;
+
+      let options={};
+      if(isPlayerMode(career)&&teamId===career.controlledTeamId){
+        const pm=playerModeData(career),user=playerModePlayer(career);
+        const selection=pm?.matchSelection||pm?.matchPlan?.selection||"";
+        if(selection==="starter")options.forcePlayerId=user?.id||null;
+        else if(["bench","injured","suspended","not_selected"].includes(selection)){
+          options.excludePlayerId=user?.id||null;
+        }
+      }
+
+      const view=playerModeBuildFormationXI(career,team,options);
+      return {
+        teamId,
+        formation:view.formation,
+        placed:view.placed.map(row=>({
+          playerId:row.player.id,
+          slot:{
+            key:row.slot.key,
+            label:row.slot.label,
+            x:Number(row.slot.x),
+            y:Number(row.slot.y)
+          }
+        })),
+        bench:view.bench.map(player=>player.id)
+      };
+    }
+
+    function livePostMatchStableNoise(playerId,state){
+      const seed=`${playerId}|${state.compId}|${state.game.homeId}|${state.game.awayId}|${state.matchMinutes||90}`;
+      let hash=0;
+      for(let i=0;i<seed.length;i++){
+        hash=((hash<<5)-hash)+seed.charCodeAt(i);
+        hash|=0;
+      }
+      return ((Math.abs(hash)%1000)/999-.5)*.58;
+    }
+
+    function livePostMatchRatingClass(rating){
+      const n=Number(rating||0);
+      if(n>=8.5)return "elite";
+      if(n>=7.2)return "good";
+      if(n<6)return "poor";
+      return "";
+    }
+
+    function livePostMatchTeamRatingRows(state,side,career){
+      const snapshot=state.postMatchLineups?.[side];
+      if(!snapshot)return [];
+
+      const teamId=snapshot.teamId;
+      const opponentSide=side==="home"?"away":"home";
+      const scored=side==="home"?Number(state.finalHomeGoals||0):Number(state.finalAwayGoals||0);
+      const conceded=side==="home"?Number(state.finalAwayGoals||0):Number(state.finalHomeGoals||0);
+
+      const winnerId=state.decidedBy==="penalties"
+        ?state.penaltyWinnerId
+        :scored===conceded
+          ?null
+          :scored>conceded
+            ?teamId
+            :state.postMatchLineups?.[opponentSide]?.teamId;
+
+      const won=winnerId===teamId;
+      const draw=!winnerId&&scored===conceded;
+
+      const scorerCounts={};
+      (state.goalEvents||[])
+        .filter(event=>event.type==="goal"&&event._processed&&event.scorerId)
+        .forEach(event=>{
+          scorerCounts[event.scorerId]=(scorerCounts[event.scorerId]||0)+1;
+        });
+
+      const pm=isPlayerMode(career)?playerModeData(career):null;
+      const userId=pm?.playerId||null;
+      const userLast=pm?.lastMatchStatus||null;
+
+      return snapshot.placed.map(row=>{
+        const player=managerPlayerById(row.playerId,career);
+        if(!player)return null;
+
+        const goals=Number(scorerCounts[player.id]||0);
+        const position=String(player.position||"");
+        const defensive=["GK","CB","LB","RB"].includes(position);
+
+        let rating=
+          6.35+
+          (won?.38:draw?.08:-.28)+
+          goals*1.15+
+          (conceded===0&&defensive?.34:0)+
+          (conceded>=3&&defensive?-.22:0)+
+          livePostMatchStableNoise(player.id,state);
+
+        if(position==="GK"&&conceded===0)rating+=.18;
+        if(scored>=3&&["ST","LW","RW","CAM","CM"].includes(position))rating+=.10;
+
+        rating=clamp(Number(rating.toFixed(1)),4.8,9.8);
+
+        // The controlled player's displayed rating must be the exact rating
+        // recorded by Player Career after this match.
+        if(
+          player.id===userId &&
+          userLast?.appeared &&
+          Number(userLast.rating||0)>0
+        ){
+          rating=Number(userLast.rating);
+        }
+
+        return {
+          ...row,
+          player,
+          goals,
+          rating
+        };
+      }).filter(Boolean);
+    }
+
+    function livePostMatchFaceHtml(career,player,context="pitch"){
+      const user=playerModePlayer(career);
+      if(player?.id===user?.id){
+        return playerModeClubFaceHtml(career,player,user,context);
+      }
+      return managerPlayerFaceHtml(player,context);
+    }
+
+    function livePostMatchHasPhoto(career,player){
+      const user=playerModePlayer(career);
+      return playerModeClubHasPhoto(career,player,user);
+    }
+
+    function livePostMatchRatingsPitchHtml(state,side,career){
+      const snapshot=state.postMatchLineups?.[side];
+      if(!snapshot)return `<p class="muted">No lineup data was recorded for this team.</p>`;
+
+      const rows=livePostMatchTeamRatingRows(state,side,career);
+      const userId=playerModeData(career)?.playerId||null;
+
+      const allRows=[
+        ...livePostMatchTeamRatingRows(state,"home",career),
+        ...livePostMatchTeamRatingRows(state,"away",career)
+      ];
+      const motm=[...allRows].sort((a,b)=>Number(b.rating||0)-Number(a.rating||0))[0]||null;
+
+      const pm=playerModeData(career);
+      const last=pm?.lastMatchStatus;
+      const usedSubs=[];
+
+      // Player Career currently tracks the controlled player's substitution
+      // exactly. If YOU came off the bench, show your match rating below the
+      // starting XI pitch as a used substitute.
+      if(
+        snapshot.teamId===career.controlledTeamId &&
+        last?.appeared &&
+        !last.started
+      ){
+        const user=playerModePlayer(career);
+        if(user){
+          usedSubs.push({
+            player:user,
+            rating:Number(last.rating||0),
+            minute:Number(last.subOnMinute||0)
+          });
+        }
+      }
+
+      const team=managerTeam(snapshot.teamId,career);
+      const scored=side==="home"?state.finalHomeGoals:state.finalAwayGoals;
+      const conceded=side==="home"?state.finalAwayGoals:state.finalHomeGoals;
+
+      return `
+        <div class="live-postmatch-scoreline">
+          <strong>${escapeHtml(team?.name||"Team")}</strong>
+          <span>${scored}–${conceded}</span>
+          <span>${escapeHtml(snapshot.formation)}</span>
+        </div>
+
+        <div class="live-ratings-pitch-wrap">
+          <div class="manager-pitch live-ratings-pitch">
+            <div class="manager-pitch-lines">
+              <span class="top-box"></span>
+              <span class="bottom-box"></span>
+              <span class="top-six"></span>
+              <span class="bottom-six"></span>
+              <span class="center-dot"></span>
+            </div>
+
+            ${rows.map(row=>{
+              const isYou=row.player.id===userId;
+              const isMotm=row.player.id===motm?.player?.id;
+              const hasPhoto=livePostMatchHasPhoto(career,row.player);
+
+              return `<div
+                class="manager-pitch-player live-rating-player ${isYou?"live-rating-you":""} ${isMotm?"live-rating-motm":""}"
+                style="left:${row.slot.x}%;top:${row.slot.y}%"
+                title="${escapeHtml(row.player.name)} · ${escapeHtml(row.player.position)} · ${row.rating.toFixed(1)} match rating"
+              >
+                <span class="manager-player-disc ${hasPhoto?"has-photo":""}">
+                  <span class="pitch-pos">${escapeHtml(row.player.position)}</span>
+                  ${livePostMatchFaceHtml(career,row.player,"pitch")}
+                  <span class="pitch-rating ${livePostMatchRatingClass(row.rating)}">${row.rating.toFixed(1)}</span>
+                </span>
+                <span class="manager-pitch-name">${escapeHtml(row.player.name)}</span>
+                <span class="manager-pitch-subline">
+                  ${isYou?`<span class="live-rating-chip-you">YOU</span>`:""}
+                  ${isMotm?`<span class="live-rating-chip-motm">★ MOTM</span>`:""}
+                  ${row.goals?`<span>⚽ ${row.goals}</span>`:""}
+                  ${!isYou&&!isMotm&&!row.goals?`<span>${escapeHtml(row.slot.label)}</span>`:""}
+                </span>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
+
+        ${usedSubs.length?`
+          <div class="live-rating-bench">
+            <h3>Substitutes Used</h3>
+            <div class="live-rating-bench-grid">
+              ${usedSubs.map(row=>{
+                const hasPhoto=livePostMatchHasPhoto(career,row.player);
+                return `<div class="live-rating-bench-row">
+                  ${hasPhoto
+                    ?`<span class="manager-bench-photo-wrap">${livePostMatchFaceHtml(career,row.player,"bench")}</span>`
+                    :`<span class="manager-bench-mini">${escapeHtml(row.player.position)}</span>`}
+                  <span class="live-rating-bench-copy">
+                    <strong>${escapeHtml(row.player.name)} · YOU</strong>
+                    <small>Subbed on ${row.minute?`${row.minute}'`:"during the match"}</small>
+                  </span>
+                  <span class="live-rating-bench-score">${row.rating?row.rating.toFixed(1):"—"}</span>
+                </div>`;
+              }).join("")}
+            </div>
+          </div>`:""}
+      `;
+    }
+
+    function renderLivePostMatchRatings(state=liveMatchState){
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      const root=$("livePostMatchRatings");
+      if(!root||!state||!isPlayerMode(career))return;
+
+      const controlledSide=state.game.homeId===career.controlledTeamId?"home":"away";
+      state.postMatchRatingsSide=state.postMatchRatingsSide||controlledSide;
+
+      const active=state.postMatchRatingsSide;
+      const homeTeam=managerTeam(state.game.homeId,career);
+      const awayTeam=managerTeam(state.game.awayId,career);
+
+      root.innerHTML=`
+        <div class="live-postmatch-head">
+          <div>
+            <div class="startup-kicker">📊 FULL TIME · PLAYER RATINGS</div>
+            <h2>Match Ratings</h2>
+            <p class="muted" style="margin:4px 0 0">Switch teams to see every starting player's performance rating.</p>
+          </div>
+          <div class="live-postmatch-tabs">
+            <button type="button" class="live-postmatch-tab ${active==="home"?"active":""}" data-live-rating-side="home">
+              ${teamLogo(homeTeam)}
+              <span>${escapeHtml(homeTeam?.name||"Home")}</span>
+            </button>
+            <button type="button" class="live-postmatch-tab ${active==="away"?"active":""}" data-live-rating-side="away">
+              ${teamLogo(awayTeam)}
+              <span>${escapeHtml(awayTeam?.name||"Away")}</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="livePostMatchPitchContent">
+          ${livePostMatchRatingsPitchHtml(state,active,career)}
+        </div>`;
+
+      root.classList.remove("hidden");
+      document.querySelector(".live-match-shell")?.classList.add("post-match-ratings-active");
+
+      root.querySelectorAll("[data-live-rating-side]").forEach(button=>{
+        button.addEventListener("click",()=>{
+          state.postMatchRatingsSide=button.dataset.liveRatingSide;
+          renderLivePostMatchRatings(state);
+        });
+      });
+    }
+
+function finishLiveMatchAnimation() {
       if (!liveMatchState || liveMatchState.committed) return;
 
       clearInterval(liveMatchTimer);
@@ -27873,16 +28453,19 @@ function playerModeRoadObjectives(career=currentCareerSave()){
 
         playerModeAdvanceBackgroundWorld(playerCareerNow,state.compId);
         saveData("");
+        renderLivePostMatchRatings(state);
       }
 
       state.committed=true;
-      $("liveMatchFooterText").textContent=
-        state.decidedBy==="penalties"
+      $("liveMatchFooterText").textContent=isPlayerMode(currentCareerSave())
+        ?"Full time. Review both teams' player ratings, then continue."
+        :state.decidedBy==="penalties"
           ?`${teamName(winnerId)} survive the shootout.`
           :state.wentExtraTime
             ?`${teamName(winnerId)} win after extra time.`
             :"The rest of the matchday has now been simulated.";
 
+      $("liveMatchContinueBtn").textContent="Continue";
       $("liveMatchContinueBtn").classList.remove("hidden");
     }
 
@@ -28516,6 +29099,11 @@ function tickLiveMatch() {
       };
 
       if(isPlayerMode(managerCareer)){
+        liveMatchState.postMatchLineups={
+          home:livePostMatchLineupSnapshot(managerCareer,game.homeId),
+          away:livePostMatchLineupSnapshot(managerCareer,game.awayId)
+        };
+        liveMatchState.postMatchRatingsSide=game.homeId===managerCareer.controlledTeamId?"home":"away";
         playerModeBuildLiveShotChances(liveMatchState,managerCareer);
       }
 
@@ -28543,6 +29131,8 @@ function tickLiveMatch() {
       $("liveMatchDecision").classList.add("hidden");
       $("livePenaltyPanel").classList.add("hidden");
       $("liveShotChallenge")?.classList.add("hidden");
+      $("livePostMatchRatings")?.classList.add("hidden");
+      document.querySelector(".live-match-shell")?.classList.remove("post-match-ratings-active");
       liveShotCleanupTimers();
       liveShotSetButtonsDisabled(false);
       $("liveMatchPhase").classList.remove("extra-time","penalties");
@@ -28563,6 +29153,8 @@ function tickLiveMatch() {
       liveMatchTimer = null;
       liveShotCleanupTimers();
       $("liveShotChallenge")?.classList.add("hidden");
+      $("livePostMatchRatings")?.classList.add("hidden");
+      document.querySelector(".live-match-shell")?.classList.remove("post-match-ratings-active");
       $("liveMatchDialog").close();
       liveMatchState = null;
 
