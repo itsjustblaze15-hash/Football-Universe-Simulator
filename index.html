@@ -6654,6 +6654,182 @@ body.player-mode #tab-manager-player-records{
   .live-rating-player .manager-pitch-name{font-size:9px}
 }
 
+
+/* V62.3 — Pre-match lineups + forced post-match ratings */
+.player-match-dialog:has(.player-pregame-lineups){
+  width:min(1040px,calc(100% - 22px));
+  max-width:1040px;
+  max-height:94vh;
+  overflow:auto;
+}
+.player-pregame-lineups{
+  margin-top:16px;
+  padding:14px;
+  border-radius:17px;
+  border:1px solid rgba(52,211,153,.18);
+  background:linear-gradient(180deg,rgba(16,185,129,.045),rgba(255,255,255,.018));
+}
+.player-pregame-lineup-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.player-pregame-lineup-head h3{
+  margin:3px 0;
+  font-size:20px;
+}
+.player-pregame-lineup-head p{margin:0}
+.player-pregame-tabs{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.player-pregame-tab{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-height:38px;
+  padding:6px 10px;
+  border-radius:11px;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.03);
+  font-weight:900;
+  cursor:pointer;
+}
+.player-pregame-tab.active{
+  color:#dcfce7;
+  border-color:rgba(52,211,153,.40);
+  background:rgba(16,185,129,.12);
+}
+.player-pregame-tab .logo{
+  width:27px!important;
+  height:27px!important;
+  flex:0 0 27px!important;
+}
+.player-pregame-team-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:8px 0 10px;
+}
+.player-pregame-team-title .logo{
+  width:42px!important;
+  height:42px!important;
+  flex:0 0 42px!important;
+}
+.player-pregame-team-title strong,
+.player-pregame-team-title small{
+  display:block;
+}
+.player-pregame-team-title strong{font-size:18px}
+.player-pregame-team-title small{margin-top:2px;color:var(--muted)}
+.player-pregame-pitch-wrap{
+  padding:10px;
+  border-radius:16px;
+  background:#06161a;
+  border:1px solid rgba(210,255,235,.16);
+}
+.player-pregame-pitch.manager-pitch{
+  min-height:525px;
+  aspect-ratio:1.42/1;
+  border-radius:16px;
+  border-color:rgba(210,255,235,.34);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.020) 0,
+      rgba(255,255,255,.020) 12.5%,
+      rgba(0,0,0,.020) 12.5%,
+      rgba(0,0,0,.020) 25%
+    ),
+    radial-gradient(circle at 50% 44%,rgba(16,185,129,.12),transparent 43%),
+    linear-gradient(180deg,#123b35 0%,#0c312c 49%,#082722 100%);
+}
+.player-pregame-player.manager-pitch-player{
+  cursor:default;
+  pointer-events:none;
+  width:118px;
+}
+.player-pregame-player.manager-pitch-player:hover{
+  transform:translate(-50%,-50%);
+}
+.player-pregame-player .manager-player-disc.has-photo,
+.player-pregame-player .manager-player-photo.pitch{
+  width:76px;
+  height:76px;
+}
+.player-pregame-player.player-pregame-you .manager-player-disc:not(.has-photo){
+  border-color:#a78bfa;
+  box-shadow:0 0 0 4px rgba(139,92,246,.24),0 10px 25px rgba(0,0,0,.32);
+}
+.player-pregame-player.player-pregame-you .manager-player-disc.has-photo{
+  filter:drop-shadow(0 0 8px rgba(167,139,250,.95));
+}
+.player-pregame-player.player-pregame-you .manager-pitch-name{
+  color:#e9ddff;
+}
+.player-pregame-bench{
+  margin-top:10px;
+  padding:10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+}
+.player-pregame-bench>strong{
+  display:block;
+  margin-bottom:7px;
+}
+.player-pregame-bench-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.player-pregame-bench-list span{
+  padding:5px 8px;
+  border-radius:999px;
+  color:var(--muted);
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.07);
+  font-size:9px;
+  font-weight:850;
+}
+.player-pregame-bench-list span.you{
+  color:#e9ddff;
+  border-color:rgba(167,139,250,.38);
+  background:rgba(139,92,246,.13);
+}
+
+/* At full time, ratings are the primary content, not hidden below the feed. */
+.live-match-shell.post-match-ratings-active #livePostMatchRatings{
+  display:block!important;
+  order:20;
+}
+.live-match-shell.post-match-ratings-active .live-match-footer{
+  order:30;
+}
+.live-match-shell.post-match-ratings-active{
+  min-height:auto;
+}
+@media(max-width:760px){
+  .player-pregame-pitch.manager-pitch{
+    min-height:470px;
+    aspect-ratio:1/1.08;
+  }
+  .player-pregame-player.manager-pitch-player{width:86px}
+  .player-pregame-player .manager-player-disc.has-photo,
+  .player-pregame-player .manager-player-photo.pitch{width:60px;height:60px}
+}
+@media(max-width:470px){
+  .player-pregame-pitch.manager-pitch{min-height:415px}
+  .player-pregame-player.manager-pitch-player{width:70px}
+  .player-pregame-player .manager-pitch-name{font-size:9px}
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -12860,7 +13036,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           trophies:[],
           nextFixture:null
         },
-        expansionVersion:"v62.2-post-match-ratings",
+        expansionVersion:"v62.3-lineups-ratings-fix",
         retirementEligible:false,
         retired:false,
         pendingIntroCeremony:true
@@ -12947,7 +13123,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.international.trophies=Array.isArray(pm.international.trophies)?pm.international.trophies:[];
       pm.international.nextFixture=pm.international.nextFixture||null;
       career.playerHallOfFame=Array.isArray(career.playerHallOfFame)?career.playerHallOfFame:[];
-      pm.expansionVersion="v62.2-post-match-ratings";
+      pm.expansionVersion="v62.3-lineups-ratings-fix";
       pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
       pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
       pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0);
@@ -16848,7 +17024,118 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       bindPlayerMatchButtons(panel);
     }
     function bindPlayerMatchButtons(root=document){root.querySelectorAll("[data-player-open-match]").forEach(el=>el.onclick=(event)=>{event.preventDefault();playerModeOpenMatch(el.dataset.playerOpenMatch,el.dataset.playerMatchKey,el.dataset.playerMatchDate)})}
-    function playerModeOpenMatch(compId,key,date){
+    
+    function playerModePreMatchLineupSnapshot(career,teamId){
+      const team=managerTeam(teamId,career);
+      if(!team)return null;
+
+      const pm=playerModeData(career);
+      const user=playerModePlayer(career);
+      let options={};
+
+      if(teamId===career.controlledTeamId&&user){
+        const selection=pm?.matchSelection||pm?.matchPlan?.selection||"";
+        if(selection==="starter"){
+          options.forcePlayerId=user.id;
+        }else if(["bench","injured","suspended","not_selected"].includes(selection)){
+          options.excludePlayerId=user.id;
+        }
+      }
+
+      const view=playerModeBuildFormationXI(career,team,options);
+
+      return {
+        teamId,
+        formation:view.formation,
+        placed:view.placed.map(row=>({
+          playerId:row.player.id,
+          slot:{
+            key:row.slot.key,
+            label:row.slot.label,
+            x:Number(row.slot.x),
+            y:Number(row.slot.y)
+          }
+        })),
+        bench:view.bench.map(player=>player.id)
+      };
+    }
+
+    function playerModePreMatchLineupPitchHtml(career,snapshot){
+      if(!snapshot)return `<p class="muted">Lineup unavailable.</p>`;
+
+      const team=managerTeam(snapshot.teamId,career);
+      const user=playerModePlayer(career);
+      const pm=playerModeData(career);
+
+      return `
+        <div class="player-pregame-team-title">
+          ${teamLogo(team)}
+          <div>
+            <strong>${escapeHtml(team?.name||"Team")}</strong>
+            <small>${escapeHtml(snapshot.formation)} · Starting XI</small>
+          </div>
+        </div>
+
+        <div class="player-pregame-pitch-wrap">
+          <div class="manager-pitch player-pregame-pitch">
+            <div class="manager-pitch-lines">
+              <span class="top-box"></span>
+              <span class="bottom-box"></span>
+              <span class="top-six"></span>
+              <span class="bottom-six"></span>
+              <span class="center-dot"></span>
+            </div>
+
+            ${snapshot.placed.map(row=>{
+              const squadPlayer=managerPlayerById(row.playerId,career);
+              if(!squadPlayer)return "";
+              const isYou=squadPlayer.id===user?.id;
+              const hasPhoto=playerModeClubHasPhoto(career,squadPlayer,user);
+
+              return `<div
+                class="manager-pitch-player player-pregame-player ${isYou?"player-pregame-you":""}"
+                style="left:${row.slot.x}%;top:${row.slot.y}%"
+                title="${escapeHtml(squadPlayer.name)} · ${escapeHtml(squadPlayer.position)} · ${squadPlayer.overall} OVR"
+              >
+                <span class="manager-player-disc ${hasPhoto?"has-photo":""}">
+                  <span class="pitch-pos">${escapeHtml(squadPlayer.position)}</span>
+                  ${playerModeClubFaceHtml(career,squadPlayer,user,"pitch")}
+                  <span class="pitch-ovr">${squadPlayer.overall}</span>
+                </span>
+                <span class="manager-pitch-name">${escapeHtml(squadPlayer.name)}</span>
+                <span class="manager-pitch-subline">
+                  ${isYou?`<span class="player-club-you-chip">YOU</span>`:`<span>${escapeHtml(row.slot.label)}</span>`}
+                </span>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
+
+        <div class="player-pregame-bench">
+          <strong>Bench</strong>
+          <div class="player-pregame-bench-list">
+            ${snapshot.bench.slice(0,7).map(id=>{
+              const p=managerPlayerById(id,career);
+              if(!p)return "";
+              const isYou=p.id===user?.id;
+              return `<span class="${isYou?"you":""}">${escapeHtml(p.name)} · ${escapeHtml(p.position)} · ${p.overall}${isYou?" · YOU":""}</span>`;
+            }).join("")||`<span class="muted">No substitutes listed.</span>`}
+          </div>
+        </div>`;
+    }
+
+    function playerModeRenderPreMatchLineup(career,lineups,side){
+      const root=$("playerPreMatchLineupContent");
+      if(!root)return;
+      const snapshot=lineups?.[side];
+      root.innerHTML=playerModePreMatchLineupPitchHtml(career,snapshot);
+
+      document.querySelectorAll("[data-pregame-side]").forEach(button=>{
+        button.classList.toggle("active",button.dataset.pregameSide===side);
+      });
+    }
+
+function playerModeOpenMatch(compId,key,date){
       const career=currentCareerSave(),pm=playerModeData(career),comp=career?.competitions?.find(c=>c.id===compId),club=playerModeClub(career);if(!pm||!comp||!club)return;
       const fixture=playerModeUpcomingFixtures(career).find(row=>row.comp.id===compId&&(!key||row.key===key))||playerModeUpcomingFixtures(career).find(row=>row.comp.id===compId);
       if(!fixture)return showToast("That fixture is no longer available.",true);
@@ -16857,6 +17144,11 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       playerModeEnsureMatchPlan(career,comp,fixture,fixture.date,false);
       pm.pendingMatchDate=fixture.date;
       const selection=pm.matchSelection;
+      const preMatchLineups={
+        home:playerModePreMatchLineupSnapshot(career,fixture.game.homeId),
+        away:playerModePreMatchLineupSnapshot(career,fixture.game.awayId)
+      };
+      const controlledSide=fixture.game.homeId===club.id?"home":"away";
       const root=$("playerMatchDialogContent");
       root.innerHTML=`<div class="player-match-modal">
         <div class="archive-header">
@@ -16882,13 +17174,40 @@ function playerModeRoadObjectives(career=currentCareerSave()){
           <div class="manager-summary-card"><small>Manager Trust</small><strong>${Math.round(pm.managerTrust)}</strong></div>
           <div class="manager-summary-card"><small>Role</small><strong>${escapeHtml(pm.squadRole)}</strong></div>
         </div>
+        <section class="player-pregame-lineups">
+          <div class="player-pregame-lineup-head">
+            <div>
+              <div class="startup-kicker">👥 STARTING LINEUPS</div>
+              <h3>Who's Playing?</h3>
+              <p class="muted">Check your XI and the opponent's XI before kickoff.</p>
+            </div>
+            <div class="player-pregame-tabs">
+              <button type="button" class="player-pregame-tab ${controlledSide==="home"?"active":""}" data-pregame-side="home">
+                ${teamLogo(managerTeam(fixture.game.homeId,career))}
+                <span>${escapeHtml(teamName(fixture.game.homeId))}</span>
+              </button>
+              <button type="button" class="player-pregame-tab ${controlledSide==="away"?"active":""}" data-pregame-side="away">
+                ${teamLogo(managerTeam(fixture.game.awayId,career))}
+                <span>${escapeHtml(teamName(fixture.game.awayId))}</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="playerPreMatchLineupContent">
+            ${playerModePreMatchLineupPitchHtml(career,preMatchLineups[controlledSide])}
+          </div>
+        </section>
+
         <div class="player-match-options" style="margin-top:16px">
           <button class="btn" id="playerWatchLiveBtn" ${["injured","suspended","not_selected"].includes(selection)?"disabled":""}>🎮 Play / Watch Live</button>
           <button class="btn secondary" id="playerQuickSimBtn">⚡ Quick Sim</button>
         </div>
-        <p class="muted" style="text-align:center;margin-top:10px">Live Match will show when you enter or leave the pitch. Quick Sim records the exact substitution minute in your match history.</p>
+        <p class="muted" style="text-align:center;margin-top:10px">Review both lineups above, then choose Live Match or Quick Sim.</p>
       </div>`;
       $("playerMatchDialog").showModal();
+      root.querySelectorAll("[data-pregame-side]").forEach(button=>{
+        button.onclick=()=>playerModeRenderPreMatchLineup(career,preMatchLineups,button.dataset.pregameSide);
+      });
       $("closePlayerMatchBtn").onclick=()=>{pm.pendingMatchDate=null;$("playerMatchDialog").close()};
       $("playerQuickSimBtn").onclick=()=>playerModeQuickSim(comp.id,fixture.date);
       $("playerWatchLiveBtn").onclick=()=>{pm.pendingMatchDate=fixture.date;$("playerMatchDialog").close();startLiveMatch(comp.id)};
@@ -28306,7 +28625,7 @@ function playerModeRoadObjectives(career=currentCareerSave()){
     function renderLivePostMatchRatings(state=liveMatchState){
       const career=currentGameMode==="club-career"?currentCareerSave():null;
       const root=$("livePostMatchRatings");
-      if(!root||!state||!isPlayerMode(career))return;
+      if(!root||!state||!career||!state.playerCareer)return;
 
       const controlledSide=state.game.homeId===career.controlledTeamId?"home":"away";
       state.postMatchRatingsSide=state.postMatchRatingsSide||controlledSide;
@@ -28440,8 +28759,8 @@ function finishLiveMatchAnimation() {
         deferWorldCupFinalization:true
       });
 
-      if(isPlayerMode(currentCareerSave())){
-        const playerCareerNow=currentCareerSave();
+      const playerCareerNow=state.playerCareer?currentCareerSave():null;
+      if(state.playerCareer&&playerCareerNow){
         const pmNow=playerModeData(playerCareerNow);
         const last=pmNow?.lastMatchStatus;
 
@@ -28453,11 +28772,16 @@ function finishLiveMatchAnimation() {
 
         playerModeAdvanceBackgroundWorld(playerCareerNow,state.compId);
         saveData("");
+
+        // Always enter the ratings screen for a watched Player Career match.
+        // The live state is the authoritative flag because the competition
+        // simulation can temporarily alter the active save state.
+        state.postMatchRatingsReady=true;
         renderLivePostMatchRatings(state);
       }
 
       state.committed=true;
-      $("liveMatchFooterText").textContent=isPlayerMode(currentCareerSave())
+      $("liveMatchFooterText").textContent=state.playerCareer
         ?"Full time. Review both teams' player ratings, then continue."
         :state.decidedBy==="penalties"
           ?`${teamName(winnerId)} survive the shootout.`
@@ -28467,6 +28791,16 @@ function finishLiveMatchAnimation() {
 
       $("liveMatchContinueBtn").textContent="Continue";
       $("liveMatchContinueBtn").classList.remove("hidden");
+
+      if(state.playerCareer&&state.postMatchRatingsReady){
+        requestAnimationFrame(()=>{
+          const ratings=$("livePostMatchRatings");
+          if(ratings){
+            ratings.classList.remove("hidden");
+            ratings.scrollIntoView({behavior:"smooth",block:"start"});
+          }
+        });
+      }
     }
 
 
