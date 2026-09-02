@@ -6258,6 +6258,109 @@ body.player-mode #tab-manager-player-records{
   .player-trait-card .btn{grid-column:1/-1;width:100%}
 }
 
+
+/* V62.1 — Player Career 5-second shooting challenge */
+.live-shot-challenge{
+  margin-top:14px;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid rgba(34,197,94,.32);
+  background:
+    radial-gradient(circle at 50% 0%,rgba(34,197,94,.12),transparent 40%),
+    var(--panel-2);
+}
+.live-shot-challenge.hidden{display:none!important}
+.live-shot-challenge-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+}
+.live-shot-timer{
+  width:86px;
+  height:70px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  border:1px solid rgba(239,68,68,.30);
+  background:rgba(239,68,68,.08);
+}
+.live-shot-timer strong{font-size:25px;line-height:1}
+.live-shot-timer small{
+  margin-top:4px;
+  font-size:8px;
+  color:var(--muted);
+  font-weight:900;
+}
+.live-shot-countdown-track{
+  height:7px;
+  overflow:hidden;
+  margin:12px 0;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+}
+.live-shot-countdown-track > div{
+  width:100%;
+  height:100%;
+  background:currentColor;
+  transition:width .08s linear;
+}
+.live-shot-goal{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  min-height:165px;
+  padding:10px;
+  border:3px solid rgba(255,255,255,.22);
+  border-radius:16px 16px 6px 6px;
+  background:
+    linear-gradient(rgba(255,255,255,.04),rgba(255,255,255,.01)),
+    repeating-linear-gradient(90deg,transparent 0 24%,rgba(255,255,255,.04) 25% 26%);
+}
+.live-shot-goal button{
+  min-height:68px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:4px;
+  cursor:pointer;
+  transition:transform .12s ease,background .12s ease,border-color .12s ease,box-shadow .12s ease;
+}
+.live-shot-goal button span{font-size:23px}
+.live-shot-goal button small{font-size:9px;font-weight:900;color:var(--muted)}
+.live-shot-goal button.live-shot-target{
+  border-color:rgba(34,197,94,.95);
+  background:rgba(34,197,94,.19);
+  box-shadow:0 0 0 2px rgba(34,197,94,.16),0 0 26px rgba(34,197,94,.26);
+  transform:scale(1.015);
+  animation:liveShotPulse .58s ease-in-out infinite alternate;
+}
+.live-shot-goal button.live-shot-target small,
+.live-shot-goal button.live-shot-target span{color:#9ff0b5}
+.live-shot-goal button:disabled{cursor:default;opacity:.62}
+.live-shot-result{
+  margin-top:10px;
+  min-height:20px;
+  text-align:center;
+  font-size:12px;
+  font-weight:900;
+}
+.live-shot-result.goal{color:#81e6a0}
+.live-shot-result.miss{color:#ff9b98}
+@keyframes liveShotPulse{
+  from{box-shadow:0 0 0 1px rgba(34,197,94,.15),0 0 12px rgba(34,197,94,.18)}
+  to{box-shadow:0 0 0 3px rgba(34,197,94,.20),0 0 34px rgba(34,197,94,.42)}
+}
+@media(max-width:600px){
+  .live-shot-challenge-head{grid-template-columns:1fr auto}
+  .live-shot-goal{min-height:145px}
+}
+
 </style>
 <style id="v51Polish">
   :root{--bg:#06101f;--bg-2:#09182d;--panel:rgba(10,25,47,.94);--panel-2:rgba(15,38,70,.96);--panel-3:rgba(20,50,90,.94);--text:#f5f9ff;--muted:#9eb4d0;--accent:#4f9cff;--accent-2:#2563eb;--accent-soft:rgba(79,156,255,.15);--success:#3b82f6;--border:rgba(147,197,253,.17);--border-strong:rgba(147,197,253,.3)}
@@ -9679,6 +9782,35 @@ body.player-calendar-advancing #playerNextMatchBtn{
         </div>
       </div>
 
+      <div id="liveShotChallenge" class="live-shot-challenge hidden">
+        <div class="live-shot-challenge-head">
+          <div>
+            <div class="startup-kicker">⚽ YOUR CHANCE</div>
+            <strong id="liveShotChallengeTitle">SHOOT!</strong>
+            <p class="muted" id="liveShotChallengeCopy">Hit the highlighted opening before the timer reaches zero.</p>
+          </div>
+          <div class="live-shot-timer">
+            <strong id="liveShotChallengeTimer">5.0</strong>
+            <small>SECONDS</small>
+          </div>
+        </div>
+
+        <div class="live-shot-countdown-track">
+          <div id="liveShotCountdownBar"></div>
+        </div>
+
+        <div class="live-shot-goal" aria-label="Choose the highlighted shooting target">
+          <button type="button" data-live-shot-zone="top-left"><span>↖</span><small>Top Left</small></button>
+          <button type="button" data-live-shot-zone="top-right"><span>↗</span><small>Top Right</small></button>
+          <button type="button" data-live-shot-zone="bottom-left"><span>↙</span><small>Bottom Left</small></button>
+          <button type="button" data-live-shot-zone="bottom-right"><span>↘</span><small>Bottom Right</small></button>
+        </div>
+
+        <div id="liveShotChallengeResult" class="live-shot-result">
+          Find the glowing opening and shoot.
+        </div>
+      </div>
+
       <div id="livePenaltyPanel" class="live-penalty-panel hidden">
         <div class="live-penalty-head">
           <div>
@@ -12433,7 +12565,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
           trophies:[],
           nextFixture:null
         },
-        expansionVersion:"v62.0-player-career-complete",
+        expansionVersion:"v62.1-shooting-challenge",
         retirementEligible:false,
         retired:false,
         pendingIntroCeremony:true
@@ -12520,7 +12652,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
       pm.international.trophies=Array.isArray(pm.international.trophies)?pm.international.trophies:[];
       pm.international.nextFixture=pm.international.nextFixture||null;
       career.playerHallOfFame=Array.isArray(career.playerHallOfFame)?career.playerHallOfFame:[];
-      pm.expansionVersion="v62.0-player-career-complete";
+      pm.expansionVersion="v62.1-shooting-challenge";
       pm.discipline=pm.discipline||{seasonYellowCards:0,careerYellowCards:0,careerRedCards:0};
       pm.discipline.seasonYellowCards=Number(pm.discipline.seasonYellowCards||0);
       pm.discipline.careerYellowCards=Number(pm.discipline.careerYellowCards||0);
@@ -13545,24 +13677,25 @@ body.player-calendar-advancing #playerNextMatchBtn{
         // V61.22: Player Career progression is intentionally much faster.
         // Every real appearance earns points, then strong performances and
         // goal contributions stack additional rewards.
-        let matchDevelopmentReward=2;
+        let matchDevelopmentReward=4;
 
         if(rating>=9){
           pm.stats.motm++;
           season.motm++;
-          matchDevelopmentReward+=8;
+          matchDevelopmentReward+=12;
         }else if(rating>=8){
-          matchDevelopmentReward+=6;
+          matchDevelopmentReward+=9;
         }else if(rating>=7.2){
-          matchDevelopmentReward+=4;
+          matchDevelopmentReward+=6;
         }else if(rating>=6.5){
-          matchDevelopmentReward+=2;
+          matchDevelopmentReward+=3;
         }
 
-        matchDevelopmentReward+=(Number(goals||0)*3);
-        matchDevelopmentReward+=(Number(assists||0)*3);
+        matchDevelopmentReward+=(Number(goals||0)*6);
+        matchDevelopmentReward+=(Number(assists||0)*5);
 
-        if(metrics.cleanSheet)matchDevelopmentReward+=2;
+        if(metrics.cleanSheet)matchDevelopmentReward+=3;
+        if(playerModeIsBigMatch(comp)&&rating>=7.5)matchDevelopmentReward+=4;
 
         pm.developmentPoints+=matchDevelopmentReward;
         pm.managerTrust=clamp(pm.managerTrust+(rating>=8?4:rating>=7?2:rating<6?-3:0),0,100);
@@ -27310,6 +27443,37 @@ function playerModeRoadObjectives(career=currentCareerSave()){
         .filter(event=>event.minute<=90)
         .concat(liveExtraTimeGoalEvents(eth,eta,extraScorers));
 
+      if(isPlayerMode(career)&&state.playerCareer?.onPitch){
+        const pm=playerModeData(career),player=playerModePlayer(career);
+        const userSide=state.game.homeId===career.controlledTeamId?"home":"away";
+
+        state.goalEvents
+          .filter(event=>Number(event.minute||0)>90&&event.type==="goal"&&event.scorerId===pm?.playerId)
+          .forEach(event=>{
+            event.playerShotChallenge=true;
+            event.originalSimulatedGoal=true;
+          });
+
+        const occupied=new Set(state.goalEvents.map(event=>Number(event.minute||0)));
+        if(player&&player.position!=="GK"&&Math.random()<.34){
+          let shotMinute=108+Math.floor(Math.random()*10),guard=0;
+          while(occupied.has(shotMinute)&&guard<20){
+            shotMinute=108+Math.floor(Math.random()*10);
+            guard++;
+          }
+          state.goalEvents.push({
+            minute:shotMinute,
+            type:"player-shot",
+            side:userSide,
+            scorerId:pm.playerId,
+            playerShotChallenge:true,
+            bonusChance:true
+          });
+        }
+
+        state.goalEvents.sort((a,b)=>Number(a.minute||0)-Number(b.minute||0));
+      }
+
       state.finalHomeGoals=state.displayHomeGoals+eth;
       state.finalAwayGoals=state.displayAwayGoals+eta;
       state.scorerIds=state.scorerIds||{home:[],away:[]};
@@ -27610,6 +27774,8 @@ function playerModeRoadObjectives(career=currentCareerSave()){
 
       clearInterval(liveMatchTimer);
       liveMatchTimer = null;
+      liveShotCleanupTimers();
+      $("liveShotChallenge")?.classList.add("hidden");
 
       const state=liveMatchState;
       const endMinute=state.wentExtraTime?120:90;
@@ -27882,7 +28048,307 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       return pool[pool.length-1];
     }
 
-    function tickLiveMatch() {
+    
+    let liveShotChallengeTimer=null;
+    let liveShotChallengeTicker=null;
+
+    function playerModeBuildLiveShotChances(state,career){
+      if(!state?.playerCareer||!isPlayerMode(career))return;
+
+      const pm=playerModeData(career),
+        player=playerModePlayer(career);
+
+      if(!pm||!player||player.position==="GK")return;
+
+      const pc=state.playerCareer;
+      if(!["starter","bench"].includes(pc.selection))return;
+
+      const userId=pm.playerId;
+      const userSide=state.game.homeId===career.controlledTeamId?"home":"away";
+
+      // Goals that were already assigned to the controlled player now require
+      // the player to complete the shooting challenge instead of happening
+      // automatically.
+      const existing=(state.goalEvents||[]).filter(event=>
+        event.type==="goal" &&
+        event.side===userSide &&
+        event.scorerId===userId
+      );
+
+      existing.forEach(event=>{
+        event.playerShotChallenge=true;
+        event.originalSimulatedGoal=true;
+      });
+
+      const expectedOn=Math.max(1,Number(pc.selection==="bench"?pc.subOnMinute||62:1));
+      const expectedOff=Math.min(89,Number(pc.subOffMinute||89));
+      if(expectedOff-expectedOn<10)return;
+
+      const occupied=new Set((state.goalEvents||[]).map(event=>Number(event.minute||0)));
+
+      function chooseMinute(extraOffset=0){
+        const low=Math.max(expectedOn+5,8+extraOffset);
+        const high=Math.max(low+1,Math.min(expectedOff-4,87));
+        let minute=low+Math.floor(Math.random()*Math.max(1,high-low+1));
+        let guard=0;
+
+        while(
+          (
+            occupied.has(minute) ||
+            Math.abs(minute-60)<2 ||
+            Math.abs(minute-78)<2 ||
+            minute===45 || minute===46
+          ) &&
+          guard<60
+        ){
+          minute=low+Math.floor(Math.random()*Math.max(1,high-low+1));
+          guard++;
+        }
+
+        occupied.add(minute);
+        return minute;
+      }
+
+      // Every outfield player who is scheduled to play gets at least one
+      // shooting opportunity in a watched Player Career match.
+      if(existing.length===0){
+        state.goalEvents.push({
+          minute:chooseMinute(),
+          type:"player-shot",
+          side:userSide,
+          scorerId:userId,
+          playerShotChallenge:true,
+          bonusChance:true
+        });
+      }
+
+      // Attackers can create a second opportunity more often.
+      const secondChance=
+        ["ST","LW","RW","CAM"].includes(player.position)
+          ? .45 + Math.max(0,Number(player.overall||70)-80)*.012
+          : player.position==="CM"
+            ? .25
+            : .10;
+
+      if(existing.length<2 && Math.random()<clamp(secondChance,.08,.68)){
+        state.goalEvents.push({
+          minute:chooseMinute(9),
+          type:"player-shot",
+          side:userSide,
+          scorerId:userId,
+          playerShotChallenge:true,
+          bonusChance:true
+        });
+      }
+
+      state.goalEvents.sort((a,b)=>Number(a.minute||0)-Number(b.minute||0));
+    }
+
+    function liveApplyGoalEvent(event,state,minute){
+      if(!event||event._processed)return;
+      event._processed=true;
+
+      liveResolveGoalScorer(event,state,minute);
+
+      if(event.side==="home")state.displayHomeGoals++;
+      else state.displayAwayGoals++;
+
+      setLiveMatchScore(state.displayHomeGoals,state.displayAwayGoals);
+
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      const teamId=event.side==="home"?state.game.homeId:state.game.awayId;
+      const scorerName=event.scorerId
+        ?managerPlayerById(event.scorerId,career)?.name
+        :null;
+
+      addLiveMatchFeed(
+        `${minute}'`,
+        `⚽ GOAL — ${scorerName?`${scorerName} · `:""}${teamName(teamId)}`,
+        "goal"
+      );
+    }
+
+    function liveShotSetButtonsDisabled(disabled){
+      document.querySelectorAll("[data-live-shot-zone]").forEach(button=>{
+        button.disabled=!!disabled;
+      });
+    }
+
+    function liveShotCleanupTimers(){
+      if(liveShotChallengeTimer){
+        clearTimeout(liveShotChallengeTimer);
+        liveShotChallengeTimer=null;
+      }
+      if(liveShotChallengeTicker){
+        clearInterval(liveShotChallengeTicker);
+        liveShotChallengeTicker=null;
+      }
+    }
+
+    function liveShotResumeMatch(){
+      const state=liveMatchState;
+      if(!state||state.committed)return;
+
+      $("liveShotChallenge")?.classList.add("hidden");
+      state.shotChallenge=null;
+
+      if(!state.shootout&&!liveMatchTimer){
+        liveMatchTimer=setInterval(tickLiveMatch,180);
+      }
+    }
+
+    function resolveLiveShotChallenge(chosenZone=null,reason="click"){
+      const state=liveMatchState,
+        challenge=state?.shotChallenge;
+
+      if(!challenge||challenge.resolved)return;
+      challenge.resolved=true;
+
+      liveShotCleanupTimers();
+      liveShotSetButtonsDisabled(true);
+
+      const event=challenge.event;
+      const correct=reason==="click"&&chosenZone===challenge.targetZone;
+      const result=$("liveShotChallengeResult");
+
+      if(correct){
+        event.type="goal";
+        event.scorerId=challenge.playerId;
+        liveApplyGoalEvent(event,state,challenge.minute);
+
+        const career=currentGameMode==="club-career"?currentCareerSave():null;
+        const pm=isPlayerMode(career)?playerModeData(career):null;
+        if(pm){
+          pm.developmentPoints=Number(pm.developmentPoints||0)+3;
+          pm.liveShotChallengeGoals=Number(pm.liveShotChallengeGoals||0)+1;
+        }
+
+        if(result){
+          result.textContent="GOAL! Perfect reaction · +3 DP shooting bonus";
+          result.className="live-shot-result goal";
+        }
+
+        addLiveMatchFeed(
+          `${challenge.minute}'`,
+          "🎯 YOU FINISHED THE CHANCE! +3 Development Points.",
+          "major"
+        );
+        $("liveMatchFooterText").textContent="You hit the opening in time. GOAL.";
+      }else{
+        event.type="shot-miss";
+        event._processed=true;
+        event.scorerId=challenge.playerId;
+
+        if(result){
+          result.textContent=reason==="timeout"
+            ?"MISS! The 5 seconds ran out."
+            :"MISS! You chose the wrong opening.";
+          result.className="live-shot-result miss";
+        }
+
+        addLiveMatchFeed(
+          `${challenge.minute}'`,
+          reason==="timeout"
+            ?"❌ YOUR SHOT — Too late. Chance missed."
+            :"❌ YOUR SHOT — Wrong target. Chance missed.",
+          "major"
+        );
+
+        $("liveMatchFooterText").textContent=reason==="timeout"
+          ?"Five seconds expired. The chance is gone."
+          :"Wrong target. The shot misses.";
+      }
+
+      liveRebuildActualScorerIds(state);
+      setTimeout(liveShotResumeMatch,650);
+    }
+
+    function beginLiveShotChallenge(event,state=liveMatchState){
+      const career=currentGameMode==="club-career"?currentCareerSave():null;
+      if(!state||!event||!isPlayerMode(career)||state.shotChallenge)return false;
+
+      const pm=playerModeData(career),
+        player=playerModePlayer(career);
+
+      if(
+        !pm || !player ||
+        !state.playerCareer?.onPitch ||
+        event.side!==(state.game.homeId===career.controlledTeamId?"home":"away")
+      ){
+        return false;
+      }
+
+      event._challengeTriggered=true;
+
+      clearInterval(liveMatchTimer);
+      liveMatchTimer=null;
+
+      const zones=["top-left","top-right","bottom-left","bottom-right"];
+      const targetZone=zones[Math.floor(Math.random()*zones.length)];
+      const startedAt=performance.now();
+      const duration=5000;
+
+      state.shotChallenge={
+        event,
+        minute:Number(event.minute||state.minute||0),
+        playerId:pm.playerId,
+        targetZone,
+        startedAt,
+        duration,
+        resolved:false
+      };
+
+      const panel=$("liveShotChallenge"),
+        timer=$("liveShotChallengeTimer"),
+        bar=$("liveShotCountdownBar"),
+        result=$("liveShotChallengeResult");
+
+      panel?.classList.remove("hidden");
+      $("livePenaltyPanel")?.classList.add("hidden");
+      $("liveMatchDecision")?.classList.add("hidden");
+
+      if($("liveShotChallengeTitle")){
+        $("liveShotChallengeTitle").textContent=`${player.name.toUpperCase()} — SHOOT!`;
+      }
+
+      if($("liveShotChallengeCopy")){
+        $("liveShotChallengeCopy").textContent="One opening is glowing. Hit that exact corner before 5 seconds expires.";
+      }
+
+      if(result){
+        result.textContent="Find the glowing opening and shoot.";
+        result.className="live-shot-result";
+      }
+
+      document.querySelectorAll("[data-live-shot-zone]").forEach(button=>{
+        button.disabled=false;
+        button.classList.toggle("live-shot-target",button.dataset.liveShotZone===targetZone);
+      });
+
+      if(timer)timer.textContent="5.0";
+      if(bar)bar.style.width="100%";
+
+      $("liveMatchFooterText").textContent="YOUR CHANCE — the match is paused. You have 5 seconds.";
+
+      liveShotChallengeTicker=setInterval(()=>{
+        const active=liveMatchState?.shotChallenge;
+        if(!active||active.resolved)return;
+
+        const elapsed=performance.now()-active.startedAt;
+        const remaining=Math.max(0,active.duration-elapsed);
+
+        if(timer)timer.textContent=(remaining/1000).toFixed(1);
+        if(bar)bar.style.width=`${(remaining/active.duration)*100}%`;
+      },75);
+
+      liveShotChallengeTimer=setTimeout(()=>{
+        resolveLiveShotChallenge(null,"timeout");
+      },duration);
+
+      return true;
+    }
+
+function tickLiveMatch() {
       const state=liveMatchState;
       if(!state||state.committed||state.shootout)return;
 
@@ -27895,28 +28361,24 @@ function playerModeRoadObjectives(career=currentCareerSave()){
 
       playerModeProcessLiveSubstitution(minute,state);
 
-      const goals=state.goalEvents.filter(event=>event.minute===minute);
-      goals.forEach(event=>{
-        // A scorer was selected before kickoff. Re-check that the controlled
-        // Player Career footballer is still physically on the pitch now.
-        liveResolveGoalScorer(event,state,minute);
+      const goals=state.goalEvents.filter(event=>
+        Number(event.minute||0)===minute &&
+        !event._processed
+      );
 
-        if(event.side==="home")state.displayHomeGoals++;
-        else state.displayAwayGoals++;
+      const interactiveShot=goals.find(event=>
+        event.playerShotChallenge &&
+        !event._challengeTriggered &&
+        state.playerCareer?.onPitch
+      );
 
-        setLiveMatchScore(state.displayHomeGoals,state.displayAwayGoals);
+      if(interactiveShot&&beginLiveShotChallenge(interactiveShot,state)){
+        return;
+      }
 
-        const teamId=event.side==="home"?state.game.homeId:state.game.awayId;
-        const scorerName=event.scorerId
-          ?managerPlayerById(event.scorerId,currentCareerSave())?.name
-          :null;
-
-        addLiveMatchFeed(
-          `${minute}'`,
-          `⚽ GOAL — ${scorerName?`${scorerName} · `:""}${teamName(teamId)}`,
-          "goal"
-        );
-      });
+      goals
+        .filter(event=>event.type==="goal")
+        .forEach(event=>liveApplyGoalEvent(event,state,minute));
 
       if(minute===1){
         $("liveMatchPhase").textContent="FIRST HALF";
@@ -27937,7 +28399,7 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       }else if(minute===106){
         $("liveMatchPhase").textContent="EXTRA TIME · SECOND HALF";
         addLiveMatchFeed("106'","Fifteen minutes remain before penalties.","major");
-      }else if([14,29,38,58,72,83,97,111,117].includes(minute)&&!goals.length){
+      }else if([14,29,38,58,72,83,97,111,117].includes(minute)&&!goals.some(event=>event.type==="goal")){
         addLiveMatchFeed(
           `${minute}'`,
           state.wentExtraTime
@@ -28053,6 +28515,10 @@ function playerModeRoadObjectives(career=currentCareerSave()){
         }:null
       };
 
+      if(isPlayerMode(managerCareer)){
+        playerModeBuildLiveShotChances(liveMatchState,managerCareer);
+      }
+
       $("liveMatchCompetition").textContent = comp.name;
       $("liveMatchStage").textContent = stage === "League" || stage === "Groups"
         ? `${stage} · Matchday ${Number(comp.currentMatchday||0)+1}`
@@ -28076,6 +28542,9 @@ function playerModeRoadObjectives(career=currentCareerSave()){
       $("liveMatchContinueBtn").classList.add("hidden");
       $("liveMatchDecision").classList.add("hidden");
       $("livePenaltyPanel").classList.add("hidden");
+      $("liveShotChallenge")?.classList.add("hidden");
+      liveShotCleanupTimers();
+      liveShotSetButtonsDisabled(false);
       $("liveMatchPhase").classList.remove("extra-time","penalties");
       document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.disabled=false);
       setLiveMatchScore(0,0);
@@ -28092,6 +28561,8 @@ function playerModeRoadObjectives(career=currentCareerSave()){
 
       clearInterval(liveMatchTimer);
       liveMatchTimer = null;
+      liveShotCleanupTimers();
+      $("liveShotChallenge")?.classList.add("hidden");
       $("liveMatchDialog").close();
       liveMatchState = null;
 
@@ -32347,6 +32818,10 @@ function renderWorldCupQualification() {
     $("liveMatchContinueBtn").addEventListener("click",continueAfterLiveMatch);
     document.querySelectorAll("[data-live-decision]").forEach(button=>button.addEventListener("click",()=>applyLiveMatchDecision(button.dataset.liveDecision)));
     document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.addEventListener("click",()=>livePenaltyChoose(button.dataset.penaltyZone)));
+    document.querySelectorAll("[data-live-shot-zone]").forEach(button=>button.addEventListener("click",()=>{
+      if(!liveMatchState?.shotChallenge||liveMatchState.shotChallenge.resolved)return;
+      resolveLiveShotChallenge(button.dataset.liveShotZone,"click");
+    }));
     $("liveMatchDialog").addEventListener("cancel",event => {
       if (liveMatchState) event.preventDefault();
     });
